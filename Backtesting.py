@@ -5,7 +5,46 @@ import matplotlib.pyplot as plt
 from datetime import datetime
 
 class BacktestStaticPortfolio:
+    """
+    A class to backtest a static portfolio with adjustable weights based on Simple Moving Average (SMA).
+
+    Attributes
+    ----------
+    assets_weights : dict
+        Dictionary containing asset tickers and their corresponding weights.
+    start_date : str
+        Start date for the backtest.
+    end_date : str
+        End date for the backtest.
+    sma_period : int
+        Period for calculating the Simple Moving Average.
+    bond_ticker : str
+        Ticker symbol for the bond asset.
+    cash_ticker : str
+        Ticker symbol for the cash asset.
+    initial_portfolio_value : float
+        Initial value of the portfolio.
+    _data : DataFrame
+        DataFrame to store the adjusted close prices of the assets.
+    _portfolio_value : Series
+        Series to store the portfolio value over time.
+    _returns : Series
+        Series to store the portfolio returns over time.
+    """
+
     def __init__(self, assets_weights, start_date, end_date):
+        """
+        Initializes the BacktestStaticPortfolio with asset weights, start date, and end date.
+
+        Parameters
+        ----------
+        assets_weights : dict
+            Dictionary containing asset tickers and their corresponding weights.
+        start_date : str
+            Start date for the backtest.
+        end_date : str
+            End date for the backtest.
+        """
         self.assets_weights = assets_weights
         self.start_date = start_date
         self.end_date = end_date
@@ -13,45 +52,81 @@ class BacktestStaticPortfolio:
         self.bond_ticker = 'BND'
         self.cash_ticker = 'SHV'
         self.initial_portfolio_value = 10000
-        self.data = None
-        self.portfolio_value = pd.Series(dtype=float)
-        self.returns = pd.Series(dtype=float)
-    
+        self._data = None
+        self._portfolio_value = pd.Series(dtype=float)
+        self._returns = pd.Series(dtype=float)
+
     def process(self):
-        self.data = self.fetch_data()
-        self.run_backtest()
-        self.plot_portfolio_value()
-        self.plot_var_cvar()
+        """
+        Processes the backtest by fetching data, running the backtest, and plotting results.
+        """
+        self._data = self._fetch_data()
+        self._run_backtest()
+        self._plot_portfolio_value()
+        self._plot_var_cvar()
 
+    def _fetch_data(self):
+        """
+        Fetches historical adjusted close prices for the given assets, bond, and cash tickers.
 
-    def fetch_data(self):
+        Returns
+        -------
+        DataFrame
+            DataFrame containing the adjusted close prices.
+        """
         all_tickers = list(self.assets_weights.keys()) + [self.bond_ticker, self.cash_ticker]
         data = yf.download(all_tickers, start=self.start_date, end=self.end_date)['Adj Close']
         return data
-    
 
-    def calculate_sma(self, data):
+    def _calculate_sma(self, data):
+        """
+        Calculates the Simple Moving Average (SMA) for the given data.
+
+        Parameters
+        ----------
+        data : DataFrame
+            DataFrame containing asset prices.
+
+        Returns
+        -------
+        DataFrame
+            DataFrame containing the SMA values.
+        """
         return data.rolling(window=self.sma_period).mean()
-    
 
-    def adjust_weights(self, current_date):
+    def _adjust_weights(self, current_date):
+        """
+        Adjusts the asset weights based on SMA conditions.
+
+        Parameters
+        ----------
+        current_date : datetime
+            The current date for weight adjustment.
+
+        Returns
+        -------
+        dict
+            Dictionary containing the adjusted weights.
+        """
         adjusted_weights = self.assets_weights.copy()
         for ticker in self.assets_weights.keys():
-            if self.data.loc[:current_date, ticker].iloc[-1] < self.data.loc[:current_date, ticker].rolling(window=self.sma_period).mean().iloc[-1]:
-                if self.data.loc[:current_date, self.bond_ticker].iloc[-1] < self.data.loc[:current_date, self.bond_ticker].rolling(window=self.sma_period).mean().iloc[-1]:
+            if self._data.loc[:current_date, ticker].iloc[-1] < self._data.loc[:current_date, ticker].rolling(window=self.sma_period).mean().iloc[-1]:
+                if self._data.loc[:current_date, self.bond_ticker].iloc[-1] < self._data.loc[:current_date, self.bond_ticker].rolling(window=self.sma_period).mean().iloc[-1]:
                     adjusted_weights[ticker] = 0
                     adjusted_weights[self.cash_ticker] = adjusted_weights.get(self.cash_ticker, 0) + self.assets_weights[ticker]
                 else:
                     adjusted_weights[ticker] = 0
                     adjusted_weights[self.bond_ticker] = adjusted_weights.get(self.bond_ticker, 0) + self.assets_weights[ticker]
-        
+
         total_weight = sum(adjusted_weights.values())
         for ticker in adjusted_weights:
             adjusted_weights[ticker] /= total_weight
         return adjusted_weights
-    
 
-    def run_backtest(self):
+    def _run_backtest(self):
+        """
+        Runs the backtest by calculating portfolio value and returns over time.
+        """
         monthly_dates = pd.date_range(start=self.start_date, end=self.end_date, freq='M')
         portfolio_values = [self.initial_portfolio_value]
         portfolio_returns = []
@@ -59,74 +134,123 @@ class BacktestStaticPortfolio:
         for i in range(len(monthly_dates) - 1):
             current_date = monthly_dates[i]
             next_date = monthly_dates[i + 1]
-            last_date_current_month = self.data.index[self.data.index.get_loc(current_date, method='pad')]
-            last_date_next_month = self.data.index[self.data.index.get_loc(next_date, method='pad')]
-            
-            adjusted_weights = self.adjust_weights(last_date_current_month)
+            last_date_current_month = self._data.index[self._data.index.get_loc(current_date, method='pad')]
+            last_date_next_month = self._data.index[self._data.index.get_loc(next_date, method='pad')]
+
+            adjusted_weights = self._adjust_weights(last_date_current_month)
             previous_value = portfolio_values[-1]
-            
-            month_end_data = self.data.loc[last_date_next_month]
-            month_start_data = self.data.loc[last_date_current_month]
+
+            month_end_data = self._data.loc[last_date_next_month]
+            month_start_data = self._data.loc[last_date_current_month]
             monthly_returns = (month_end_data / month_start_data) - 1
             month_return = sum([monthly_returns[ticker] * weight for ticker, weight in adjusted_weights.items()])
             new_portfolio_value = previous_value * (1 + month_return)
             portfolio_values.append(new_portfolio_value)
             portfolio_returns.append(month_return)
-        
-        self.portfolio_value = pd.Series(portfolio_values, index=pd.date_range(start=self.start_date, periods=len(portfolio_values), freq='M'))
-        self.returns = pd.Series(portfolio_returns, index=pd.date_range(start=self.start_date, periods=len(portfolio_returns), freq='M'))
-    
 
-    def calculate_var_cvar(self, confidence_level=0.95):
-        sorted_returns = np.sort(self.returns.dropna())
+        self._portfolio_value = pd.Series(portfolio_values, index=pd.date_range(start=self.start_date, periods=len(portfolio_values), freq='M'))
+        self._returns = pd.Series(portfolio_returns, index=pd.date_range(start=self.start_date, periods=len(portfolio_returns), freq='M'))
+
+    def _calculate_var_cvar(self, confidence_level=0.95):
+        """
+        Calculates the Value at Risk (VaR) and Conditional Value at Risk (CVaR) for the portfolio returns.
+
+        Parameters
+        ----------
+        confidence_level : float, optional
+            Confidence level for VaR and CVaR calculation (default is 0.95).
+
+        Returns
+        -------
+        tuple
+            VaR and CVaR values.
+        """
+        sorted_returns = np.sort(self._returns.dropna())
         index = int((1 - confidence_level) * len(sorted_returns))
         var = sorted_returns[index]
         cvar = sorted_returns[:index].mean()
         return var, cvar
-    
 
-    def calculate_cagr(self):
-        total_period = (self.portfolio_value.index[-1] - self.portfolio_value.index[0]).days / 365.25
-        cagr = (self.portfolio_value.iloc[-1] / self.portfolio_value.iloc[0]) ** (1 / total_period) - 1
+    def _calculate_cagr(self):
+        """
+        Calculates the Compound Annual Growth Rate (CAGR) of the portfolio.
+
+        Returns
+        -------
+        float
+            CAGR value.
+        """
+        total_period = (self._portfolio_value.index[-1] - self._portfolio_value.index[0]).days / 365.25
+        cagr = (self._portfolio_value.iloc[-1] / self._portfolio_value.iloc[0]) ** (1 / total_period) - 1
         return cagr
-    
 
-    def calculate_average_annual_return(self):
-        average_monthly_return = self.returns.mean()
+    def _calculate_average_annual_return(self):
+        """
+        Calculates the average annual return of the portfolio.
+
+        Returns
+        -------
+        float
+            Average annual return.
+        """
+        average_monthly_return = self._returns.mean()
         average_annual_return = (1 + average_monthly_return) ** 12 - 1
         return average_annual_return
-    
 
-    def calculate_max_drawdown(self):
-        running_max = self.portfolio_value.cummax()
-        drawdown = (self.portfolio_value - running_max) / running_max
+    def _calculate_max_drawdown(self):
+        """
+        Calculates the maximum drawdown of the portfolio.
+
+        Returns
+        -------
+        float
+            Maximum drawdown value.
+        """
+        running_max = self._portfolio_value.cummax()
+        drawdown = (self._portfolio_value - running_max) / running_max
         max_drawdown = drawdown.min()
         return max_drawdown
-    
 
     def get_portfolio_value(self):
-        return self.portfolio_value
-    
+        """
+        Returns the portfolio value over time.
 
-    def plot_portfolio_value(self):
+        Returns
+        -------
+        Series
+            Series containing the portfolio value over time.
+        """
+        return self._portfolio_value
+
+    def _plot_portfolio_value(self):
+        """
+        Plots the portfolio value over time.
+        """
         plt.figure(figsize=(10, 6))
-        plt.plot(self.portfolio_value, label='Portfolio Value')
+        plt.plot(self._portfolio_value, label='Portfolio Value')
         plt.title('Portfolio Value Over Time')
         plt.xlabel('Date')
         plt.ylabel('Portfolio Value ($)')
         plt.legend()
         plt.grid(True)
         plt.show()
-    
-    
-    def plot_var_cvar(self, confidence_level=0.95):
-        var, cvar = self.calculate_var_cvar(confidence_level)
-        cagr = self.calculate_cagr()
-        avg_annual_return = self.calculate_average_annual_return()
-        max_drawdown = self.calculate_max_drawdown()
-        
+
+    def _plot_var_cvar(self, confidence_level=0.95):
+        """
+        Plots the portfolio returns with VaR and CVaR.
+
+        Parameters
+        ----------
+        confidence_level : float, optional
+            Confidence level for VaR and CVaR calculation (default is 0.95).
+        """
+        var, cvar = self._calculate_var_cvar(confidence_level)
+        cagr = self._calculate_cagr()
+        avg_annual_return = self._calculate_average_annual_return()
+        max_drawdown = self._calculate_max_drawdown()
+
         plt.figure(figsize=(10, 6))
-        plt.hist(self.returns.dropna(), bins=30, alpha=0.75, label='Returns')
+        plt.hist(self._returns.dropna(), bins=30, alpha=0.75, label='Returns')
         plt.axvline(var, color='r', linestyle='--', label=f'VaR ({confidence_level * 100}%): {var:.2%}')
         plt.axvline(cvar, color='g', linestyle='--', label=f'CVaR ({confidence_level * 100}%): {cvar:.2%}')
         plt.title('Portfolio Returns with VaR and CVaR')
@@ -139,8 +263,8 @@ class BacktestStaticPortfolio:
         plt.show()
 
 
-assets_weights = {'VINIX': 0.7, 'VSCIX': 0.3}
-# assets_weights = {'VTI': 0.3, 'TLT': 0.4, 'IEI': 0.15, 'GLD': 0.075, 'DBC': 0.075}
+# assets_weights = {'VINIX': 0.7, 'VSCIX': 0.3}
+assets_weights = {'VTI': 0.3, 'TLT': 0.4, 'IEI': 0.15, 'GLD': 0.075, 'DBC': 0.075}
 start_date = '2010-01-01'
 end_date = '2024-08-01'
 
