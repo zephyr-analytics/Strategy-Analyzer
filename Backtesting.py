@@ -13,18 +13,27 @@ class BacktestStaticPortfolio:
         self.bond_ticker = 'BND'
         self.cash_ticker = 'SHV'
         self.initial_portfolio_value = 10000
-        self.data = self.fetch_data()
+        self.data = None
         self.portfolio_value = pd.Series(dtype=float)
         self.returns = pd.Series(dtype=float)
     
+    def process(self):
+        self.data = self.fetch_data()
+        self.run_backtest()
+        self.plot_portfolio_value()
+        self.plot_var_cvar()
+
+
     def fetch_data(self):
         all_tickers = list(self.assets_weights.keys()) + [self.bond_ticker, self.cash_ticker]
         data = yf.download(all_tickers, start=self.start_date, end=self.end_date)['Adj Close']
         return data
     
+
     def calculate_sma(self, data):
         return data.rolling(window=self.sma_period).mean()
     
+
     def adjust_weights(self, current_date):
         adjusted_weights = self.assets_weights.copy()
         for ticker in self.assets_weights.keys():
@@ -41,6 +50,7 @@ class BacktestStaticPortfolio:
             adjusted_weights[ticker] /= total_weight
         return adjusted_weights
     
+
     def run_backtest(self):
         monthly_dates = pd.date_range(start=self.start_date, end=self.end_date, freq='M')
         portfolio_values = [self.initial_portfolio_value]
@@ -66,6 +76,7 @@ class BacktestStaticPortfolio:
         self.portfolio_value = pd.Series(portfolio_values, index=pd.date_range(start=self.start_date, periods=len(portfolio_values), freq='M'))
         self.returns = pd.Series(portfolio_returns, index=pd.date_range(start=self.start_date, periods=len(portfolio_returns), freq='M'))
     
+
     def calculate_var_cvar(self, confidence_level=0.95):
         sorted_returns = np.sort(self.returns.dropna())
         index = int((1 - confidence_level) * len(sorted_returns))
@@ -73,25 +84,30 @@ class BacktestStaticPortfolio:
         cvar = sorted_returns[:index].mean()
         return var, cvar
     
+
     def calculate_cagr(self):
         total_period = (self.portfolio_value.index[-1] - self.portfolio_value.index[0]).days / 365.25
         cagr = (self.portfolio_value.iloc[-1] / self.portfolio_value.iloc[0]) ** (1 / total_period) - 1
         return cagr
     
+
     def calculate_average_annual_return(self):
         average_monthly_return = self.returns.mean()
         average_annual_return = (1 + average_monthly_return) ** 12 - 1
         return average_annual_return
     
+
     def calculate_max_drawdown(self):
         running_max = self.portfolio_value.cummax()
         drawdown = (self.portfolio_value - running_max) / running_max
         max_drawdown = drawdown.min()
         return max_drawdown
     
+
     def get_portfolio_value(self):
         return self.portfolio_value
     
+
     def plot_portfolio_value(self):
         plt.figure(figsize=(10, 6))
         plt.plot(self.portfolio_value, label='Portfolio Value')
@@ -101,6 +117,7 @@ class BacktestStaticPortfolio:
         plt.legend()
         plt.grid(True)
         plt.show()
+    
     
     def plot_var_cvar(self, confidence_level=0.95):
         var, cvar = self.calculate_var_cvar(confidence_level)
@@ -122,15 +139,10 @@ class BacktestStaticPortfolio:
         plt.show()
 
 
-assets_weights = {'VINIX': 0.3, 'VSCIX': 0.4}
+assets_weights = {'VINIX': 0.7, 'VSCIX': 0.3}
 # assets_weights = {'VTI': 0.3, 'TLT': 0.4, 'IEI': 0.15, 'GLD': 0.075, 'DBC': 0.075}
 start_date = '2010-01-01'
 end_date = '2024-08-01'
 
 backtest = BacktestStaticPortfolio(assets_weights, start_date, end_date)
-backtest.run_backtest()
-portfolio_value = backtest.get_portfolio_value()
-
-print(portfolio_value)
-backtest.plot_portfolio_value()
-backtest.plot_var_cvar()
+backtest.process()
