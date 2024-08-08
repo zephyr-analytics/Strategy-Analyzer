@@ -37,17 +37,36 @@ def load_weights():
 
     Returns
     -------
-    dict
-        Dictionary containing asset weights.
+    dict, str
+        Dictionary containing asset weights and the filename.
     """
     file_path = filedialog.askopenfilename(filetypes=[("CSV Files", "*.csv")])
     if file_path:
         df = pd.read_csv(file_path)
-        return df.set_index('Ticker')['Weight'].to_dict()
-    return {}
+        weights = df.set_index('Ticker')['Weight'].to_dict()
+        filename = os.path.basename(file_path)
+        return weights, filename
+    return {}, ""
 
 
-def save_html(fig, filename):
+def strip_csv_extension(filename):
+    """
+    Strips the .csv extension from the given filename.
+
+    Parameters
+    ----------
+    filename : str
+        The filename from which to remove the .csv extension.
+
+    Returns
+    -------
+    str
+        The filename without the .csv extension.
+    """
+    return os.path.splitext(filename)[0]
+
+
+def save_html(fig, filename, output_filename):
     """
     Save the HTML file to the 'artifacts' directory within the current working directory.
 
@@ -56,9 +75,11 @@ def save_html(fig, filename):
         The figure object to save as an HTML file.
     filename : str
         The name of the HTML file.
+    output_filename : str
+        The output filename to include in the file path.
     """
     current_directory = os.getcwd()
     artifacts_directory = os.path.join(current_directory, 'artifacts')
     os.makedirs(artifacts_directory, exist_ok=True)
-    file_path = os.path.join(artifacts_directory, filename)
+    file_path = os.path.join(artifacts_directory, f"{output_filename}_{filename}")
     fig.write_html(file_path)

@@ -33,7 +33,7 @@ class BacktestStaticPortfolio:
         Series to store the portfolio returns over time.
     """
 
-    def __init__(self, assets_weights, start_date, end_date):
+    def __init__(self, assets_weights, start_date, end_date, output_filename):
         """
         Initializes the BacktestStaticPortfolio class with given asset weights, start date, and end date.
 
@@ -56,6 +56,7 @@ class BacktestStaticPortfolio:
         self._data = None
         self._portfolio_value = pd.Series(dtype=float)
         self._returns = pd.Series(dtype=float)
+        self.output_filename = output_filename
 
 
     def process(self):
@@ -64,8 +65,8 @@ class BacktestStaticPortfolio:
         """
         self._data = utilities.fetch_data(self.assets_weights, self.start_date, self.end_date, self.bond_ticker, self.cash_ticker)
         self._run_backtest()
-        self.plot_portfolio_value()
-        self.plot_var_cvar()
+        self.plot_portfolio_value(self.output_filename)
+        self.plot_var_cvar(self.output_filename)
 
 
     def _adjust_weights(self, current_date):
@@ -91,7 +92,6 @@ class BacktestStaticPortfolio:
                 else:
                     adjusted_weights[ticker] = 0
                     adjusted_weights[self.bond_ticker] = adjusted_weights.get(self.bond_ticker, 0) + self.assets_weights[ticker]
-
         total_weight = sum(adjusted_weights.values())
         for ticker in adjusted_weights:
             adjusted_weights[ticker] /= total_weight
@@ -105,16 +105,13 @@ class BacktestStaticPortfolio:
         monthly_dates = pd.date_range(start=self.start_date, end=self.end_date, freq='M')
         portfolio_values = [self.initial_portfolio_value]
         portfolio_returns = []
-
         for i in range(len(monthly_dates) - 1):
             current_date = monthly_dates[i]
             next_date = monthly_dates[i + 1]
             last_date_current_month = self._data.index[self._data.index.get_loc(current_date, method='pad')]
             last_date_next_month = self._data.index[self._data.index.get_loc(next_date, method='pad')]
-
             adjusted_weights = self._adjust_weights(last_date_current_month)
             previous_value = portfolio_values[-1]
-
             month_end_data = self._data.loc[last_date_next_month]
             month_start_data = self._data.loc[last_date_current_month]
             monthly_returns = (month_end_data / month_start_data) - 1
@@ -122,7 +119,6 @@ class BacktestStaticPortfolio:
             new_portfolio_value = previous_value * (1 + month_return)
             portfolio_values.append(new_portfolio_value)
             portfolio_returns.append(month_return)
-
         self._portfolio_value = pd.Series(portfolio_values, index=pd.date_range(start=self.start_date, periods=len(portfolio_values), freq='M'))
         self._returns = pd.Series(portfolio_returns, index=pd.date_range(start=self.start_date, periods=len(portfolio_returns), freq='M'))
 
@@ -139,17 +135,17 @@ class BacktestStaticPortfolio:
         return self._portfolio_value
 
 
-    def plot_portfolio_value(self, filename='portfolio_value.html'):
+    def plot_portfolio_value(self, output_filename, filename='portfolio_value.html'):
         """
         Plots the portfolio value over time and saves the plot as an HTML file.
         """
         fig = go.Figure()
         fig.add_trace(go.Scatter(x=self._portfolio_value.index, y=self._portfolio_value, mode='lines', name='Portfolio Value'))
         fig.update_layout(title='Portfolio Value Over Time', xaxis_title='Date', yaxis_title='Portfolio Value ($)')
-        utilities.save_html(fig, filename)
+        utilities.save_html(fig, filename, self.output_filename)
 
 
-    def plot_var_cvar(self, confidence_level=0.95, filename='var_cvar.html'):
+    def plot_var_cvar(self, output_filename, confidence_level=0.95, filename='var_cvar.html'):
         """
         Plots the portfolio returns with VaR and CVaR and saves the plot as an HTML file.
 
@@ -225,4 +221,4 @@ class BacktestStaticPortfolio:
                 )
             ]
         )
-        utilities.save_html(fig, filename)
+        utilities.save_html(fig, filename, self.output_filename)
