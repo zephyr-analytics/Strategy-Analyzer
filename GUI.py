@@ -35,26 +35,60 @@ class MonteCarloApp(ctk.CTk):
         """
         super().__init__()
         self.title("Backtesting and Monte Carlo Simulation")
-        self.geometry("600x500")
+        self.geometry("1200x600")
         self.assets_weights = {}
         self.start_date = ctk.StringVar(value="2012-01-01")
         self.end_date = ctk.StringVar(value="2024-08-01")
         self.initial_portfolio_value = ctk.DoubleVar(value=10000)
         self.num_simulations = ctk.IntVar(value=1000)
         self.simulation_horizon = ctk.IntVar(value=10)
-        self.trading_frequency = ctk.StringVar(value="Monthly")  # Default value
+        self.trading_frequency = ctk.StringVar(value="monthly")
         self.bottom_text = None
         self.weights_filename = ""
         self.create_widgets()
 
     def create_widgets(self):
         """
-        Creates the tabbed layout for the GUI with separate tabs for backtesting and Monte Carlo simulation.
+        Creates the layout for the GUI with a sidebar on the left for settings, a center area for text display,
+        and an empty right sidebar.
         """
-        tab_control = ctk.CTkTabview(self)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_columnconfigure(1, weight=3)
+        self.grid_columnconfigure(2, weight=1)
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=10)
+
+        sidebar = ctk.CTkFrame(self, width=200)
+        sidebar.grid(row=0, column=0, rowspan=2, sticky="ns")
+
+        ctk.CTkLabel(sidebar, text="Settings", font=ctk.CTkFont(size=20, weight="bold")).pack(pady=10)
+        ctk.CTkLabel(sidebar, text="Start Date").pack(pady=5)
+        ctk.CTkEntry(sidebar, textvariable=self.start_date).pack(pady=5)
+        ctk.CTkLabel(sidebar, text="End Date").pack(pady=5)
+        ctk.CTkEntry(sidebar, textvariable=self.end_date).pack(pady=5)
+
+        ctk.CTkLabel(sidebar, text="Trading Frequency").pack(pady=5)
+        trading_options = ["monthly", "bi-monthly"]
+        ctk.CTkOptionMenu(sidebar, values=trading_options, variable=self.trading_frequency).pack(pady=5)
+
+        ctk.CTkButton(sidebar, text="Select Asset Weights File", command=self.load_weights_and_update).pack(pady=10)
+
+        self.bottom_text_frame = ctk.CTkFrame(self)
+        self.bottom_text_frame.grid(row=1, column=1, columnspan=1, sticky="ew")
+
+        # Tab control for center frame
+        center_frame = ctk.CTkFrame(self)
+        center_frame.grid(row=0, column=1, rowspan=1, sticky="nsew")
+
+        tab_control = ctk.CTkTabview(center_frame)
         tab_control.pack(expand=1, fill="both")
+
         self.create_backtesting_tab(tab_control)
         self.create_monte_carlo_tab(tab_control)
+
+        # Empty right sidebar
+        right_sidebar = ctk.CTkFrame(self, width=200)
+        right_sidebar.grid(row=0, column=2, rowspan=2, sticky="ns")
 
     def create_backtesting_tab(self, tab_control):
         """
@@ -67,16 +101,6 @@ class MonteCarloApp(ctk.CTk):
         """
         backtesting_tab = tab_control.add("Backtesting")
         ctk.CTkLabel(backtesting_tab, text="Backtesting", font=ctk.CTkFont(size=20, weight="bold")).pack(pady=10)
-        ctk.CTkLabel(backtesting_tab, text="Start Date").pack()
-        ctk.CTkEntry(backtesting_tab, textvariable=self.start_date).pack(pady=5)
-        ctk.CTkLabel(backtesting_tab, text="End Date").pack()
-        ctk.CTkEntry(backtesting_tab, textvariable=self.end_date).pack(pady=5)
-        
-        ctk.CTkLabel(backtesting_tab, text="Trading Frequency").pack()
-        trading_options = ["monthly", "bi-monthly"]
-        ctk.CTkOptionMenu(backtesting_tab, values=trading_options, variable=self.trading_frequency).pack(pady=5)
-
-        ctk.CTkButton(backtesting_tab, text="Select Asset Weights File", command=self.load_weights_and_update).pack(pady=10)
         ctk.CTkButton(backtesting_tab, text="Run Backtest", command=self.run_backtest).pack(pady=10)
 
     def create_monte_carlo_tab(self, tab_control):
@@ -100,9 +124,8 @@ class MonteCarloApp(ctk.CTk):
         """
         Clears the text at the bottom of the GUI.
         """
-        if self.bottom_text is not None:
-            self.bottom_text.pack_forget()
-            self.bottom_text = None
+        for widget in self.bottom_text_frame.winfo_children():
+            widget.destroy()
 
     def load_weights_and_update(self):
         """
@@ -119,7 +142,7 @@ class MonteCarloApp(ctk.CTk):
         Displays the loaded asset weights in the GUI.
         """
         assets_text = "\n".join([f"{asset}: {weight}" for asset, weight in self.assets_weights.items()])
-        self.bottom_text = ctk.CTkLabel(self, text=f"Loaded Assets and Weights from {self.weights_filename}:\n{assets_text}", text_color="blue")
+        self.bottom_text = ctk.CTkLabel(self.bottom_text_frame, text=f"Loaded Assets and Weights from {self.weights_filename}:\n{assets_text}", text_color="blue")
         self.bottom_text.pack(pady=5)
 
     def run_backtest(self):
@@ -128,13 +151,13 @@ class MonteCarloApp(ctk.CTk):
         """
         self.clear_bottom_text()
         if not self.assets_weights:
-            self.bottom_text = ctk.CTkLabel(self, text="Please load asset weights file.", text_color="red")
+            self.bottom_text = ctk.CTkLabel(self.bottom_text_frame, text="Please load asset weights file.", text_color="red")
             self.bottom_text.pack(pady=5)
             return
-        
+
         backtest = BacktestStaticPortfolio(self.assets_weights, self.start_date.get(), self.end_date.get(), self.trading_frequency.get(), output_filename=self.weights_filename)
         backtest.process()
-        self.bottom_text = ctk.CTkLabel(self, text="Backtest completed and plots saved.", text_color="green")
+        self.bottom_text = ctk.CTkLabel(self.bottom_text_frame, text="Backtest completed and plots saved.", text_color="green")
         self.bottom_text.pack(pady=5)
 
     def run_simulation(self):
@@ -143,7 +166,7 @@ class MonteCarloApp(ctk.CTk):
         """
         self.clear_bottom_text()
         if not self.assets_weights:
-            self.bottom_text = ctk.CTkLabel(self, text="Please load asset weights file.", text_color="red")
+            self.bottom_text = ctk.CTkLabel(self.bottom_text_frame, text="Please load asset weights file.", text_color="red")
             self.bottom_text.pack(pady=5)
             return
         backtest = BacktestStaticPortfolio(self.assets_weights, self.start_date.get(), self.end_date.get(), self.trading_frequency.get(), output_filename=self.weights_filename)
@@ -151,9 +174,10 @@ class MonteCarloApp(ctk.CTk):
         initial_value, cagr, annual_volatility = utilities.calculate_portfolio_metrics(backtest)
         monte_carlo = MonteCarloSimulation(initial_value, cagr, annual_volatility, output_filename=self.weights_filename, num_simulations=self.num_simulations.get(), simulation_horizon=self.simulation_horizon.get())
         monte_carlo.process()
-        self.bottom_text = ctk.CTkLabel(self, text="Simulation completed and plot saved.", text_color="green")
+        self.bottom_text = ctk.CTkLabel(self.bottom_text_frame, text="Simulation completed and plot saved.", text_color="green")
         self.bottom_text.pack(pady=5)
 
 if __name__ == "__main__":
     app = MonteCarloApp()
     app.mainloop()
+
