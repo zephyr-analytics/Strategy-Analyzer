@@ -33,7 +33,7 @@ class BacktestStaticPortfolio:
         Series to store the portfolio returns over time.
     """
 
-    def __init__(self, assets_weights, start_date, end_date, output_filename):
+    def __init__(self, assets_weights, start_date, end_date, output_filename, rebalance_threshold=0.05, trading_frequency='monthly'):
         """
         Initializes the BacktestStaticPortfolio class with given asset weights, start date, and end date.
 
@@ -45,6 +45,12 @@ class BacktestStaticPortfolio:
             The start date for the backtest.
         end_date : str
             The end date for the backtest.
+        output_filename : str
+            The name of the file to save the output.
+        rebalance_threshold : float
+            The threshold for rebalancing the portfolio weights. Default is 0.05 (5%).
+        trading_frequency : str
+            The frequency of trades. Either 'monthly' or 'bi-monthly'. Default is 'monthly'.
         """
         self.assets_weights = assets_weights
         self.start_date = start_date
@@ -57,6 +63,8 @@ class BacktestStaticPortfolio:
         self._portfolio_value = pd.Series(dtype=float)
         self._returns = pd.Series(dtype=float)
         self.output_filename = output_filename
+        self.rebalance_threshold = rebalance_threshold
+        self.trading_frequency = trading_frequency
 
 
     def process(self):
@@ -105,22 +113,56 @@ class BacktestStaticPortfolio:
         monthly_dates = pd.date_range(start=self.start_date, end=self.end_date, freq='M')
         portfolio_values = [self.initial_portfolio_value]
         portfolio_returns = []
-        for i in range(len(monthly_dates) - 1):
+        if self.trading_frequency == 'monthly':
+            step = 1
+        elif self.trading_frequency == 'bi-monthly':
+            step = 2
+        else:
+            raise ValueError("Invalid trading frequency. Choose 'monthly' or 'bi-monthly'.")
+        for i in range(0, len(monthly_dates) - 1, step):
             current_date = monthly_dates[i]
-            next_date = monthly_dates[i + 1]
+            next_date = monthly_dates[min(i + step, len(monthly_dates) - 1)]
             last_date_current_month = self._data.index[self._data.index.get_loc(current_date, method='pad')]
-            last_date_next_month = self._data.index[self._data.index.get_loc(next_date, method='pad')]
             adjusted_weights = self._adjust_weights(last_date_current_month)
+            adjusted_weights = self._rebalance_portfolio(adjusted_weights)
             previous_value = portfolio_values[-1]
-            month_end_data = self._data.loc[last_date_next_month]
-            month_start_data = self._data.loc[last_date_current_month]
-            monthly_returns = (month_end_data / month_start_data) - 1
+            month_end_data = self._data.loc[last_date_current_month]
+            month_start_data = month_end_data  
+            last_date_next_month = self._data.index[self._data.index.get_loc(next_date, method='pad')]
+            next_month_end_data = self._data.loc[last_date_next_month]
+            monthly_returns = (next_month_end_data / month_start_data) - 1
             month_return = sum([monthly_returns[ticker] * weight for ticker, weight in adjusted_weights.items()])
             new_portfolio_value = previous_value * (1 + month_return)
             portfolio_values.append(new_portfolio_value)
             portfolio_returns.append(month_return)
         self._portfolio_value = pd.Series(portfolio_values, index=pd.date_range(start=self.start_date, periods=len(portfolio_values), freq='M'))
         self._returns = pd.Series(portfolio_returns, index=pd.date_range(start=self.start_date, periods=len(portfolio_returns), freq='M'))
+
+
+    def _rebalance_portfolio(self, current_weights):
+        """
+        Rebalances the portfolio if the weights are outside their target range.
+
+        Parameters
+        ----------
+        current_weights : dict
+            Dictionary of current asset weights.
+
+        Returns
+        -------
+        dict
+            Dictionary of rebalanced asset weights.
+        """
+        rebalanced_weights = current_weights.copy()
+        for ticker, target_weight in self.assets_weights.items():
+            if abs(current_weights[ticker] - target_weight) > self.rebalance_threshold:
+                rebalanced_weights[ticker] = target_weight
+        
+        total_weight = sum(rebalanced_weights.values())
+        for ticker in rebalanced_weights:
+            rebalanced_weights[ticker] /= total_weight
+
+        return rebalanced_weights
 
 
     def get_portfolio_value(self):
@@ -157,8 +199,8 @@ class BacktestStaticPortfolio:
             The name of the HTML file to save the plot. Default is 'var_cvar.html'.
         """
         var, cvar = utilities.calculate_var_cvar(self._returns, confidence_level)
-        cagr = utilities.calculate_cagr(self._portfolio_value)
-        avg_annual_return = utilities.calculate_average_annual_return(self._returns)
+        cagr = utilities.calculate_cagr(self._portfolio_value, self.trading_frequency)
+        avg_annual_return = utilities.calculate_average_annual_return(self._returns, self.trading_frequency)
         max_drawdown = utilities.calculate_max_drawdown(self._portfolio_value)
 
         fig = go.Figure()
