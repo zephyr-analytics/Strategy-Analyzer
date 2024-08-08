@@ -113,4 +113,3 @@ class MonteCarloSimulation:
             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
         )
         utilities.save_html(fig, filename)
-

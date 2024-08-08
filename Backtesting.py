@@ -121,26 +121,6 @@ class BacktestStaticPortfolio:
         self._portfolio_value = pd.Series(portfolio_values, index=pd.date_range(start=self.start_date, periods=len(portfolio_values), freq='M'))
         self._returns = pd.Series(portfolio_returns, index=pd.date_range(start=self.start_date, periods=len(portfolio_returns), freq='M'))
 
-    def _calculate_var_cvar(self, confidence_level=0.95):
-        """
-        Calculates the Value at Risk (VaR) and Conditional Value at Risk (CVaR) of the portfolio.
-
-        Parameters
-        ----------
-        confidence_level : float, optional
-            The confidence level for calculating VaR and CVaR. Default is 0.95.
-
-        Returns
-        -------
-        tuple
-            Tuple containing VaR and CVaR values.
-        """
-        sorted_returns = np.sort(self._returns.dropna())
-        index = int((1 - confidence_level) * len(sorted_returns))
-        var = sorted_returns[index]
-        cvar = sorted_returns[:index].mean()
-        return var, cvar
-
 
     def get_portfolio_value(self):
         """
@@ -174,7 +154,7 @@ class BacktestStaticPortfolio:
         filename : str, optional
             The name of the HTML file to save the plot. Default is 'var_cvar.html'.
         """
-        var, cvar = self._calculate_var_cvar(confidence_level)
+        var, cvar = utilities.calculate_var_cvar(self._returns, confidence_level)
         cagr = utilities.calculate_cagr(self._portfolio_value)
         avg_annual_return = utilities.calculate_average_annual_return(self._returns)
         max_drawdown = utilities.calculate_max_drawdown(self._portfolio_value)

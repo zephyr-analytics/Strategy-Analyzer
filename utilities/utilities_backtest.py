@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 
-
 def calculate_cagr(portfolio_value):
     """
     Calculates the Compound Annual Growth Rate (CAGR) of the portfolio.
@@ -74,3 +73,25 @@ def calculate_max_drawdown(portfolio_value):
     drawdown = (portfolio_value - running_max) / running_max
     max_drawdown = drawdown.min()
     return max_drawdown
+
+def calculate_var_cvar(returns, confidence_level=0.95):
+    """
+    Calculates the Value at Risk (VaR) and Conditional Value at Risk (CVaR) of the portfolio.
+
+    Parameters
+    ----------
+    returns : Series
+        Series containing the portfolio returns over time.
+    confidence_level : float, optional
+        The confidence level for calculating VaR and CVaR. Default is 0.95.
+
+    Returns
+    -------
+    tuple
+        Tuple containing VaR and CVaR values.
+    """
+    sorted_returns = np.sort(returns.dropna())
+    index = int((1 - confidence_level) * len(sorted_returns))
+    var = sorted_returns[index]
+    cvar = sorted_returns[:index].mean()
+    return var, cvar
