@@ -1,7 +1,8 @@
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
-from Utilities_Backtest import calculate_cagr_monte_carlo
+
+import utilities as utilities
 
 class MonteCarloSimulation:
     """
@@ -62,7 +63,7 @@ class MonteCarloSimulation:
 
         return pd.DataFrame(simulation_results)
 
-    def plot_simulation(self, simulation_results):
+    def plot_simulation(self, simulation_results, filename='monte_carlo_simulation.html'):
         """
         Plots the results of the Monte Carlo simulation.
 
@@ -75,9 +76,9 @@ class MonteCarloSimulation:
         lower_bound = np.percentile(simulation_results, 2.5, axis=1)
         upper_bound = np.percentile(simulation_results, 97.5, axis=1)
 
-        average_cagr = calculate_cagr_monte_carlo(pd.Series(average_simulation))
-        lower_cagr = calculate_cagr_monte_carlo(pd.Series(lower_bound))
-        upper_cagr = calculate_cagr_monte_carlo(pd.Series(upper_bound))
+        average_cagr = utilities.calculate_cagr_monte_carlo(pd.Series(average_simulation))
+        lower_cagr = utilities.calculate_cagr_monte_carlo(pd.Series(lower_bound))
+        upper_cagr = utilities.calculate_cagr_monte_carlo(pd.Series(upper_bound))
 
         average_end_value = pd.Series(average_simulation).iloc[-1]
         lower_end_value = pd.Series(lower_bound).iloc[-1]
@@ -111,5 +112,5 @@ class MonteCarloSimulation:
             yaxis_title='Portfolio Value ($)',
             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
         )
-        fig.write_html('monte_carlo_simulation.html')
+        utilities.save_html(fig, filename)
 

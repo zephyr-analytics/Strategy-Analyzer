@@ -1,8 +1,9 @@
-import yfinance as yf
-import pandas as pd
 import numpy as np
+import os
+import pandas as pd
 import plotly.graph_objects as go
-from Utilities_Backtest import calculate_cagr, calculate_average_annual_return, calculate_max_drawdown
+
+import utilities as utilities
 
 class BacktestStaticPortfolio:
     """
@@ -60,21 +61,8 @@ class BacktestStaticPortfolio:
         """
         Processes the backtest by fetching data and running the backtest.
         """
-        self._data = self._fetch_data()
+        self._data = utilities.fetch_data(self.assets_weights, self.start_date, self.end_date, self.bond_ticker, self.cash_ticker)
         self._run_backtest()
-
-    def _fetch_data(self):
-        """
-        Fetches the adjusted closing prices of the assets.
-
-        Returns
-        -------
-        DataFrame
-            DataFrame containing the adjusted closing prices of the assets.
-        """
-        all_tickers = list(self.assets_weights.keys()) + [self.bond_ticker, self.cash_ticker]
-        data = yf.download(all_tickers, start=self.start_date, end=self.end_date)['Adj Close']
-        return data
 
     def _adjust_weights(self, current_date):
         """
@@ -153,6 +141,7 @@ class BacktestStaticPortfolio:
         cvar = sorted_returns[:index].mean()
         return var, cvar
 
+
     def get_portfolio_value(self):
         """
         Returns the portfolio value series.
@@ -164,16 +153,17 @@ class BacktestStaticPortfolio:
         """
         return self._portfolio_value
 
-    def plot_portfolio_value(self):
+    def plot_portfolio_value(self, filename='portfolio_value.html'):
         """
         Plots the portfolio value over time and saves the plot as an HTML file.
         """
         fig = go.Figure()
         fig.add_trace(go.Scatter(x=self._portfolio_value.index, y=self._portfolio_value, mode='lines', name='Portfolio Value'))
         fig.update_layout(title='Portfolio Value Over Time', xaxis_title='Date', yaxis_title='Portfolio Value ($)')
-        fig.write_html('portfolio_value.html')
+        utilities.save_html(fig, filename)
 
-    def plot_var_cvar(self, confidence_level=0.95):
+
+    def plot_var_cvar(self, confidence_level=0.95, filename='var_cvar.html'):
         """
         Plots the portfolio returns with VaR and CVaR and saves the plot as an HTML file.
 
@@ -181,26 +171,28 @@ class BacktestStaticPortfolio:
         ----------
         confidence_level : float, optional
             The confidence level for calculating VaR and CVaR. Default is 0.95.
+        filename : str, optional
+            The name of the HTML file to save the plot. Default is 'var_cvar.html'.
         """
         var, cvar = self._calculate_var_cvar(confidence_level)
-        cagr = calculate_cagr(self._portfolio_value)
-        avg_annual_return = calculate_average_annual_return(self._returns)
-        max_drawdown = calculate_max_drawdown(self._portfolio_value)
+        cagr = utilities.calculate_cagr(self._portfolio_value)
+        avg_annual_return = utilities.calculate_average_annual_return(self._returns)
+        max_drawdown = utilities.calculate_max_drawdown(self._portfolio_value)
 
         fig = go.Figure()
 
         fig.add_trace(go.Histogram(x=self._returns.dropna(), nbinsx=30, name='Returns', opacity=0.75, marker_color='blue'))
 
         fig.add_shape(type="line",
-                      x0=var, y0=0, x1=var, y1=1,
-                      line=dict(color="Red", dash="dash"),
-                      xref='x', yref='paper',
-                      name=f'VaR ({confidence_level * 100}%): {var:.2%}')
+                    x0=var, y0=0, x1=var, y1=1,
+                    line=dict(color="Red", dash="dash"),
+                    xref='x', yref='paper',
+                    name=f'VaR ({confidence_level * 100}%): {var:.2%}')
         fig.add_shape(type="line",
-                      x0=cvar, y0=0, x1=cvar, y1=1,
-                      line=dict(color="Green", dash="dash"),
-                      xref='x', yref='paper',
-                      name=f'CVaR ({confidence_level * 100}%): {cvar:.2%}')
+                    x0=cvar, y0=0, x1=cvar, y1=1,
+                    line=dict(color="Green", dash="dash"),
+                    xref='x', yref='paper',
+                    name=f'CVaR ({confidence_level * 100}%): {cvar:.2%}')
 
         fig.update_layout(
             title='Portfolio Returns with VaR and CVaR',
@@ -247,5 +239,4 @@ class BacktestStaticPortfolio:
                 )
             ]
         )
-
-        fig.write_html('var_cvar.html')
+        utilities.save_html(fig, filename)

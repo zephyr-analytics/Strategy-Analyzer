@@ -1,9 +1,10 @@
 import customtkinter as ctk
 import numpy as np
 
-from Utilities_Backtest import load_weights, calculate_cagr, calculate_cagr_monte_carlo
-from Backtesting import BacktestStaticPortfolio
-from Monte import MonteCarloSimulation
+from backtesting import BacktestStaticPortfolio
+from monte_carlo_sim import MonteCarloSimulation
+
+import utilities as utilities
 
 class MonteCarloApp(ctk.CTk):
     """
@@ -100,7 +101,7 @@ class MonteCarloApp(ctk.CTk):
         """
         Loads the asset weights from a file and updates the assets_weights attribute.
         """
-        self.assets_weights = load_weights()
+        self.assets_weights = utilities.load_weights()
 
     def run_backtest(self):
         """
@@ -130,7 +131,7 @@ class MonteCarloApp(ctk.CTk):
         backtest.process()
 
         initial_value = backtest.get_portfolio_value().iloc[0]
-        cagr = calculate_cagr(backtest.get_portfolio_value())
+        cagr = utilities.calculate_cagr(backtest.get_portfolio_value())
         annual_volatility = backtest._returns.std() * np.sqrt(12)
 
         monte_carlo = MonteCarloSimulation(initial_value, cagr, annual_volatility, self.num_simulations.get(), self.simulation_horizon.get())
