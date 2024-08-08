@@ -7,8 +7,44 @@ from Utilities_Backtest import calculate_cagr, calculate_average_annual_return, 
 class BacktestStaticPortfolio:
     """
     A class to backtest a static portfolio with adjustable weights based on Simple Moving Average (SMA).
+
+    Attributes
+    ----------
+    assets_weights : dict
+        Dictionary of asset tickers and their corresponding weights in the portfolio.
+    start_date : str
+        The start date for the backtest.
+    end_date : str
+        The end date for the backtest.
+    sma_period : int
+        The period for calculating the Simple Moving Average (SMA). Default is 168.
+    bond_ticker : str
+        The ticker symbol for the bond asset. Default is 'BND'.
+    cash_ticker : str
+        The ticker symbol for the cash asset. Default is 'SHV'.
+    initial_portfolio_value : float
+        The initial value of the portfolio. Default is 10000.
+    _data : DataFrame or None
+        DataFrame to store the adjusted closing prices of the assets.
+    _portfolio_value : Series
+        Series to store the portfolio values over time.
+    _returns : Series
+        Series to store the portfolio returns over time.
     """
+
     def __init__(self, assets_weights, start_date, end_date):
+        """
+        Initializes the BacktestStaticPortfolio class with given asset weights, start date, and end date.
+
+        Parameters
+        ----------
+        assets_weights : dict
+            Dictionary of asset tickers and their corresponding weights in the portfolio.
+        start_date : str
+            The start date for the backtest.
+        end_date : str
+            The end date for the backtest.
+        """
         self.assets_weights = assets_weights
         self.start_date = start_date
         self.end_date = end_date
@@ -21,15 +57,39 @@ class BacktestStaticPortfolio:
         self._returns = pd.Series(dtype=float)
 
     def process(self):
+        """
+        Processes the backtest by fetching data and running the backtest.
+        """
         self._data = self._fetch_data()
         self._run_backtest()
 
     def _fetch_data(self):
+        """
+        Fetches the adjusted closing prices of the assets.
+
+        Returns
+        -------
+        DataFrame
+            DataFrame containing the adjusted closing prices of the assets.
+        """
         all_tickers = list(self.assets_weights.keys()) + [self.bond_ticker, self.cash_ticker]
         data = yf.download(all_tickers, start=self.start_date, end=self.end_date)['Adj Close']
         return data
 
     def _adjust_weights(self, current_date):
+        """
+        Adjusts the weights of the assets based on their SMA.
+
+        Parameters
+        ----------
+        current_date : datetime
+            The current date for which the weights are being adjusted.
+
+        Returns
+        -------
+        dict
+            Dictionary of adjusted asset weights.
+        """
         adjusted_weights = self.assets_weights.copy()
         for ticker in self.assets_weights.keys():
             if self._data.loc[:current_date, ticker].iloc[-1] < self._data.loc[:current_date, ticker].rolling(window=self.sma_period).mean().iloc[-1]:
@@ -46,6 +106,9 @@ class BacktestStaticPortfolio:
         return adjusted_weights
 
     def _run_backtest(self):
+        """
+        Runs the backtest by calculating portfolio values and returns over time.
+        """
         monthly_dates = pd.date_range(start=self.start_date, end=self.end_date, freq='M')
         portfolio_values = [self.initial_portfolio_value]
         portfolio_returns = []
@@ -71,6 +134,19 @@ class BacktestStaticPortfolio:
         self._returns = pd.Series(portfolio_returns, index=pd.date_range(start=self.start_date, periods=len(portfolio_returns), freq='M'))
 
     def _calculate_var_cvar(self, confidence_level=0.95):
+        """
+        Calculates the Value at Risk (VaR) and Conditional Value at Risk (CVaR) of the portfolio.
+
+        Parameters
+        ----------
+        confidence_level : float, optional
+            The confidence level for calculating VaR and CVaR. Default is 0.95.
+
+        Returns
+        -------
+        tuple
+            Tuple containing VaR and CVaR values.
+        """
         sorted_returns = np.sort(self._returns.dropna())
         index = int((1 - confidence_level) * len(sorted_returns))
         var = sorted_returns[index]
@@ -78,15 +154,34 @@ class BacktestStaticPortfolio:
         return var, cvar
 
     def get_portfolio_value(self):
+        """
+        Returns the portfolio value series.
+
+        Returns
+        -------
+        Series
+            Series containing the portfolio values over time.
+        """
         return self._portfolio_value
 
     def plot_portfolio_value(self):
+        """
+        Plots the portfolio value over time and saves the plot as an HTML file.
+        """
         fig = go.Figure()
         fig.add_trace(go.Scatter(x=self._portfolio_value.index, y=self._portfolio_value, mode='lines', name='Portfolio Value'))
         fig.update_layout(title='Portfolio Value Over Time', xaxis_title='Date', yaxis_title='Portfolio Value ($)')
         fig.write_html('portfolio_value.html')
 
     def plot_var_cvar(self, confidence_level=0.95):
+        """
+        Plots the portfolio returns with VaR and CVaR and saves the plot as an HTML file.
+
+        Parameters
+        ----------
+        confidence_level : float, optional
+            The confidence level for calculating VaR and CVaR. Default is 0.95.
+        """
         var, cvar = self._calculate_var_cvar(confidence_level)
         cagr = calculate_cagr(self._portfolio_value)
         avg_annual_return = calculate_average_annual_return(self._returns)
@@ -94,10 +189,8 @@ class BacktestStaticPortfolio:
 
         fig = go.Figure()
 
-        # Add histogram of returns
         fig.add_trace(go.Histogram(x=self._returns.dropna(), nbinsx=30, name='Returns', opacity=0.75, marker_color='blue'))
 
-        # Add VaR and CVaR lines
         fig.add_shape(type="line",
                       x0=var, y0=0, x1=var, y1=1,
                       line=dict(color="Red", dash="dash"),
@@ -109,7 +202,6 @@ class BacktestStaticPortfolio:
                       xref='x', yref='paper',
                       name=f'CVaR ({confidence_level * 100}%): {cvar:.2%}')
 
-        # Update layout
         fig.update_layout(
             title='Portfolio Returns with VaR and CVaR',
             xaxis_title='Returns',
@@ -157,5 +249,3 @@ class BacktestStaticPortfolio:
         )
 
         fig.write_html('var_cvar.html')
-
-
