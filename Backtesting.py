@@ -2,7 +2,7 @@ import yfinance as yf
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from datetime import datetime
+from Utilities_Backtest import calculate_cagr, calculate_average_annual_return, calculate_max_drawdown
 
 class BacktestStaticPortfolio:
     """
@@ -171,46 +171,6 @@ class BacktestStaticPortfolio:
         cvar = sorted_returns[:index].mean()
         return var, cvar
 
-    def _calculate_cagr(self):
-        """
-        Calculates the Compound Annual Growth Rate (CAGR) of the portfolio.
-
-        Returns
-        -------
-        float
-            CAGR value.
-        """
-        total_period = (self._portfolio_value.index[-1] - self._portfolio_value.index[0]).days / 365.25
-        cagr = (self._portfolio_value.iloc[-1] / self._portfolio_value.iloc[0]) ** (1 / total_period) - 1
-        return cagr
-
-    def _calculate_average_annual_return(self):
-        """
-        Calculates the average annual return of the portfolio.
-
-        Returns
-        -------
-        float
-            Average annual return.
-        """
-        average_monthly_return = self._returns.mean()
-        average_annual_return = (1 + average_monthly_return) ** 12 - 1
-        return average_annual_return
-
-    def _calculate_max_drawdown(self):
-        """
-        Calculates the maximum drawdown of the portfolio.
-
-        Returns
-        -------
-        float
-            Maximum drawdown value.
-        """
-        running_max = self._portfolio_value.cummax()
-        drawdown = (self._portfolio_value - running_max) / running_max
-        max_drawdown = drawdown.min()
-        return max_drawdown
-
     def get_portfolio_value(self):
         """
         Returns the portfolio value over time.
@@ -233,7 +193,8 @@ class BacktestStaticPortfolio:
         plt.ylabel('Portfolio Value ($)')
         plt.legend()
         plt.grid(True)
-        plt.show()
+        plt.savefig('backtest_plot.png')  # Save the plot as an image file
+        plt.close()  # Close the plot to free memory
 
     def _plot_var_cvar(self, confidence_level=0.95):
         """
@@ -245,9 +206,9 @@ class BacktestStaticPortfolio:
             Confidence level for VaR and CVaR calculation (default is 0.95).
         """
         var, cvar = self._calculate_var_cvar(confidence_level)
-        cagr = self._calculate_cagr()
-        avg_annual_return = self._calculate_average_annual_return()
-        max_drawdown = self._calculate_max_drawdown()
+        cagr = calculate_cagr(self._portfolio_value)
+        avg_annual_return = calculate_average_annual_return(self._returns)
+        max_drawdown = calculate_max_drawdown(self._portfolio_value)
 
         plt.figure(figsize=(10, 6))
         plt.hist(self._returns.dropna(), bins=30, alpha=0.75, label='Returns')
@@ -260,11 +221,12 @@ class BacktestStaticPortfolio:
                           f'Avg Annual Return: {avg_annual_return:.2%}\n'
                           f'Max Drawdown: {max_drawdown:.2%}'))
         plt.grid(True)
-        plt.show()
+        plt.savefig('CVaR_plot.png')  # Save the plot as an image file
+        plt.close()  # Close the plot to free memory
 
-
-# assets_weights = {'VINIX': 0.7, 'VSCIX': 0.3}
-assets_weights = {'VTI': 0.3, 'TLT': 0.4, 'IEI': 0.15, 'GLD': 0.075, 'DBC': 0.075}
+# Example usage
+# assets_weights = {'VTI': 0.3, 'IEI': 0.15, 'TLT': 0.4, 'GLD': 0.075, 'DBC': 0.075}
+assets_weights = {'VINIX': 0.75, 'VSCIX': 0.25}
 start_date = '2010-01-01'
 end_date = '2024-08-01'
 
