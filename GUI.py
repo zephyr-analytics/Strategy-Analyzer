@@ -1,8 +1,8 @@
 import customtkinter as ctk
 import numpy as np
 
-from backtesting import BacktestStaticPortfolio
-from monte_carlo_sim import MonteCarloSimulation
+from models.backtesting import BacktestStaticPortfolio
+from models.monte_carlo_sim import MonteCarloSimulation
 
 import utilities as utilities
 
