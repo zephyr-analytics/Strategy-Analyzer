@@ -1,8 +1,9 @@
-import yfinance as yf
-import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-from Utilities_Backtest import calculate_cagr, calculate_average_annual_return, calculate_max_drawdown
+import os
+import pandas as pd
+import plotly.graph_objects as go
+
+import utilities as utilities
 
 class BacktestStaticPortfolio:
     """
@@ -11,39 +12,39 @@ class BacktestStaticPortfolio:
     Attributes
     ----------
     assets_weights : dict
-        Dictionary containing asset tickers and their corresponding weights.
+        Dictionary of asset tickers and their corresponding weights in the portfolio.
     start_date : str
-        Start date for the backtest.
+        The start date for the backtest.
     end_date : str
-        End date for the backtest.
+        The end date for the backtest.
     sma_period : int
-        Period for calculating the Simple Moving Average.
+        The period for calculating the Simple Moving Average (SMA). Default is 168.
     bond_ticker : str
-        Ticker symbol for the bond asset.
+        The ticker symbol for the bond asset. Default is 'BND'.
     cash_ticker : str
-        Ticker symbol for the cash asset.
+        The ticker symbol for the cash asset. Default is 'SHV'.
     initial_portfolio_value : float
-        Initial value of the portfolio.
-    _data : DataFrame
-        DataFrame to store the adjusted close prices of the assets.
+        The initial value of the portfolio. Default is 10000.
+    _data : DataFrame or None
+        DataFrame to store the adjusted closing prices of the assets.
     _portfolio_value : Series
-        Series to store the portfolio value over time.
+        Series to store the portfolio values over time.
     _returns : Series
         Series to store the portfolio returns over time.
     """
 
     def __init__(self, assets_weights, start_date, end_date):
         """
-        Initializes the BacktestStaticPortfolio with asset weights, start date, and end date.
+        Initializes the BacktestStaticPortfolio class with given asset weights, start date, and end date.
 
         Parameters
         ----------
         assets_weights : dict
-            Dictionary containing asset tickers and their corresponding weights.
+            Dictionary of asset tickers and their corresponding weights in the portfolio.
         start_date : str
-            Start date for the backtest.
+            The start date for the backtest.
         end_date : str
-            End date for the backtest.
+            The end date for the backtest.
         """
         self.assets_weights = assets_weights
         self.start_date = start_date
@@ -58,55 +59,24 @@ class BacktestStaticPortfolio:
 
     def process(self):
         """
-        Processes the backtest by fetching data, running the backtest, and plotting results.
+        Processes the backtest by fetching data and running the backtest.
         """
-        self._data = self._fetch_data()
+        self._data = utilities.fetch_data(self.assets_weights, self.start_date, self.end_date, self.bond_ticker, self.cash_ticker)
         self._run_backtest()
-        self._plot_portfolio_value()
-        self._plot_var_cvar()
-
-    def _fetch_data(self):
-        """
-        Fetches historical adjusted close prices for the given assets, bond, and cash tickers.
-
-        Returns
-        -------
-        DataFrame
-            DataFrame containing the adjusted close prices.
-        """
-        all_tickers = list(self.assets_weights.keys()) + [self.bond_ticker, self.cash_ticker]
-        data = yf.download(all_tickers, start=self.start_date, end=self.end_date)['Adj Close']
-        return data
-
-    def _calculate_sma(self, data):
-        """
-        Calculates the Simple Moving Average (SMA) for the given data.
-
-        Parameters
-        ----------
-        data : DataFrame
-            DataFrame containing asset prices.
-
-        Returns
-        -------
-        DataFrame
-            DataFrame containing the SMA values.
-        """
-        return data.rolling(window=self.sma_period).mean()
 
     def _adjust_weights(self, current_date):
         """
-        Adjusts the asset weights based on SMA conditions.
+        Adjusts the weights of the assets based on their SMA.
 
         Parameters
         ----------
         current_date : datetime
-            The current date for weight adjustment.
+            The current date for which the weights are being adjusted.
 
         Returns
         -------
         dict
-            Dictionary containing the adjusted weights.
+            Dictionary of adjusted asset weights.
         """
         adjusted_weights = self.assets_weights.copy()
         for ticker in self.assets_weights.keys():
@@ -125,7 +95,7 @@ class BacktestStaticPortfolio:
 
     def _run_backtest(self):
         """
-        Runs the backtest by calculating portfolio value and returns over time.
+        Runs the backtest by calculating portfolio values and returns over time.
         """
         monthly_dates = pd.date_range(start=self.start_date, end=self.end_date, freq='M')
         portfolio_values = [self.initial_portfolio_value]
@@ -151,84 +121,102 @@ class BacktestStaticPortfolio:
         self._portfolio_value = pd.Series(portfolio_values, index=pd.date_range(start=self.start_date, periods=len(portfolio_values), freq='M'))
         self._returns = pd.Series(portfolio_returns, index=pd.date_range(start=self.start_date, periods=len(portfolio_returns), freq='M'))
 
-    def _calculate_var_cvar(self, confidence_level=0.95):
-        """
-        Calculates the Value at Risk (VaR) and Conditional Value at Risk (CVaR) for the portfolio returns.
-
-        Parameters
-        ----------
-        confidence_level : float, optional
-            Confidence level for VaR and CVaR calculation (default is 0.95).
-
-        Returns
-        -------
-        tuple
-            VaR and CVaR values.
-        """
-        sorted_returns = np.sort(self._returns.dropna())
-        index = int((1 - confidence_level) * len(sorted_returns))
-        var = sorted_returns[index]
-        cvar = sorted_returns[:index].mean()
-        return var, cvar
 
     def get_portfolio_value(self):
         """
-        Returns the portfolio value over time.
+        Returns the portfolio value series.
 
         Returns
         -------
         Series
-            Series containing the portfolio value over time.
+            Series containing the portfolio values over time.
         """
         return self._portfolio_value
 
-    def _plot_portfolio_value(self):
+    def plot_portfolio_value(self, filename='portfolio_value.html'):
         """
-        Plots the portfolio value over time.
+        Plots the portfolio value over time and saves the plot as an HTML file.
         """
-        plt.figure(figsize=(10, 6))
-        plt.plot(self._portfolio_value, label='Portfolio Value')
-        plt.title('Portfolio Value Over Time')
-        plt.xlabel('Date')
-        plt.ylabel('Portfolio Value ($)')
-        plt.legend()
-        plt.grid(True)
-        plt.savefig('backtest_plot.png')  # Save the plot as an image file
-        plt.close()  # Close the plot to free memory
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=self._portfolio_value.index, y=self._portfolio_value, mode='lines', name='Portfolio Value'))
+        fig.update_layout(title='Portfolio Value Over Time', xaxis_title='Date', yaxis_title='Portfolio Value ($)')
+        utilities.save_html(fig, filename)
 
-    def _plot_var_cvar(self, confidence_level=0.95):
+
+    def plot_var_cvar(self, confidence_level=0.95, filename='var_cvar.html'):
         """
-        Plots the portfolio returns with VaR and CVaR.
+        Plots the portfolio returns with VaR and CVaR and saves the plot as an HTML file.
 
         Parameters
         ----------
         confidence_level : float, optional
-            Confidence level for VaR and CVaR calculation (default is 0.95).
+            The confidence level for calculating VaR and CVaR. Default is 0.95.
+        filename : str, optional
+            The name of the HTML file to save the plot. Default is 'var_cvar.html'.
         """
-        var, cvar = self._calculate_var_cvar(confidence_level)
-        cagr = calculate_cagr(self._portfolio_value)
-        avg_annual_return = calculate_average_annual_return(self._returns)
-        max_drawdown = calculate_max_drawdown(self._portfolio_value)
+        var, cvar = utilities.calculate_var_cvar(self._returns, confidence_level)
+        cagr = utilities.calculate_cagr(self._portfolio_value)
+        avg_annual_return = utilities.calculate_average_annual_return(self._returns)
+        max_drawdown = utilities.calculate_max_drawdown(self._portfolio_value)
 
-        plt.figure(figsize=(10, 6))
-        plt.hist(self._returns.dropna(), bins=30, alpha=0.75, label='Returns')
-        plt.axvline(var, color='r', linestyle='--', label=f'VaR ({confidence_level * 100}%): {var:.2%}')
-        plt.axvline(cvar, color='g', linestyle='--', label=f'CVaR ({confidence_level * 100}%): {cvar:.2%}')
-        plt.title('Portfolio Returns with VaR and CVaR')
-        plt.xlabel('Returns')
-        plt.ylabel('Frequency')
-        plt.legend(title=(f'CAGR: {cagr:.2%}\n'
-                          f'Avg Annual Return: {avg_annual_return:.2%}\n'
-                          f'Max Drawdown: {max_drawdown:.2%}'))
-        plt.grid(True)
-        plt.savefig('CVaR_plot.png')  # Save the plot as an image file
-        plt.close()  # Close the plot to free memory
+        fig = go.Figure()
 
-# Example usage
-# assets_weights = {'VTI': 0.3, 'IEI': 0.15, 'TLT': 0.4, 'GLD': 0.075, 'DBC': 0.075}
-assets_weights = {'VINIX': 0.75, 'VSCIX': 0.25}
-start_date = '2010-01-01'
-end_date = '2024-08-01'
+        fig.add_trace(go.Histogram(x=self._returns.dropna(), nbinsx=30, name='Returns', opacity=0.75, marker_color='blue'))
 
-backtest = BacktestStaticPortfolio(assets_weights, start_date, end_date)
-backtest.process()
+        fig.add_shape(type="line",
+                    x0=var, y0=0, x1=var, y1=1,
+                    line=dict(color="Red", dash="dash"),
+                    xref='x', yref='paper',
+                    name=f'VaR ({confidence_level * 100}%): {var:.2%}')
+        fig.add_shape(type="line",
+                    x0=cvar, y0=0, x1=cvar, y1=1,
+                    line=dict(color="Green", dash="dash"),
+                    xref='x', yref='paper',
+                    name=f'CVaR ({confidence_level * 100}%): {cvar:.2%}')
+
+        fig.update_layout(
+            title='Portfolio Returns with VaR and CVaR',
+            xaxis_title='Returns',
+            yaxis_title='Frequency',
+            showlegend=True,
+            legend=dict(
+                orientation="h",
+                yanchor="top",
+                y=1.3,
+                xanchor="center",
+                x=0.5
+            ),
+            annotations=[
+                dict(
+                    xref='paper', yref='paper', x=0.5, y=1.25,
+                    xanchor='center', yanchor='bottom',
+                    text=f'CAGR: {cagr:.2%}',
+                    showarrow=False
+                ),
+                dict(
+                    xref='paper', yref='paper', x=0.5, y=1.2,
+                    xanchor='center', yanchor='bottom',
+                    text=f'Avg Annual Return: {avg_annual_return:.2%}',
+                    showarrow=False
+                ),
+                dict(
+                    xref='paper', yref='paper', x=0.5, y=1.15,
+                    xanchor='center', yanchor='bottom',
+                    text=f'Max Drawdown: {max_drawdown:.2%}',
+                    showarrow=False
+                ),
+                dict(
+                    xref='paper', yref='paper', x=0.5, y=1.1,
+                    xanchor='center', yanchor='bottom',
+                    text=f'VaR ({confidence_level * 100}%): {var:.2%}',
+                    showarrow=False
+                ),
+                dict(
+                    xref='paper', yref='paper', x=0.5, y=1.05,
+                    xanchor='center', yanchor='bottom',
+                    text=f'CVaR ({confidence_level * 100}%): {cvar:.2%}',
+                    showarrow=False
+                )
+            ]
+        )
+        utilities.save_html(fig, filename)

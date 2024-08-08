@@ -33,7 +33,7 @@ def calculate_cagr_monte_carlo(portfolio_value):
     float
         CAGR value.
     """
-    total_period = len(portfolio_value) - 1 
+    total_period = len(portfolio_value) - 1  
     cagr = (portfolio_value.iloc[-1] / portfolio_value.iloc[0]) ** (1 / total_period) - 1
     return cagr
 
@@ -73,3 +73,25 @@ def calculate_max_drawdown(portfolio_value):
     drawdown = (portfolio_value - running_max) / running_max
     max_drawdown = drawdown.min()
     return max_drawdown
+
+def calculate_var_cvar(returns, confidence_level=0.95):
+    """
+    Calculates the Value at Risk (VaR) and Conditional Value at Risk (CVaR) of the portfolio.
+
+    Parameters
+    ----------
+    returns : Series
+        Series containing the portfolio returns over time.
+    confidence_level : float, optional
+        The confidence level for calculating VaR and CVaR. Default is 0.95.
+
+    Returns
+    -------
+    tuple
+        Tuple containing VaR and CVaR values.
+    """
+    sorted_returns = np.sort(returns.dropna())
+    index = int((1 - confidence_level) * len(sorted_returns))
+    var = sorted_returns[index]
+    cvar = sorted_returns[:index].mean()
+    return var, cvar
