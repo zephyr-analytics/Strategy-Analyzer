@@ -57,12 +57,16 @@ class BacktestStaticPortfolio:
         self._portfolio_value = pd.Series(dtype=float)
         self._returns = pd.Series(dtype=float)
 
+
     def process(self):
         """
-        Processes the backtest by fetching data and running the backtest.
+        Processes the backtest by fetching data, running the backtest, and generating the plots.
         """
         self._data = utilities.fetch_data(self.assets_weights, self.start_date, self.end_date, self.bond_ticker, self.cash_ticker)
         self._run_backtest()
+        self.plot_portfolio_value()
+        self.plot_var_cvar()
+
 
     def _adjust_weights(self, current_date):
         """
@@ -92,6 +96,7 @@ class BacktestStaticPortfolio:
         for ticker in adjusted_weights:
             adjusted_weights[ticker] /= total_weight
         return adjusted_weights
+
 
     def _run_backtest(self):
         """
@@ -132,6 +137,7 @@ class BacktestStaticPortfolio:
             Series containing the portfolio values over time.
         """
         return self._portfolio_value
+
 
     def plot_portfolio_value(self, filename='portfolio_value.html'):
         """

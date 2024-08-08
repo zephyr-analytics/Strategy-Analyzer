@@ -45,6 +45,15 @@ class MonteCarloSimulation:
         self.num_simulations = num_simulations
         self.simulation_horizon = simulation_horizon
 
+
+    def process(self):
+        """
+        Encapsulates the entire process of running the Monte Carlo simulation and plotting the results.
+        """
+        simulation_results = self.run_simulation()
+        self.plot_simulation(simulation_results)
+
+
     def run_simulation(self):
         """
         Runs the Monte Carlo simulation.
@@ -62,6 +71,7 @@ class MonteCarloSimulation:
             simulation_results[t] = simulation_results[t - 1] * (1 + random_returns)
 
         return pd.DataFrame(simulation_results)
+
 
     def plot_simulation(self, simulation_results, filename='monte_carlo_simulation.html'):
         """
@@ -113,3 +123,4 @@ class MonteCarloSimulation:
             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
         )
         utilities.save_html(fig, filename)
+        
