@@ -30,6 +30,7 @@ def fetch_data(assets_weights, start_date, end_date, bond_ticker='BND', cash_tic
     data = yf.download(all_tickers, start=start_date, end=end_date)['Adj Close']
     return data
 
+
 def load_weights():
     """
     Opens a file dialog to select a CSV file containing asset weights, and loads it into a dictionary.
