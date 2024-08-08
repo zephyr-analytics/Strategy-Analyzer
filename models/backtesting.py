@@ -33,7 +33,7 @@ class BacktestStaticPortfolio:
         Series to store the portfolio returns over time.
     """
 
-    def __init__(self, assets_weights, start_date, end_date, output_filename, rebalance_threshold=0.05, trading_frequency='monthly'):
+    def __init__(self, assets_weights, start_date, end_date, trading_frequency, output_filename, rebalance_threshold=0.02):
         """
         Initializes the BacktestStaticPortfolio class with given asset weights, start date, and end date.
 

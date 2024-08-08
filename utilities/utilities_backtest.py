@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-def calculate_cagr(portfolio_value, trading_frequency='monthly'):
+def calculate_cagr(portfolio_value, trading_frequency):
     """
     Calculates the Compound Annual Growth Rate (CAGR) of the portfolio.
 
@@ -33,7 +33,7 @@ def calculate_cagr(portfolio_value, trading_frequency='monthly'):
     return cagr
 
 
-def calculate_average_annual_return(returns, trading_frequency='monthly'):
+def calculate_average_annual_return(returns, trading_frequency):
     """
     Calculates the average annual return of the portfolio.
 

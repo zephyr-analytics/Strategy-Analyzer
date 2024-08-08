@@ -1,5 +1,7 @@
 import customtkinter as ctk
 import numpy as np
+import pandas as pd
+import plotly.graph_objects as go
 from models.backtesting import BacktestStaticPortfolio
 from models.monte_carlo_sim import MonteCarloSimulation
 import utilities as utilities
@@ -23,6 +25,8 @@ class MonteCarloApp(ctk.CTk):
         Number of Monte Carlo simulations to run.
     simulation_horizon : ctk.IntVar
         Number of years to simulate in the Monte Carlo simulation.
+    trading_frequency : ctk.StringVar
+        Trading frequency for the backtest (monthly or bi-monthly).
     """
 
     def __init__(self):
@@ -38,6 +42,7 @@ class MonteCarloApp(ctk.CTk):
         self.initial_portfolio_value = ctk.DoubleVar(value=10000)
         self.num_simulations = ctk.IntVar(value=1000)
         self.simulation_horizon = ctk.IntVar(value=10)
+        self.trading_frequency = ctk.StringVar(value="Monthly")  # Default value
         self.bottom_text = None
         self.weights_filename = ""
         self.create_widgets()
@@ -66,6 +71,11 @@ class MonteCarloApp(ctk.CTk):
         ctk.CTkEntry(backtesting_tab, textvariable=self.start_date).pack(pady=5)
         ctk.CTkLabel(backtesting_tab, text="End Date").pack()
         ctk.CTkEntry(backtesting_tab, textvariable=self.end_date).pack(pady=5)
+        
+        ctk.CTkLabel(backtesting_tab, text="Trading Frequency").pack()
+        trading_options = ["monthly", "bi-monthly"]
+        ctk.CTkOptionMenu(backtesting_tab, values=trading_options, variable=self.trading_frequency).pack(pady=5)
+
         ctk.CTkButton(backtesting_tab, text="Select Asset Weights File", command=self.load_weights_and_update).pack(pady=10)
         ctk.CTkButton(backtesting_tab, text="Run Backtest", command=self.run_backtest).pack(pady=10)
 
@@ -121,7 +131,8 @@ class MonteCarloApp(ctk.CTk):
             self.bottom_text = ctk.CTkLabel(self, text="Please load asset weights file.", text_color="red")
             self.bottom_text.pack(pady=5)
             return
-        backtest = BacktestStaticPortfolio(self.assets_weights, self.start_date.get(), self.end_date.get(), output_filename=self.weights_filename)
+        
+        backtest = BacktestStaticPortfolio(self.assets_weights, self.start_date.get(), self.end_date.get(), self.trading_frequency.get(), output_filename=self.weights_filename)
         backtest.process()
         self.bottom_text = ctk.CTkLabel(self, text="Backtest completed and plots saved.", text_color="green")
         self.bottom_text.pack(pady=5)
@@ -135,7 +146,7 @@ class MonteCarloApp(ctk.CTk):
             self.bottom_text = ctk.CTkLabel(self, text="Please load asset weights file.", text_color="red")
             self.bottom_text.pack(pady=5)
             return
-        backtest = BacktestStaticPortfolio(self.assets_weights, self.start_date.get(), self.end_date.get(), output_filename=self.weights_filename)
+        backtest = BacktestStaticPortfolio(self.assets_weights, self.start_date.get(), self.end_date.get(), self.trading_frequency.get(), output_filename=self.weights_filename)
         backtest.process()
         initial_value, cagr, annual_volatility = utilities.calculate_portfolio_metrics(backtest)
         monte_carlo = MonteCarloSimulation(initial_value, cagr, annual_volatility, output_filename=self.weights_filename, num_simulations=self.num_simulations.get(), simulation_horizon=self.simulation_horizon.get())
