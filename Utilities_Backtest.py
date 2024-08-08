@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from tkinter import filedialog
 
 def calculate_cagr(portfolio_value):
     """
@@ -33,7 +34,7 @@ def calculate_cagr_monte_carlo(portfolio_value):
     float
         CAGR value.
     """
-    total_period = len(portfolio_value) - 1 
+    total_period = len(portfolio_value) - 1  
     cagr = (portfolio_value.iloc[-1] / portfolio_value.iloc[0]) ** (1 / total_period) - 1
     return cagr
 
@@ -73,3 +74,18 @@ def calculate_max_drawdown(portfolio_value):
     drawdown = (portfolio_value - running_max) / running_max
     max_drawdown = drawdown.min()
     return max_drawdown
+
+def load_weights():
+    """
+    Opens a file dialog to select a CSV file containing asset weights, and loads it into a dictionary.
+
+    Returns
+    -------
+    dict
+        Dictionary containing asset weights.
+    """
+    file_path = filedialog.askopenfilename(filetypes=[("CSV Files", "*.csv")])
+    if file_path:
+        df = pd.read_csv(file_path)
+        return df.set_index('Ticker')['Weight'].to_dict()
+    return {}
