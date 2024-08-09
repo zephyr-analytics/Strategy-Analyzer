@@ -1,4 +1,5 @@
 import numpy as np
+import os
 import pandas as pd
 
 import plotly.graph_objects as go
@@ -208,3 +209,50 @@ class ResultsProcessor:
                 legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
             )
             utilities.save_html(fig, filename, output_filename)
+
+    def plot_monthly_returns_heatmap(self, returns, output_filename, filename='heatmap_of_returns.html'):
+        """
+        Plots a heatmap of monthly returns with values shown as percentages on each cell.
+
+        Parameters
+        ----------
+        returns : Series
+            Series containing the monthly portfolio returns.
+        """
+        returns_df = returns.resample('M').sum().to_frame(name='Monthly Return')
+        returns_df['Monthly Return'] *= 100 
+        returns_df['Year'] = returns_df.index.year
+        returns_df['Month'] = returns_df.index.month
+        heatmap_data = returns_df.pivot('Year', 'Month', 'Monthly Return')
+        heatmap_data = heatmap_data.reindex(columns=np.arange(1, 13))  
+
+        fig = go.Figure(data=go.Heatmap(
+            z=heatmap_data.values,
+            x=['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            y=heatmap_data.index,
+            colorscale='Viridis',
+            colorbar=dict(title="Return", tickformat=".2%")
+        ))
+        annotations = []
+        for i in range(heatmap_data.shape[0]):
+            for j in range(heatmap_data.shape[1]):
+                value = heatmap_data.iloc[i, j]
+                if not np.isnan(value):  
+                    annotations.append(
+                        dict(
+                            text=f"{value:.2f}%",
+                            x=['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][j],
+                            y=heatmap_data.index[i],
+                            xref='x1',
+                            yref='y1',
+                            font=dict(color="black"),
+                            showarrow=False
+                        )
+                    )
+        fig.update_layout(
+            title="Monthly Returns Heatmap",
+            xaxis_title="Month",
+            yaxis_title="Year",
+            annotations=annotations
+        )
+        utilities.save_html(fig, filename, output_filename)

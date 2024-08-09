@@ -20,7 +20,7 @@ class BacktestStaticPortfolio:
     end_date : str
         The end date for the backtest.
     sma_period : int
-        The period for calculating the Simple Moving Average (SMA). Default is 168.
+        The period for calculating the Simple Moving Average (SMA).
     bond_ticker : str
         The ticker symbol for the bond asset. Default is 'BND'.
     cash_ticker : str
@@ -35,9 +35,9 @@ class BacktestStaticPortfolio:
         Series to store the portfolio returns over time.
     """
 
-    def __init__(self, assets_weights, start_date, end_date, trading_frequency, output_filename, weighting_strategy, rebalance_threshold=0.02):
+    def __init__(self, assets_weights, start_date, end_date, trading_frequency, output_filename, weighting_strategy, sma_period, rebalance_threshold=0.02):
         """
-        Initializes the BacktestStaticPortfolio class with given asset weights, start date, end date, and weighting strategy.
+        Initializes the BacktestStaticPortfolio class with given asset weights, start date, end date, weighting strategy, and SMA period.
 
         Parameters
         ----------
@@ -55,6 +55,8 @@ class BacktestStaticPortfolio:
             The threshold for rebalancing the portfolio weights. Default is 0.02.
         weighting_strategy : str, optional
             The strategy used to weight the assets. Default is 'use_file_weights'.
+        sma_period : int, optional
+            The period for calculating the Simple Moving Average (SMA). Default is 168.
         """
         self.assets_weights = assets_weights
         self.start_date = start_date
@@ -63,9 +65,9 @@ class BacktestStaticPortfolio:
         self.output_filename = output_filename
         self.rebalance_threshold = rebalance_threshold
         self.weighting_strategy = weighting_strategy
-        self.sma_period = 168
+        self.sma_period = sma_period
         self.bond_ticker = 'BND'
-        self.cash_ticker = 'SHV'
+        self.cash_ticker = 'BIL'
         self.initial_portfolio_value = 10000
         self._data = None
         self._portfolio_value = pd.Series(dtype=float)
@@ -80,6 +82,7 @@ class BacktestStaticPortfolio:
         results_processor = ResultsProcessor(self.output_filename)
         results_processor.plot_portfolio_value(self.get_portfolio_value())
         results_processor.plot_var_cvar(self._returns, self.get_portfolio_value(), self.trading_frequency)
+        results_processor.plot_monthly_returns_heatmap( self._returns, self.output_filename)
 
     def _adjust_weights(self, current_date):
         """
@@ -155,7 +158,6 @@ class BacktestStaticPortfolio:
         self._portfolio_value = pd.Series(portfolio_values, index=pd.date_range(start=self.start_date, periods=len(portfolio_values), freq='M'))
         self._returns = pd.Series(portfolio_returns, index=pd.date_range(start=self.start_date, periods=len(portfolio_returns), freq='M'))
 
-
     def _rebalance_portfolio(self, current_weights):
         """
         Rebalances the portfolio if the weights are outside their target range.
@@ -179,7 +181,6 @@ class BacktestStaticPortfolio:
             rebalanced_weights[ticker] /= total_weight
 
         return rebalanced_weights
-
 
     def get_portfolio_value(self):
         """

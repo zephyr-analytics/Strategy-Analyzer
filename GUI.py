@@ -55,18 +55,26 @@ class MonteCarloApp(ctk.CTk):
         sidebar.grid(row=0, column=0, rowspan=2, sticky="ns")
 
         ctk.CTkLabel(sidebar, text="Settings", font=ctk.CTkFont(size=20, weight="bold")).pack(pady=10)
+        
         ctk.CTkLabel(sidebar, text="Start Date").pack(pady=5)
         ctk.CTkEntry(sidebar, textvariable=self.start_date).pack(pady=5)
+        
         ctk.CTkLabel(sidebar, text="End Date").pack(pady=5)
         ctk.CTkEntry(sidebar, textvariable=self.end_date).pack(pady=5)
-
+        
         ctk.CTkLabel(sidebar, text="Trading Frequency").pack(pady=5)
         trading_options = ["monthly", "bi-monthly"]
         ctk.CTkOptionMenu(sidebar, values=trading_options, variable=self.trading_frequency).pack(pady=5)
-
+        
         ctk.CTkLabel(sidebar, text="Weighting Strategy").pack(pady=5)
         weighting_options = ["use_file_weights", "equal", "risk_contribution", "min_volatility", "max_sharpe"]
         ctk.CTkOptionMenu(sidebar, values=weighting_options, variable=self.weighting_strategy).pack(pady=5)
+
+        # Add SMA window selection
+        ctk.CTkLabel(sidebar, text="SMA Window (days)").pack(pady=5)
+        sma_windows = ["21", "42", "63", "84", "105", "126", "147", "168", "210"]
+        self.sma_window = ctk.StringVar(value="21")
+        ctk.CTkOptionMenu(sidebar, values=sma_windows, variable=self.sma_window).pack(pady=5)
 
         ctk.CTkButton(sidebar, text="Select Asset Weights File", command=self.load_weights_and_update).pack(pady=10)
 
@@ -154,7 +162,8 @@ class MonteCarloApp(ctk.CTk):
             self.end_date.get(), 
             self.trading_frequency.get(), 
             output_filename=self.weights_filename,
-            weighting_strategy=self.weighting_strategy.get()
+            weighting_strategy=self.weighting_strategy.get(),
+            sma_period=int(self.sma_window.get())
         )
         backtest.process()
         self.bottom_text = ctk.CTkLabel(self.bottom_text_frame, text="Backtest completed and plots saved.", text_color="green")
@@ -172,7 +181,8 @@ class MonteCarloApp(ctk.CTk):
             self.end_date.get(), 
             self.trading_frequency.get(), 
             output_filename=self.weights_filename,
-            weighting_strategy=self.weighting_strategy.get()
+            weighting_strategy=self.weighting_strategy.get(),
+            sma_period=int(self.sma_window.get())
         )
         backtest.process()
         initial_value, cagr, annual_volatility = utilities.calculate_portfolio_metrics(backtest)
@@ -205,7 +215,8 @@ class MonteCarloApp(ctk.CTk):
                 self.end_date.get(),
                 self.trading_frequency.get(),
                 output_filename=self.weights_filename,
-                weighting_strategy=strategy
+                weighting_strategy=strategy,
+                sma_period=int(self.sma_window.get())
             )
             backtest.process()
             performance_data[strategy] = backtest.get_portfolio_value()
