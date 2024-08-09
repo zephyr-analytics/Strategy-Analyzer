@@ -1,9 +1,7 @@
 import customtkinter as ctk
 
 import utilities as utilities
-from models.backtesting import BacktestStaticPortfolio
-from models.monte_carlo_sim import MonteCarloSimulation
-from results.results_processor import ResultsProcessor
+import main
 
 
 class MonteCarloApp(ctk.CTk):
@@ -151,80 +149,45 @@ class MonteCarloApp(ctk.CTk):
 
     def run_backtest(self):
         self.clear_bottom_text()
-        if not self.assets_weights:
-            self.bottom_text = ctk.CTkLabel(self.bottom_text_frame, text="Please load asset weights file.", text_color="red")
-            self.bottom_text.pack(pady=5)
-            return
-
-        backtest = BacktestStaticPortfolio(
+        result = main.run_backtest(
             self.assets_weights, 
             self.start_date.get(), 
             self.end_date.get(), 
             self.trading_frequency.get(), 
-            output_filename=self.weights_filename,
-            weighting_strategy=self.weighting_strategy.get(),
-            sma_period=int(self.sma_window.get())
+            self.weighting_strategy.get(), 
+            self.sma_window.get(), 
+            self.weights_filename
         )
-        backtest.process()
-        self.bottom_text = ctk.CTkLabel(self.bottom_text_frame, text="Backtest completed and plots saved.", text_color="green")
+        self.bottom_text = ctk.CTkLabel(self.bottom_text_frame, text=result, text_color="green" if "completed" in result else "red")
         self.bottom_text.pack(pady=5)
 
     def run_simulation(self):
         self.clear_bottom_text()
-        if not self.assets_weights:
-            self.bottom_text = ctk.CTkLabel(self.bottom_text_frame, text="Please load asset weights file.", text_color="red")
-            self.bottom_text.pack(pady=5)
-            return
-        backtest = BacktestStaticPortfolio(
+        result = main.run_simulation(
             self.assets_weights, 
             self.start_date.get(), 
             self.end_date.get(), 
             self.trading_frequency.get(), 
-            output_filename=self.weights_filename,
-            weighting_strategy=self.weighting_strategy.get(),
-            sma_period=int(self.sma_window.get())
+            self.weighting_strategy.get(), 
+            self.sma_window.get(), 
+            self.weights_filename,
+            self.num_simulations.get(), 
+            self.simulation_horizon.get()
         )
-        backtest.process()
-        initial_value, cagr, annual_volatility = utilities.calculate_portfolio_metrics(backtest)
-        monte_carlo = MonteCarloSimulation(
-            initial_value, 
-            cagr, 
-            annual_volatility, 
-            output_filename=self.weights_filename, 
-            num_simulations=self.num_simulations.get(), 
-            simulation_horizon=self.simulation_horizon.get()
-        )
-        monte_carlo.process()
-        self.bottom_text = ctk.CTkLabel(self.bottom_text_frame, text="Simulation completed and plot saved.", text_color="green")
+        self.bottom_text = ctk.CTkLabel(self.bottom_text_frame, text=result, text_color="green" if "completed" in result else "red")
         self.bottom_text.pack(pady=5)
 
     def run_all_weighting_scenarios(self):
         self.clear_bottom_text()
-        if not self.assets_weights:
-            self.bottom_text = ctk.CTkLabel(self.bottom_text_frame, text="Please load asset weights file.", text_color="red")
-            self.bottom_text.pack(pady=5)
-            return
-
-        strategies = ["use_file_weights", "equal", "risk_contribution", "min_volatility", "max_sharpe"]
-        performance_data = {}
-
-        for strategy in strategies:
-            backtest = BacktestStaticPortfolio(
-                self.assets_weights,
-                self.start_date.get(),
-                self.end_date.get(),
-                self.trading_frequency.get(),
-                output_filename=self.weights_filename,
-                weighting_strategy=strategy,
-                sma_period=int(self.sma_window.get())
-            )
-            backtest.process()
-            performance_data[strategy] = backtest.get_portfolio_value()
-
-        results_processor = ResultsProcessor(output_filename=self.weights_filename)
-        results_processor.plot_all_scenarios(performance_data)
-
-        self.bottom_text = ctk.CTkLabel(self.bottom_text_frame, text="All scenarios completed and plots saved.", text_color="green")
+        result = main.run_all_weighting_scenarios(
+            self.assets_weights, 
+            self.start_date.get(), 
+            self.end_date.get(), 
+            self.trading_frequency.get(), 
+            self.sma_window.get(), 
+            self.weights_filename
+        )
+        self.bottom_text = ctk.CTkLabel(self.bottom_text_frame, text=result, text_color="green" if "completed" in result else "red")
         self.bottom_text.pack(pady=5)
 
 if __name__ == "__main__":
