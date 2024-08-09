@@ -1,8 +1,6 @@
 import customtkinter as ctk
-
 import utilities as utilities
 import main
-
 
 class MonteCarloApp(ctk.CTk):
     """
@@ -87,6 +85,7 @@ class MonteCarloApp(ctk.CTk):
 
         self.create_backtesting_tab(tab_control)
         self.create_monte_carlo_tab(tab_control)
+        self.create_signals_tab(tab_control)
 
         right_sidebar = ctk.CTkFrame(self, width=200)
         right_sidebar.grid(row=0, column=2, rowspan=2, sticky="ns")
@@ -121,6 +120,24 @@ class MonteCarloApp(ctk.CTk):
         ctk.CTkLabel(monte_carlo_tab, text="Simulation Horizon (years)").pack()
         ctk.CTkEntry(monte_carlo_tab, textvariable=self.simulation_horizon).pack(pady=5)
         ctk.CTkButton(monte_carlo_tab, text="Run Simulation", command=self.run_simulation).pack(pady=10)
+
+    def create_signals_tab(self, tab_control):
+        """
+        Creates the signals tab with input fields and buttons for generating signals.
+
+        Parameters
+        ----------
+        tab_control : ctk.CTkTabview
+            The tab control object to which the signals tab will be added.
+        """
+        signals_tab = tab_control.add("Signals")
+        ctk.CTkLabel(signals_tab, text="Generate Portfolio Signals", font=ctk.CTkFont(size=20, weight="bold")).pack(pady=10)
+        
+        ctk.CTkLabel(signals_tab, text="Date for Signals").pack(pady=5)
+        signal_date = ctk.StringVar(value="2024-08-01")
+        ctk.CTkEntry(signals_tab, textvariable=signal_date).pack(pady=5)
+        
+        ctk.CTkButton(signals_tab, text="Generate Signals", command=lambda: self.run_signals_and_display(signal_date.get())).pack(pady=10)
 
     def clear_bottom_text(self):
         """
@@ -190,6 +207,22 @@ class MonteCarloApp(ctk.CTk):
         self.bottom_text = ctk.CTkLabel(self.bottom_text_frame, text=result, text_color="green" if "completed" in result else "red")
         self.bottom_text.pack(pady=5)
 
+    def run_signals_and_display(self, current_date):
+        self.clear_bottom_text()
+        result = main.run_signals(
+            self.assets_weights, 
+            self.start_date.get(), 
+            self.end_date.get(), 
+            self.trading_frequency.get(), 
+            self.weighting_strategy.get(), 
+            self.sma_window.get(), 
+            self.weights_filename,
+            current_date
+        )
+        self.bottom_text = ctk.CTkLabel(self.bottom_text_frame, text=result, text_color="green" if "generated" in result else "red")
+        self.bottom_text.pack(pady=5)
+
 if __name__ == "__main__":
     app = MonteCarloApp()
     app.mainloop()
+

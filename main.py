@@ -2,6 +2,7 @@ import utilities as utilities
 from models.backtesting import BacktestStaticPortfolio
 from models.monte_carlo_sim import MonteCarloSimulation
 from results.results_processor import ResultsProcessor
+from models.create_signals import CreateSignals
 
 def run_backtest(assets_weights, start_date, end_date, trading_frequency, weighting_strategy, sma_window, weights_filename):
     if not assets_weights:
@@ -69,3 +70,20 @@ def run_all_weighting_scenarios(assets_weights, start_date, end_date, trading_fr
     results_processor.plot_all_scenarios(performance_data)
     
     return "All scenarios completed and plots saved."
+
+def run_signals(assets_weights, start_date, end_date, trading_frequency, weighting_strategy, sma_window, weights_filename, current_date):
+    if not assets_weights:
+        return "Please load asset weights file."
+
+    data = utilities.fetch_data(assets_weights, start_date, end_date)
+    
+    create_signals = CreateSignals(
+        assets_weights, 
+        data, 
+        weighting_strategy=weighting_strategy, 
+        sma_period=int(sma_window)
+    )
+    
+    create_signals.generate_signals(current_date)
+    
+    return f"Signals generated for {current_date}."
