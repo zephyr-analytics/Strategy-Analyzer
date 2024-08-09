@@ -69,7 +69,7 @@ class BacktestStaticPortfolio:
         self.weighting_strategy = weighting_strategy
         self.sma_period = sma_period
         self.bond_ticker = 'BND'
-        self.cash_ticker = 'BIL'
+        self.cash_ticker = 'SHV'
         self.initial_portfolio_value = 10000
         self._data = None
         self._portfolio_value = pd.Series(dtype=float)
@@ -84,8 +84,8 @@ class BacktestStaticPortfolio:
         results_processor = ResultsProcessor(self.output_filename)
         results_processor.plot_portfolio_value(self.get_portfolio_value())
         results_processor.plot_var_cvar(self._returns, self.get_portfolio_value(), self.trading_frequency)
-        results_processor.plot_monthly_returns_heatmap( self._returns, self.output_filename)
-        results_processor.plot_yearly_returns_heatmap( self._returns, self.output_filename)
+        results_processor.plot_monthly_returns_heatmap(self._returns, self.output_filename)
+        results_processor.plot_yearly_returns_heatmap(self._returns, self.output_filename)
 
     def _adjust_weights(self, current_date):
         """
@@ -144,42 +144,27 @@ class BacktestStaticPortfolio:
             step = 2
         else:
             raise ValueError("Invalid trading frequency. Choose 'monthly' or 'bi-monthly'.")
-
+        adjusted_weights = self._adjust_weights(monthly_dates[0])
         for i in range(1, len(monthly_dates), step):
-            previous_date = monthly_dates[i - 1]  # Previous month end
-            current_date = monthly_dates[i]  # Current month end
-
-            # Get the last date of the previous month for accurate data retrieval
+            previous_date = monthly_dates[i - 1]  
+            current_date = monthly_dates[i]  
             last_date_previous_month = self._data.index[self._data.index.get_loc(previous_date, method='pad')]
-            
-            # Adjust weights based on SMA and the selected strategy
-            adjusted_weights = self._adjust_weights(last_date_previous_month)
-            
-            # Rebalance portfolio if necessary
-            adjusted_weights = self._rebalance_portfolio(adjusted_weights)
-            
-            # Retrieve the end-of-month data for calculations
             month_start_data = self._data.loc[last_date_previous_month]
-            
-            # Get the portfolio value at the start of the month
             previous_value = portfolio_values[-1]
-            
-            # Check the next month's last date for calculating returns
             last_date_current_month = self._data.index[self._data.index.get_loc(current_date, method='pad')]
             current_month_end_data = self._data.loc[last_date_current_month]
-            
-            # Calculate the monthly returns for each asset
             monthly_returns = (current_month_end_data / month_start_data) - 1
-            
-            # Calculate the overall portfolio return for the month
             month_return = sum([monthly_returns[ticker] * weight for ticker, weight in adjusted_weights.items()])
-            
-            # Update the portfolio value based on the monthly return
             new_portfolio_value = previous_value * (1 + month_return)
+            # TODO work on finding where the returns miscalculations are happening. 
+            print(f'Current Return:{month_return}')
+            print(f'Previous Portfolio Value:{previous_value}')
+            print(f'New Portfolio Value:{new_portfolio_value}')
+
             portfolio_values.append(new_portfolio_value)
             portfolio_returns.append(month_return)
-        
-        # Store the calculated portfolio values and returns
+            adjusted_weights = self._adjust_weights(current_date)
+            adjusted_weights = self._rebalance_portfolio(adjusted_weights)
         self._portfolio_value = pd.Series(portfolio_values, index=pd.date_range(start=self.start_date, periods=len(portfolio_values), freq='M'))
         self._returns = pd.Series(portfolio_returns, index=pd.date_range(start=self.start_date, periods=len(portfolio_returns), freq='M'))
 
@@ -217,3 +202,4 @@ class BacktestStaticPortfolio:
             Series containing the portfolio values over time.
         """
         return self._portfolio_value
+
