@@ -32,6 +32,23 @@ def calculate_cagr(portfolio_value, trading_frequency):
     cagr = (portfolio_value.iloc[-1] / portfolio_value.iloc[0]) ** (1 / total_years) - 1
     return cagr
 
+def calculate_cagr_monte_carlo(portfolio_value):
+    """
+    Calculates the Compound Annual Growth Rate (CAGR) of the portfolio for Monte Carlo simulation.
+
+    Parameters
+    ----------
+    portfolio_value : Series
+        Series containing the portfolio value over time.
+
+    Returns
+    -------
+    float
+        CAGR value.
+    """
+    total_period = len(portfolio_value) - 1  
+    cagr = (portfolio_value.iloc[-1] / portfolio_value.iloc[0]) ** (1 / total_period) - 1
+    return cagr
 
 def calculate_average_annual_return(returns, trading_frequency):
     """
@@ -126,5 +143,4 @@ def calculate_portfolio_metrics(backtest):
         annual_volatility = backtest._returns.std() * np.sqrt(6)
     else:
         raise ValueError("Invalid trading frequency. Choose 'monthly' or 'bi-monthly'.")
-
     return initial_value, cagr, annual_volatility

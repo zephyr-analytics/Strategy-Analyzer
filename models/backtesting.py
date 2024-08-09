@@ -33,9 +33,9 @@ class BacktestStaticPortfolio:
         Series to store the portfolio returns over time.
     """
 
-    def __init__(self, assets_weights, start_date, end_date, trading_frequency, output_filename, rebalance_threshold=0.02):
+    def __init__(self, assets_weights, start_date, end_date, trading_frequency, output_filename, weighting_strategy, rebalance_threshold=0.02):
         """
-        Initializes the BacktestStaticPortfolio class with given asset weights, start date, and end date.
+        Initializes the BacktestStaticPortfolio class with given asset weights, start date, end date, and weighting strategy.
 
         Parameters
         ----------
@@ -45,16 +45,22 @@ class BacktestStaticPortfolio:
             The start date for the backtest.
         end_date : str
             The end date for the backtest.
+        trading_frequency : str
+            The frequency of trades. Either 'monthly' or 'bi-monthly'.
         output_filename : str
             The name of the file to save the output.
-        rebalance_threshold : float
-            The threshold for rebalancing the portfolio weights. Default is 0.05 (5%).
-        trading_frequency : str
-            The frequency of trades. Either 'monthly' or 'bi-monthly'. Default is 'monthly'.
+        rebalance_threshold : float, optional
+            The threshold for rebalancing the portfolio weights. Default is 0.02.
+        weighting_strategy : str, optional
+            The strategy used to weight the assets. Default is 'use_file_weights'.
         """
         self.assets_weights = assets_weights
         self.start_date = start_date
         self.end_date = end_date
+        self.trading_frequency = trading_frequency
+        self.output_filename = output_filename
+        self.rebalance_threshold = rebalance_threshold
+        self.weighting_strategy = weighting_strategy
         self.sma_period = 168
         self.bond_ticker = 'BND'
         self.cash_ticker = 'SHV'
@@ -62,10 +68,6 @@ class BacktestStaticPortfolio:
         self._data = None
         self._portfolio_value = pd.Series(dtype=float)
         self._returns = pd.Series(dtype=float)
-        self.output_filename = output_filename
-        self.rebalance_threshold = rebalance_threshold
-        self.trading_frequency = trading_frequency
-
 
     def process(self):
         """
@@ -76,10 +78,9 @@ class BacktestStaticPortfolio:
         self.plot_portfolio_value(self.output_filename)
         self.plot_var_cvar(self.output_filename)
 
-
     def _adjust_weights(self, current_date):
         """
-        Adjusts the weights of the assets based on their SMA.
+        Adjusts the weights of the assets based on their SMA and the selected weighting strategy.
 
         Parameters
         ----------
@@ -91,7 +92,21 @@ class BacktestStaticPortfolio:
         dict
             Dictionary of adjusted asset weights.
         """
-        adjusted_weights = self.assets_weights.copy()
+        if self.weighting_strategy == 'use_file_weights':
+            adjusted_weights = self.assets_weights.copy()
+        elif self.weighting_strategy == 'equal':
+            adjusted_weights = utilities.equal_weighting(self.assets_weights)
+        elif self.weighting_strategy == 'risk_contribution':
+            adjusted_weights = utilities.risk_contribution_weighting(self._data.cov(), self.assets_weights)
+        elif self.weighting_strategy == 'min_volatility':
+            weights = utilities.min_volatility_weighting(self._data.cov())
+            adjusted_weights = dict(zip(self.assets_weights.keys(), weights))
+        elif self.weighting_strategy == 'max_sharpe':
+            returns = self._data.pct_change().mean()
+            weights = utilities.max_sharpe_ratio_weighting(self._data.cov(), returns)
+            adjusted_weights = dict(zip(self.assets_weights.keys(), weights))
+        else:
+            raise ValueError("Invalid weighting strategy")
         for ticker in self.assets_weights.keys():
             if self._data.loc[:current_date, ticker].iloc[-1] < self._data.loc[:current_date, ticker].rolling(window=self.sma_period).mean().iloc[-1]:
                 if self._data.loc[:current_date, self.bond_ticker].iloc[-1] < self._data.loc[:current_date, self.bond_ticker].rolling(window=self.sma_period).mean().iloc[-1]:
@@ -104,7 +119,6 @@ class BacktestStaticPortfolio:
         for ticker in adjusted_weights:
             adjusted_weights[ticker] /= total_weight
         return adjusted_weights
-
 
     def _run_backtest(self):
         """

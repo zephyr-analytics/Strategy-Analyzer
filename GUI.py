@@ -30,9 +30,6 @@ class MonteCarloApp(ctk.CTk):
     """
 
     def __init__(self):
-        """
-        Initializes the MonteCarloApp with default settings and creates the GUI widgets.
-        """
         super().__init__()
         self.title("Backtesting and Monte Carlo Simulation")
         self.geometry("1200x600")
@@ -43,15 +40,12 @@ class MonteCarloApp(ctk.CTk):
         self.num_simulations = ctk.IntVar(value=1000)
         self.simulation_horizon = ctk.IntVar(value=10)
         self.trading_frequency = ctk.StringVar(value="monthly")
+        self.weighting_strategy = ctk.StringVar(value="equal")
         self.bottom_text = None
         self.weights_filename = ""
         self.create_widgets()
 
     def create_widgets(self):
-        """
-        Creates the layout for the GUI with a sidebar on the left for settings, a center area for text display,
-        and an empty right sidebar.
-        """
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=3)
         self.grid_columnconfigure(2, weight=1)
@@ -71,12 +65,15 @@ class MonteCarloApp(ctk.CTk):
         trading_options = ["monthly", "bi-monthly"]
         ctk.CTkOptionMenu(sidebar, values=trading_options, variable=self.trading_frequency).pack(pady=5)
 
+        ctk.CTkLabel(sidebar, text="Weighting Strategy").pack(pady=5)
+        weighting_options = ["use_file_weights", "equal", "risk_contribution", "min_volatility", "max_sharpe"]
+        ctk.CTkOptionMenu(sidebar, values=weighting_options, variable=self.weighting_strategy).pack(pady=5)
+
         ctk.CTkButton(sidebar, text="Select Asset Weights File", command=self.load_weights_and_update).pack(pady=10)
 
         self.bottom_text_frame = ctk.CTkFrame(self)
         self.bottom_text_frame.grid(row=1, column=1, columnspan=1, sticky="ew")
 
-        # Tab control for center frame
         center_frame = ctk.CTkFrame(self)
         center_frame.grid(row=0, column=1, rowspan=1, sticky="nsew")
 
@@ -86,7 +83,6 @@ class MonteCarloApp(ctk.CTk):
         self.create_backtesting_tab(tab_control)
         self.create_monte_carlo_tab(tab_control)
 
-        # Empty right sidebar
         right_sidebar = ctk.CTkFrame(self, width=200)
         right_sidebar.grid(row=0, column=2, rowspan=2, sticky="ns")
 
@@ -146,33 +142,48 @@ class MonteCarloApp(ctk.CTk):
         self.bottom_text.pack(pady=5)
 
     def run_backtest(self):
-        """
-        Runs the backtest with the current settings and displays the results.
-        """
         self.clear_bottom_text()
         if not self.assets_weights:
             self.bottom_text = ctk.CTkLabel(self.bottom_text_frame, text="Please load asset weights file.", text_color="red")
             self.bottom_text.pack(pady=5)
             return
 
-        backtest = BacktestStaticPortfolio(self.assets_weights, self.start_date.get(), self.end_date.get(), self.trading_frequency.get(), output_filename=self.weights_filename)
+        backtest = BacktestStaticPortfolio(
+            self.assets_weights, 
+            self.start_date.get(), 
+            self.end_date.get(), 
+            self.trading_frequency.get(), 
+            output_filename=self.weights_filename,
+            weighting_strategy=self.weighting_strategy.get()
+        )
         backtest.process()
         self.bottom_text = ctk.CTkLabel(self.bottom_text_frame, text="Backtest completed and plots saved.", text_color="green")
         self.bottom_text.pack(pady=5)
 
     def run_simulation(self):
-        """
-        Runs the Monte Carlo simulation with the current settings and displays the results.
-        """
         self.clear_bottom_text()
         if not self.assets_weights:
             self.bottom_text = ctk.CTkLabel(self.bottom_text_frame, text="Please load asset weights file.", text_color="red")
             self.bottom_text.pack(pady=5)
             return
-        backtest = BacktestStaticPortfolio(self.assets_weights, self.start_date.get(), self.end_date.get(), self.trading_frequency.get(), output_filename=self.weights_filename)
+        backtest = BacktestStaticPortfolio(
+            self.assets_weights, 
+            self.start_date.get(), 
+            self.end_date.get(), 
+            self.trading_frequency.get(), 
+            output_filename=self.weights_filename,
+            weighting_strategy=self.weighting_strategy.get()
+        )
         backtest.process()
         initial_value, cagr, annual_volatility = utilities.calculate_portfolio_metrics(backtest)
-        monte_carlo = MonteCarloSimulation(initial_value, cagr, annual_volatility, output_filename=self.weights_filename, num_simulations=self.num_simulations.get(), simulation_horizon=self.simulation_horizon.get())
+        monte_carlo = MonteCarloSimulation(
+            initial_value, 
+            cagr, 
+            annual_volatility, 
+            output_filename=self.weights_filename, 
+            num_simulations=self.num_simulations.get(), 
+            simulation_horizon=self.simulation_horizon.get()
+        )
         monte_carlo.process()
         self.bottom_text = ctk.CTkLabel(self.bottom_text_frame, text="Simulation completed and plot saved.", text_color="green")
         self.bottom_text.pack(pady=5)
@@ -180,4 +191,3 @@ class MonteCarloApp(ctk.CTk):
 if __name__ == "__main__":
     app = MonteCarloApp()
     app.mainloop()
-
