@@ -3,6 +3,8 @@ import os
 import pandas as pd
 import plotly.graph_objects as go
 
+from results.results_processor import ResultsProcessor
+
 import utilities as utilities
 
 class BacktestStaticPortfolio:
@@ -75,8 +77,9 @@ class BacktestStaticPortfolio:
         """
         self._data = utilities.fetch_data(self.assets_weights, self.start_date, self.end_date, self.bond_ticker, self.cash_ticker)
         self._run_backtest()
-        self.plot_portfolio_value(self.output_filename)
-        self.plot_var_cvar(self.output_filename)
+        results_processor = ResultsProcessor(self.output_filename)
+        results_processor.plot_portfolio_value(self.get_portfolio_value())
+        results_processor.plot_var_cvar(self._returns, self.get_portfolio_value(), self.trading_frequency)
 
     def _adjust_weights(self, current_date):
         """
@@ -171,7 +174,6 @@ class BacktestStaticPortfolio:
         for ticker, target_weight in self.assets_weights.items():
             if abs(current_weights[ticker] - target_weight) > self.rebalance_threshold:
                 rebalanced_weights[ticker] = target_weight
-        
         total_weight = sum(rebalanced_weights.values())
         for ticker in rebalanced_weights:
             rebalanced_weights[ticker] /= total_weight
@@ -189,92 +191,3 @@ class BacktestStaticPortfolio:
             Series containing the portfolio values over time.
         """
         return self._portfolio_value
-
-
-    def plot_portfolio_value(self, output_filename, filename='portfolio_value.html'):
-        """
-        Plots the portfolio value over time and saves the plot as an HTML file.
-        """
-        fig = go.Figure()
-        fig.add_trace(go.Scatter(x=self._portfolio_value.index, y=self._portfolio_value, mode='lines', name='Portfolio Value'))
-        fig.update_layout(title='Portfolio Value Over Time', xaxis_title='Date', yaxis_title='Portfolio Value ($)')
-        utilities.save_html(fig, filename, self.output_filename)
-
-
-    def plot_var_cvar(self, output_filename, confidence_level=0.95, filename='var_cvar.html'):
-        """
-        Plots the portfolio returns with VaR and CVaR and saves the plot as an HTML file.
-
-        Parameters
-        ----------
-        confidence_level : float, optional
-            The confidence level for calculating VaR and CVaR. Default is 0.95.
-        filename : str, optional
-            The name of the HTML file to save the plot. Default is 'var_cvar.html'.
-        """
-        var, cvar = utilities.calculate_var_cvar(self._returns, confidence_level)
-        cagr = utilities.calculate_cagr(self._portfolio_value, self.trading_frequency)
-        avg_annual_return = utilities.calculate_average_annual_return(self._returns, self.trading_frequency)
-        max_drawdown = utilities.calculate_max_drawdown(self._portfolio_value)
-
-        fig = go.Figure()
-
-        fig.add_trace(go.Histogram(x=self._returns.dropna(), nbinsx=30, name='Returns', opacity=0.75, marker_color='blue'))
-
-        fig.add_shape(type="line",
-                    x0=var, y0=0, x1=var, y1=1,
-                    line=dict(color="Red", dash="dash"),
-                    xref='x', yref='paper',
-                    name=f'VaR ({confidence_level * 100}%): {var:.2%}')
-        fig.add_shape(type="line",
-                    x0=cvar, y0=0, x1=cvar, y1=1,
-                    line=dict(color="Green", dash="dash"),
-                    xref='x', yref='paper',
-                    name=f'CVaR ({confidence_level * 100}%): {cvar:.2%}')
-
-        fig.update_layout(
-            title='Portfolio Returns with VaR and CVaR',
-            xaxis_title='Returns',
-            yaxis_title='Frequency',
-            showlegend=True,
-            legend=dict(
-                orientation="h",
-                yanchor="top",
-                y=1.3,
-                xanchor="center",
-                x=0.5
-            ),
-            annotations=[
-                dict(
-                    xref='paper', yref='paper', x=0.5, y=1.25,
-                    xanchor='center', yanchor='bottom',
-                    text=f'CAGR: {cagr:.2%}',
-                    showarrow=False
-                ),
-                dict(
-                    xref='paper', yref='paper', x=0.5, y=1.2,
-                    xanchor='center', yanchor='bottom',
-                    text=f'Avg Annual Return: {avg_annual_return:.2%}',
-                    showarrow=False
-                ),
-                dict(
-                    xref='paper', yref='paper', x=0.5, y=1.15,
-                    xanchor='center', yanchor='bottom',
-                    text=f'Max Drawdown: {max_drawdown:.2%}',
-                    showarrow=False
-                ),
-                dict(
-                    xref='paper', yref='paper', x=0.5, y=1.1,
-                    xanchor='center', yanchor='bottom',
-                    text=f'VaR ({confidence_level * 100}%): {var:.2%}',
-                    showarrow=False
-                ),
-                dict(
-                    xref='paper', yref='paper', x=0.5, y=1.05,
-                    xanchor='center', yanchor='bottom',
-                    text=f'CVaR ({confidence_level * 100}%): {cvar:.2%}',
-                    showarrow=False
-                )
-            ]
-        )
-        utilities.save_html(fig, filename, self.output_filename)
