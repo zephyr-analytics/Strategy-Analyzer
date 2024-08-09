@@ -84,8 +84,7 @@ class BacktestStaticPortfolio:
         results_processor = ResultsProcessor(self.output_filename)
         results_processor.plot_portfolio_value(self.get_portfolio_value())
         results_processor.plot_var_cvar(self._returns, self.get_portfolio_value(), self.trading_frequency)
-        results_processor.plot_monthly_returns_heatmap(self._returns, self.output_filename)
-        results_processor.plot_yearly_returns_heatmap(self._returns, self.output_filename)
+        results_processor.plot_returns_heatmaps(self._returns, self._returns, self.output_filename)
 
     def _adjust_weights(self, current_date):
         """
@@ -202,4 +201,3 @@ class BacktestStaticPortfolio:
             Series containing the portfolio values over time.
         """
         return self._portfolio_value
-
