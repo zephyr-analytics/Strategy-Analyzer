@@ -5,6 +5,8 @@ import pandas as pd
 import plotly.graph_objects as go
 import utilities as utilities
 
+# TODO seperate out results processor for each module. 
+
 class ResultsProcessor:
     """
     A class to process and visualize the results of portfolio backtests and simulations.
@@ -210,7 +212,8 @@ class ResultsProcessor:
             )
             utilities.save_html(fig, filename, output_filename)
 
-    def plot_monthly_returns_heatmap(self, returns, output_filename, filename='heatmap_of_returns.html'):
+    def plot_monthly_returns_heatmap(self, returns, output_filename, filename='heatmap_of_monthly_returns.html'):
+        # TODO add portfolio stats as a legend
         """
         Plots a heatmap of monthly returns with values shown as percentages on each cell.
 
@@ -253,6 +256,49 @@ class ResultsProcessor:
             title="Monthly Returns Heatmap",
             xaxis_title="Month",
             yaxis_title="Year",
+            annotations=annotations
+        )
+        utilities.save_html(fig, filename, output_filename)
+
+    def plot_yearly_returns_heatmap(self, returns, output_filename, filename='heatmap_of_yearly_returns.html'):
+        # TODO add portfolio stats as a legend
+        """
+        Plots a heatmap of yearly returns with values shown as percentages on each cell.
+
+        Parameters
+        ----------
+        returns : Series
+            Series containing the portfolio returns.
+        """
+        returns_df = returns.resample('Y').sum().to_frame(name='Yearly Return')
+        returns_df['Yearly Return'] *= 100  
+        returns_df['Year'] = returns_df.index.year
+        returns_df = returns_df.sort_values('Year')
+        fig = go.Figure(data=go.Heatmap(
+            z=[returns_df['Yearly Return'].values],  
+            x=returns_df['Year'], 
+            y=["Yearly Returns"],  
+            colorscale='Viridis',
+            colorbar=dict(title="Return", tickformat=".2%")
+        ))
+        annotations = []
+        for i in range(returns_df.shape[0]):
+            value = returns_df['Yearly Return'].iloc[i]
+            annotations.append(
+                dict(
+                    text=f"{value:.2f}%",
+                    x=returns_df['Year'].iloc[i],
+                    y="Yearly Returns",
+                    xref='x1',
+                    yref='y1',
+                    font=dict(color="black"),
+                    showarrow=False
+                )
+            )
+        fig.update_layout(
+            title="Yearly Returns Heatmap",
+            xaxis_title="Year",
+            yaxis_title="",
             annotations=annotations
         )
         utilities.save_html(fig, filename, output_filename)
