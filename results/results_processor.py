@@ -2,6 +2,7 @@ import numpy as np
 import os
 import pandas as pd
 
+import plotly.subplots as sp
 import plotly.graph_objects as go
 import utilities as utilities
 
@@ -41,17 +42,14 @@ class ResultsProcessor:
             Dictionary where keys are strategy names and values are Series of portfolio values.
         """
         fig = go.Figure()
-
         for strategy, data in performance_data.items():
             fig.add_trace(go.Scatter(x=data.index, y=data, mode='lines', name=strategy))
-
         fig.update_layout(
             title='Portfolio Performance Across Different Weighting Strategies',
             xaxis_title='Date',
             yaxis_title='Portfolio Value ($)',
             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
         )
-
         utilities.save_html(fig, "all_weighting_scenarios.html", self.output_filename)
         fig.show()
 
@@ -156,149 +154,135 @@ class ResultsProcessor:
         utilities.save_html(fig, filename, self.output_filename)
 
     def plot_monte_carlo_simulation(self, simulation_results, simulation_horizon, output_filename, filename='monte_carlo_simulation.html'):
-            """
-            Plots the results of the Monte Carlo simulation.
-
-            Parameters
-            ----------
-            simulation_results : DataFrame
-                DataFrame containing the simulated portfolio values.
-            simulation_horizon : int
-                Number of years to simulate.
-            output_filename : str
-                The name of the file to save the output.
-            filename : str, optional
-                The name of the HTML file to save the plot. Default is 'monte_carlo_simulation.html'.
-            """
-            average_simulation = simulation_results.mean(axis=1)
-            lower_bound = np.percentile(simulation_results, 5, axis=1)
-            upper_bound = np.percentile(simulation_results, 95, axis=1)
-
-            average_cagr = utilities.calculate_cagr_monte_carlo(pd.Series(average_simulation))
-            lower_cagr = utilities.calculate_cagr_monte_carlo(pd.Series(lower_bound))
-            upper_cagr = utilities.calculate_cagr_monte_carlo(pd.Series(upper_bound))
-
-            average_end_value = pd.Series(average_simulation).iloc[-1]
-            lower_end_value = pd.Series(lower_bound).iloc[-1]
-            upper_end_value = pd.Series(upper_bound).iloc[-1]
-
-            fig = go.Figure()
-            fig.add_trace(go.Scatter(
-                x=list(range(simulation_horizon + 1)), 
-                y=average_simulation, 
-                mode='lines', 
-                name=f'Average Simulation (CAGR: {average_cagr:.2%}, End Value: ${average_end_value:,.2f})', 
-                line=dict(color='blue')
-            ))
-            fig.add_trace(go.Scatter(
-                x=list(range(simulation_horizon + 1)), 
-                y=lower_bound, 
-                mode='lines', 
-                name=f'Lower Bound (5%) (CAGR: {lower_cagr:.2%}, End Value: ${lower_end_value:,.2f})', 
-                line=dict(color='red', dash='dash')
-            ))
-            fig.add_trace(go.Scatter(
-                x=list(range(simulation_horizon + 1)), 
-                y=upper_bound, 
-                mode='lines', 
-                name=f'Upper Bound (95%) (CAGR: {upper_cagr:.2%}, End Value: ${upper_end_value:,.2f})', 
-                line=dict(color='green', dash='dash')
-            ))
-            fig.update_layout(
-                title='Monte Carlo Simulation of Portfolio Value',
-                xaxis_title='Year',
-                yaxis_title='Portfolio Value ($)',
-                legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
-            )
-            utilities.save_html(fig, filename, output_filename)
-
-    def plot_monthly_returns_heatmap(self, returns, output_filename, filename='heatmap_of_monthly_returns.html'):
-        # TODO add portfolio stats as a legend
         """
-        Plots a heatmap of monthly returns with values shown as percentages on each cell.
+        Plots the results of the Monte Carlo simulation.
 
         Parameters
         ----------
-        returns : Series
-            Series containing the monthly portfolio returns.
+        simulation_results : DataFrame
+            DataFrame containing the simulated portfolio values.
+        simulation_horizon : int
+            Number of years to simulate.
+        output_filename : str
+            The name of the file to save the output.
+        filename : str, optional
+            The name of the HTML file to save the plot. Default is 'monte_carlo_simulation.html'.
         """
-        returns_df = returns.resample('M').sum().to_frame(name='Monthly Return')
-        returns_df['Monthly Return'] *= 100 
-        returns_df['Year'] = returns_df.index.year
-        returns_df['Month'] = returns_df.index.month
-        heatmap_data = returns_df.pivot('Year', 'Month', 'Monthly Return')
-        heatmap_data = heatmap_data.reindex(columns=np.arange(1, 13))  
-
-        fig = go.Figure(data=go.Heatmap(
-            z=heatmap_data.values,
-            x=['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-            y=heatmap_data.index,
-            colorscale='Viridis',
-            colorbar=dict(title="Return", tickformat=".2%")
+        average_simulation = simulation_results.mean(axis=1)
+        lower_bound = np.percentile(simulation_results, 5, axis=1)
+        upper_bound = np.percentile(simulation_results, 95, axis=1)
+        average_cagr = utilities.calculate_cagr_monte_carlo(pd.Series(average_simulation))
+        lower_cagr = utilities.calculate_cagr_monte_carlo(pd.Series(lower_bound))
+        upper_cagr = utilities.calculate_cagr_monte_carlo(pd.Series(upper_bound))
+        average_end_value = pd.Series(average_simulation).iloc[-1]
+        lower_end_value = pd.Series(lower_bound).iloc[-1]
+        upper_end_value = pd.Series(upper_bound).iloc[-1]
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(
+            x=list(range(simulation_horizon + 1)), 
+            y=average_simulation, 
+            mode='lines', 
+            name=f'Average Simulation (CAGR: {average_cagr:.2%}, End Value: ${average_end_value:,.2f})', 
+            line=dict(color='blue')
         ))
-        annotations = []
-        for i in range(heatmap_data.shape[0]):
-            for j in range(heatmap_data.shape[1]):
-                value = heatmap_data.iloc[i, j]
+        fig.add_trace(go.Scatter(
+            x=list(range(simulation_horizon + 1)), 
+            y=lower_bound, 
+            mode='lines', 
+            name=f'Lower Bound (5%) (CAGR: {lower_cagr:.2%}, End Value: ${lower_end_value:,.2f})', 
+            line=dict(color='red', dash='dash')
+        ))
+        fig.add_trace(go.Scatter(
+            x=list(range(simulation_horizon + 1)), 
+            y=upper_bound, 
+            mode='lines', 
+            name=f'Upper Bound (95%) (CAGR: {upper_cagr:.2%}, End Value: ${upper_end_value:,.2f})', 
+            line=dict(color='green', dash='dash')
+        ))
+        fig.update_layout(
+            title='Monte Carlo Simulation of Portfolio Value',
+            xaxis_title='Year',
+            yaxis_title='Portfolio Value ($)',
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+        )
+        utilities.save_html(fig, filename, output_filename)
+
+
+    def plot_returns_heatmaps(self, monthly_returns, yearly_returns, output_filename, filename='returns_heatmap.html'):
+        """
+        Plots a combined heatmap of monthly and yearly returns with values shown as percentages on each cell.
+
+        Parameters
+        ----------
+        monthly_returns : Series
+            Series containing the monthly portfolio returns.
+        yearly_returns : Series
+            Series containing the yearly portfolio returns.
+        """
+        monthly_returns_df = monthly_returns.resample('M').sum().to_frame(name='Monthly Return')
+        monthly_returns_df['Monthly Return'] *= 100 
+        monthly_returns_df['Year'] = monthly_returns_df.index.year
+        monthly_returns_df['Month'] = monthly_returns_df.index.month
+        monthly_heatmap_data = monthly_returns_df.pivot('Year', 'Month', 'Monthly Return')
+        monthly_heatmap_data = monthly_heatmap_data.reindex(columns=np.arange(1, 13))  
+        yearly_returns_df = yearly_returns.resample('Y').sum().to_frame(name='Yearly Return')
+        yearly_returns_df['Yearly Return'] *= 100  
+        yearly_returns_df['Year'] = yearly_returns_df.index.year
+        yearly_returns_df = yearly_returns_df.sort_values('Year')
+        fig = sp.make_subplots(
+            rows=2, cols=1,
+            subplot_titles=("Monthly Returns Heatmap", "Yearly Returns Heatmap"),
+            shared_xaxes=False, 
+            row_heights=[0.75, 0.25], 
+            vertical_spacing=0.1  
+        )
+        fig.add_trace(go.Heatmap(
+            z=monthly_heatmap_data.values,
+            x=['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            y=monthly_heatmap_data.index,
+            colorscale='RdYlGn',
+            colorbar=dict(title="Color Scale", tickformat=".2%"),  
+        ), row=1, col=1)
+        monthly_annotations = []
+        for i in range(monthly_heatmap_data.shape[0]):
+            for j in range(monthly_heatmap_data.shape[1]):
+                value = monthly_heatmap_data.iloc[i, j]
                 if not np.isnan(value):  
-                    annotations.append(
+                    monthly_annotations.append(
                         dict(
                             text=f"{value:.2f}%",
                             x=['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][j],
-                            y=heatmap_data.index[i],
+                            y=monthly_heatmap_data.index[i],
                             xref='x1',
                             yref='y1',
                             font=dict(color="black"),
                             showarrow=False
                         )
                     )
-        fig.update_layout(
-            title="Monthly Returns Heatmap",
-            xaxis_title="Month",
-            yaxis_title="Year",
-            annotations=annotations
-        )
-        utilities.save_html(fig, filename, output_filename)
-
-    def plot_yearly_returns_heatmap(self, returns, output_filename, filename='heatmap_of_yearly_returns.html'):
-        # TODO add portfolio stats as a legend
-        """
-        Plots a heatmap of yearly returns with values shown as percentages on each cell.
-
-        Parameters
-        ----------
-        returns : Series
-            Series containing the portfolio returns.
-        """
-        returns_df = returns.resample('Y').sum().to_frame(name='Yearly Return')
-        returns_df['Yearly Return'] *= 100  
-        returns_df['Year'] = returns_df.index.year
-        returns_df = returns_df.sort_values('Year')
-        fig = go.Figure(data=go.Heatmap(
-            z=[returns_df['Yearly Return'].values],  
-            x=returns_df['Year'], 
+        fig.add_trace(go.Heatmap(
+            z=[yearly_returns_df['Yearly Return'].values],  
+            x=yearly_returns_df['Year'], 
             y=["Yearly Returns"],  
-            colorscale='Viridis',
-            colorbar=dict(title="Return", tickformat=".2%")
-        ))
-        annotations = []
-        for i in range(returns_df.shape[0]):
-            value = returns_df['Yearly Return'].iloc[i]
-            annotations.append(
+            colorscale='RdYlGn',
+            showscale=False,  
+        ), row=2, col=1)
+        yearly_annotations = []
+        for i in range(yearly_returns_df.shape[0]):
+            value = yearly_returns_df['Yearly Return'].iloc[i]
+            yearly_annotations.append(
                 dict(
                     text=f"{value:.2f}%",
-                    x=returns_df['Year'].iloc[i],
+                    x=yearly_returns_df['Year'].iloc[i],
                     y="Yearly Returns",
-                    xref='x1',
-                    yref='y1',
+                    xref='x2',
+                    yref='y2',
                     font=dict(color="black"),
                     showarrow=False
                 )
             )
         fig.update_layout(
-            title="Yearly Returns Heatmap",
-            xaxis_title="Year",
-            yaxis_title="",
-            annotations=annotations
+            title="Combined Monthly and Yearly Returns Heatmaps",
+            annotations=monthly_annotations + yearly_annotations
         )
         utilities.save_html(fig, filename, output_filename)
+        fig.show()

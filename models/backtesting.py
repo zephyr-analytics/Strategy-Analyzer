@@ -37,7 +37,7 @@ class BacktestStaticPortfolio:
         Series to store the portfolio returns over time.
     """
 
-    def __init__(self, assets_weights, start_date, end_date, trading_frequency, output_filename, weighting_strategy, sma_period, rebalance_threshold=0.02):
+    def __init__(self, assets_weights, start_date, end_date, trading_frequency, output_filename, weighting_strategy, sma_period, bond_ticker, cash_ticker, rebalance_threshold=0.001): 
         """
         Initializes the BacktestStaticPortfolio class with given asset weights, start date, end date, weighting strategy, and SMA period.
 
@@ -68,8 +68,8 @@ class BacktestStaticPortfolio:
         self.rebalance_threshold = rebalance_threshold
         self.weighting_strategy = weighting_strategy
         self.sma_period = sma_period
-        self.bond_ticker = 'BND'
-        self.cash_ticker = 'BIL'
+        self.bond_ticker = bond_ticker
+        self.cash_ticker = cash_ticker
         self.initial_portfolio_value = 10000
         self._data = None
         self._portfolio_value = pd.Series(dtype=float)
@@ -84,104 +84,64 @@ class BacktestStaticPortfolio:
         results_processor = ResultsProcessor(self.output_filename)
         results_processor.plot_portfolio_value(self.get_portfolio_value())
         results_processor.plot_var_cvar(self._returns, self.get_portfolio_value(), self.trading_frequency)
-        results_processor.plot_monthly_returns_heatmap( self._returns, self.output_filename)
-        results_processor.plot_yearly_returns_heatmap( self._returns, self.output_filename)
-
-    def _adjust_weights(self, current_date):
-        """
-        Adjusts the weights of the assets based on their SMA and the selected weighting strategy.
-
-        Parameters
-        ----------
-        current_date : datetime
-            The current date for which the weights are being adjusted.
-
-        Returns
-        -------
-        dict
-            Dictionary of adjusted asset weights.
-        """
-        if self.weighting_strategy == 'use_file_weights':
-            adjusted_weights = self.assets_weights.copy()
-        elif self.weighting_strategy == 'equal':
-            adjusted_weights = utilities.equal_weighting(self.assets_weights)
-        elif self.weighting_strategy == 'risk_contribution':
-            adjusted_weights = utilities.risk_contribution_weighting(self._data.cov(), self.assets_weights)
-        elif self.weighting_strategy == 'min_volatility':
-            weights = utilities.min_volatility_weighting(self._data.cov())
-            adjusted_weights = dict(zip(self.assets_weights.keys(), weights))
-        elif self.weighting_strategy == 'max_sharpe':
-            returns = self._data.pct_change().mean()
-            weights = utilities.max_sharpe_ratio_weighting(self._data.cov(), returns)
-            adjusted_weights = dict(zip(self.assets_weights.keys(), weights))
-        else:
-            raise ValueError("Invalid weighting strategy")
-        for ticker in self.assets_weights.keys():
-            if self._data.loc[:current_date, ticker].iloc[-1] < self._data.loc[:current_date, ticker].rolling(window=self.sma_period).mean().iloc[-1]:
-                if self._data.loc[:current_date, self.bond_ticker].iloc[-1] < self._data.loc[:current_date, self.bond_ticker].rolling(window=self.sma_period).mean().iloc[-1]:
-                    adjusted_weights[ticker] = 0
-                    adjusted_weights[self.cash_ticker] = adjusted_weights.get(self.cash_ticker, 0) + self.assets_weights[ticker]
-                else:
-                    adjusted_weights[ticker] = 0
-                    adjusted_weights[self.bond_ticker] = adjusted_weights.get(self.bond_ticker, 0) + self.assets_weights[ticker]
-        total_weight = sum(adjusted_weights.values())
-        for ticker in adjusted_weights:
-            adjusted_weights[ticker] /= total_weight
-        print(f"Adjusted Weights on {current_date}: {adjusted_weights}")
-        return adjusted_weights
+        results_processor.plot_returns_heatmaps(self._returns, self._returns, self.output_filename)
 
     def _run_backtest(self):
-        """
-        Runs the backtest by calculating portfolio values and returns over time.
-        """
-        monthly_dates = pd.date_range(start=self.start_date, end=self.end_date, freq='M')
-        portfolio_values = [self.initial_portfolio_value]
-        portfolio_returns = []
-        
-        if self.trading_frequency == 'monthly':
-            step = 1
-        elif self.trading_frequency == 'bi-monthly':
-            step = 2
-        else:
-            raise ValueError("Invalid trading frequency. Choose 'monthly' or 'bi-monthly'.")
+            """
+            Runs the backtest by calculating portfolio values and returns over time.
+            """
+            monthly_dates = pd.date_range(start=self.start_date, end=self.end_date, freq='M')
+            portfolio_values = [self.initial_portfolio_value]
+            portfolio_returns = []
+            
+            if self.trading_frequency == 'Monthly':
+                step = 1
+            elif self.trading_frequency == 'Bi-Monthly':
+                step = 2
+            else:
+                raise ValueError("Invalid trading frequency. Choose 'Monthly' or 'Bi-Monthly'.")
+            
+            adjusted_weights = utilities.adjusted_weights(
+                self.assets_weights, 
+                self._data, 
+                self.bond_ticker, 
+                self.cash_ticker, 
+                self.weighting_strategy, 
+                self.sma_period, 
+                monthly_dates[0]
+            )
+            
+            for i in range(1, len(monthly_dates), step):
+                previous_date = monthly_dates[i - 1]  
+                current_date = monthly_dates[i]  
+                last_date_previous_month = self._data.index[self._data.index.get_loc(previous_date, method='pad')]
+                month_start_data = self._data.loc[last_date_previous_month]
+                previous_value = portfolio_values[-1]
+                last_date_current_month = self._data.index[self._data.index.get_loc(current_date, method='pad')]
+                current_month_end_data = self._data.loc[last_date_current_month]
+                monthly_returns = (current_month_end_data / month_start_data) - 1
+                month_return = sum([monthly_returns[ticker] * weight for ticker, weight in adjusted_weights.items()])
+                new_portfolio_value = previous_value * (1 + month_return)
+                print(f'Current Return:{month_return}')
+                print(f'Previous Portfolio Value:{previous_value}')
+                print(f'New Portfolio Value:{new_portfolio_value}')
 
-        for i in range(1, len(monthly_dates), step):
-            previous_date = monthly_dates[i - 1]  # Previous month end
-            current_date = monthly_dates[i]  # Current month end
-
-            # Get the last date of the previous month for accurate data retrieval
-            last_date_previous_month = self._data.index[self._data.index.get_loc(previous_date, method='pad')]
+                portfolio_values.append(new_portfolio_value)
+                portfolio_returns.append(month_return)
+                
+                adjusted_weights = utilities.adjusted_weights(
+                    self.assets_weights, 
+                    self._data, 
+                    self.bond_ticker, 
+                    self.cash_ticker, 
+                    self.weighting_strategy, 
+                    self.sma_period, 
+                    current_date
+                )
+                adjusted_weights = self._rebalance_portfolio(adjusted_weights)
             
-            # Adjust weights based on SMA and the selected strategy
-            adjusted_weights = self._adjust_weights(last_date_previous_month)
-            
-            # Rebalance portfolio if necessary
-            adjusted_weights = self._rebalance_portfolio(adjusted_weights)
-            
-            # Retrieve the end-of-month data for calculations
-            month_start_data = self._data.loc[last_date_previous_month]
-            
-            # Get the portfolio value at the start of the month
-            previous_value = portfolio_values[-1]
-            
-            # Check the next month's last date for calculating returns
-            last_date_current_month = self._data.index[self._data.index.get_loc(current_date, method='pad')]
-            current_month_end_data = self._data.loc[last_date_current_month]
-            
-            # Calculate the monthly returns for each asset
-            monthly_returns = (current_month_end_data / month_start_data) - 1
-            
-            # Calculate the overall portfolio return for the month
-            month_return = sum([monthly_returns[ticker] * weight for ticker, weight in adjusted_weights.items()])
-            
-            # Update the portfolio value based on the monthly return
-            new_portfolio_value = previous_value * (1 + month_return)
-            portfolio_values.append(new_portfolio_value)
-            portfolio_returns.append(month_return)
-        
-        # Store the calculated portfolio values and returns
-        self._portfolio_value = pd.Series(portfolio_values, index=pd.date_range(start=self.start_date, periods=len(portfolio_values), freq='M'))
-        self._returns = pd.Series(portfolio_returns, index=pd.date_range(start=self.start_date, periods=len(portfolio_returns), freq='M'))
+            self._portfolio_value = pd.Series(portfolio_values, index=pd.date_range(start=self.start_date, periods=len(portfolio_values), freq='M'))
+            self._returns = pd.Series(portfolio_returns, index=pd.date_range(start=self.start_date, periods=len(portfolio_returns), freq='M'))
 
     def _rebalance_portfolio(self, current_weights):
         """

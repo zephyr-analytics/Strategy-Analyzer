@@ -1,5 +1,48 @@
 from scipy.optimize import minimize
-import numpy as np
+import numpy as np    
+
+def adjusted_weights(assets_weights, data, bond_ticker, cash_ticker, weighting_strategy, sma_period, current_date):
+        """
+        Adjusts the weights of the assets based on their SMA and the selected weighting strategy.
+
+        Parameters
+        ----------
+        current_date : datetime
+            The current date for which the weights are being adjusted.
+
+        Returns
+        -------
+        dict
+            Dictionary of adjusted asset weights.
+        """
+        if weighting_strategy == 'Use File Weights':
+            adjusted_weights = assets_weights.copy()
+        elif weighting_strategy == 'Equal Weight':
+            adjusted_weights = equal_weighting(assets_weights)
+        elif weighting_strategy == 'Risk Contribution':
+            adjusted_weights = risk_contribution_weighting(data.cov(), assets_weights)
+        elif weighting_strategy == 'Min Volatility':
+            weights = min_volatility_weighting(data.cov())
+            adjusted_weights = dict(zip(assets_weights.keys(), weights))
+        elif weighting_strategy == 'Max Sharpe':
+            returns = data.pct_change().mean()
+            weights = max_sharpe_ratio_weighting(data.cov(), returns)
+            adjusted_weights = dict(zip(assets_weights.keys(), weights))
+        else:
+            raise ValueError("Invalid weighting strategy")
+        for ticker in assets_weights.keys():
+            if data.loc[:current_date, ticker].iloc[-1] < data.loc[:current_date, ticker].rolling(window=sma_period).mean().iloc[-1]:
+                if data.loc[:current_date, bond_ticker].iloc[-1] < data.loc[:current_date, bond_ticker].rolling(window=sma_period).mean().iloc[-1]:
+                    adjusted_weights[ticker] = 0
+                    adjusted_weights[cash_ticker] = adjusted_weights.get(cash_ticker, 0) + assets_weights[ticker]
+                else:
+                    adjusted_weights[ticker] = 0
+                    adjusted_weights[bond_ticker] = adjusted_weights.get(bond_ticker, 0) + assets_weights[ticker]
+        total_weight = sum(adjusted_weights.values())
+        for ticker in adjusted_weights:
+            adjusted_weights[ticker] /= total_weight
+        print(f"Adjusted Weights on {current_date}: {adjusted_weights}")
+        return adjusted_weights
 
 def equal_weighting(assets_weights):
     """
