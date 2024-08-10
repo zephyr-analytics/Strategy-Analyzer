@@ -2,6 +2,7 @@ import customtkinter as ctk
 from PIL import Image, ImageOps, ImageDraw
 import utilities as utilities
 import main
+import threading
 
 class MonteCarloApp(ctk.CTk):
     """
@@ -13,8 +14,8 @@ class MonteCarloApp(ctk.CTk):
         self.title("Backtesting and Monte Carlo Simulation")
         self.geometry("1200x600")
         self.assets_weights = {}
-        self.start_date = ctk.StringVar(value="2012-01-01")
-        self.end_date = ctk.StringVar(value="2024-08-01")
+        self.start_date = ctk.StringVar(value="2010-01-01")
+        self.end_date = ctk.StringVar(value="2024-01-01")
         self.initial_portfolio_value = ctk.DoubleVar(value=10000)
         self.num_simulations = ctk.IntVar(value=1000)
         self.simulation_horizon = ctk.IntVar(value=10)
@@ -26,6 +27,7 @@ class MonteCarloApp(ctk.CTk):
         self.bottom_text = None
         self.weights_filename = ""
         self.create_widgets()
+        self.bold_font = ctk.CTkFont(size=12, weight="bold", family="Arial")
 
     def create_widgets(self):
         self.grid_columnconfigure(0, weight=1)
@@ -81,9 +83,10 @@ class MonteCarloApp(ctk.CTk):
         tab_control = ctk.CTkTabview(center_frame)
         tab_control.pack(expand=1, fill="both")
 
+        self.create_signals_tab(tab_control, bold_font)
         self.create_backtesting_tab(tab_control)
-        self.create_monte_carlo_tab(tab_control)
-        self.create_signals_tab(tab_control)
+        self.create_monte_carlo_tab(tab_control, bold_font)
+
 
         self.copyright_frame = ctk.CTkFrame(self)
         self.copyright_frame.grid(row=2, column=1, columnspan=1, sticky="ew")
@@ -91,7 +94,7 @@ class MonteCarloApp(ctk.CTk):
 
         image_path = "IMG_3858.JPG"
         image = Image.open(image_path)
-        image = image.resize((120, 120)) 
+        image = image.resize((120, 100)) 
         rounded_image = utilities.round_corners(image, radius=10)
         ctk_image = ctk.CTkImage(light_image=rounded_image, dark_image=rounded_image, size=(120, 120))
         image_label = ctk.CTkLabel(right_sidebar, image=ctk_image, text="")
@@ -112,32 +115,32 @@ class MonteCarloApp(ctk.CTk):
         """
         Creates the backtesting tab with input fields and buttons for running a backtest.
         """
-        backtesting_tab = tab_control.add("Backtesting")
-        ctk.CTkLabel(backtesting_tab, text="Backtesting", font=ctk.CTkFont(size=20, weight="bold")).pack(pady=10)
+        backtesting_tab = tab_control.add("Portfolio Backtesting")
+        ctk.CTkLabel(backtesting_tab, text="Portfolio Backtesting", font=ctk.CTkFont(size=20, weight="bold")).pack(pady=10)
         ctk.CTkButton(backtesting_tab, text="Run Backtest", command=self.run_backtest).pack(pady=10)
         ctk.CTkButton(backtesting_tab, text="Run All Scenarios", command=self.run_all_weighting_scenarios).pack(pady=10)
 
-    def create_monte_carlo_tab(self, tab_control):
+    def create_monte_carlo_tab(self, tab_control, bold_font):
         """
         Creates the Monte Carlo simulation tab with input fields and buttons for running a simulation.
         """
         monte_carlo_tab = tab_control.add("Monte Carlo Simulation")
         ctk.CTkLabel(monte_carlo_tab, text="Monte Carlo Simulation", font=ctk.CTkFont(size=20, weight="bold")).pack(pady=10)
-        ctk.CTkLabel(monte_carlo_tab, text="Number of Simulations").pack()
-        ctk.CTkEntry(monte_carlo_tab, textvariable=self.num_simulations).pack(pady=5)
-        ctk.CTkLabel(monte_carlo_tab, text="Simulation Horizon (years)").pack()
-        ctk.CTkEntry(monte_carlo_tab, textvariable=self.simulation_horizon).pack(pady=5)
+        ctk.CTkLabel(monte_carlo_tab, text="Number of Simulations:", font=bold_font).pack(pady=0)
+        ctk.CTkEntry(monte_carlo_tab, textvariable=self.num_simulations).pack(pady=(0, 10))
+        ctk.CTkLabel(monte_carlo_tab, text="Simulation Horizon (years):", font=bold_font).pack(pady=0)
+        ctk.CTkEntry(monte_carlo_tab, textvariable=self.simulation_horizon).pack(pady=(0, 10))
         ctk.CTkButton(monte_carlo_tab, text="Run Simulation", command=self.run_simulation).pack(pady=10)
 
-    def create_signals_tab(self, tab_control):
+    def create_signals_tab(self, tab_control, bold_font):
         """
         Creates the signals tab with input fields and buttons for generating signals.
         """
-        signals_tab = tab_control.add("Generate Signals")
+        signals_tab = tab_control.add("Portfolio Signals")
         ctk.CTkLabel(signals_tab, text="Generate Portfolio Signals", font=ctk.CTkFont(size=20, weight="bold")).pack(pady=10)
-        ctk.CTkLabel(signals_tab, text="Date for Signals").pack(pady=5)
-        signal_date = ctk.StringVar(value="2024-08-01")
-        ctk.CTkEntry(signals_tab, textvariable=signal_date).pack(pady=5)
+        ctk.CTkLabel(signals_tab, text="Date for Signals:", font=bold_font).pack(pady=0)
+        signal_date = ctk.StringVar(value="2024-01-01")
+        ctk.CTkEntry(signals_tab, textvariable=signal_date).pack(pady=(0, 10))
         ctk.CTkButton(signals_tab, text="Generate Signals", command=lambda: self.run_signals_and_display(signal_date.get())).pack(pady=10)
 
     def clear_bottom_text(self):
@@ -167,6 +170,9 @@ class MonteCarloApp(ctk.CTk):
 
     def run_backtest(self):
         self.clear_bottom_text()
+        threading.Thread(target=self._run_backtest_task).start()
+       
+    def _run_backtest_task(self):
         result = main.run_backtest(
             self.assets_weights, 
             self.start_date.get(), 
@@ -178,11 +184,13 @@ class MonteCarloApp(ctk.CTk):
             self.bond_ticker.get(), 
             self.cash_ticker.get()  
         )
-        self.bottom_text = ctk.CTkLabel(self.bottom_text_frame, text=result, text_color="green" if "completed" in result else "red")
-        self.bottom_text.pack(pady=5)
+        self.after(0, lambda: self.display_result(result))
 
     def run_simulation(self):
         self.clear_bottom_text()
+        threading.Thread(target=self._run_simulation_task).start()
+       
+    def _run_simulation_task(self):
         result = main.run_simulation(
             self.assets_weights, 
             self.start_date.get(), 
@@ -196,11 +204,13 @@ class MonteCarloApp(ctk.CTk):
             self.bond_ticker.get(),  
             self.cash_ticker.get() 
         )
-        self.bottom_text = ctk.CTkLabel(self.bottom_text_frame, text=result, text_color="green" if "completed" in result else "red")
-        self.bottom_text.pack(pady=5)
+        self.after(0, lambda: self.display_result(result))
 
     def run_all_weighting_scenarios(self):
         self.clear_bottom_text()
+        threading.Thread(target=self._run_all_weighting_scenarios_task).start()
+       
+    def _run_all_weighting_scenarios_task(self):
         result = main.run_all_weighting_scenarios(
             self.assets_weights, 
             self.start_date.get(), 
@@ -211,11 +221,13 @@ class MonteCarloApp(ctk.CTk):
             self.bond_ticker.get(), 
             self.cash_ticker.get() 
         )
-        self.bottom_text = ctk.CTkLabel(self.bottom_text_frame, text=result, text_color="green" if "completed" in result else "red")
-        self.bottom_text.pack(pady=5)
+        self.after(0, lambda: self.display_result(result))
 
     def run_signals_and_display(self, current_date):
         self.clear_bottom_text()
+        threading.Thread(target=self._run_signals_and_display_task, args=(current_date,)).start()
+       
+    def _run_signals_and_display_task(self, current_date):
         result = main.run_signals(
             self.assets_weights, 
             self.start_date.get(), 
@@ -228,7 +240,10 @@ class MonteCarloApp(ctk.CTk):
             self.bond_ticker.get(), 
             self.cash_ticker.get() 
         )
-        self.bottom_text = ctk.CTkLabel(self.bottom_text_frame, text=result, text_color="green" if "generated" in result else "red")
+        self.after(0, lambda: self.display_result(result))
+
+    def display_result(self, result):
+        self.bottom_text = ctk.CTkLabel(self.bottom_text_frame, text=result, text_color="green" if "completed" in result else "red")
         self.bottom_text.pack(pady=5)
 
 if __name__ == "__main__":
