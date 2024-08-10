@@ -1,4 +1,5 @@
 import customtkinter as ctk
+from PIL import Image, ImageOps, ImageDraw
 import utilities as utilities
 import main
 
@@ -35,8 +36,12 @@ class MonteCarloApp(ctk.CTk):
 
         bold_font = ctk.CTkFont(size=12, weight="bold", family="Arial")
 
+        # Left sidebar frame
         sidebar = ctk.CTkFrame(self, width=200)
-        sidebar.grid(row=0, column=0, rowspan=2, sticky="ns")
+        sidebar.grid(row=0, column=0, rowspan=2, sticky="ns", pady=(20, 0))
+        # Right sidebar frame
+        right_sidebar = ctk.CTkFrame(self, width=200)
+        right_sidebar.grid(row=0, column=2, rowspan=2, sticky="ns", pady=(20, 0))
 
         ctk.CTkLabel(sidebar, text="Strategy Settings", font=ctk.CTkFont(size=20, weight="bold")).pack(pady=(10, 5))
         
@@ -80,18 +85,22 @@ class MonteCarloApp(ctk.CTk):
         self.create_monte_carlo_tab(tab_control)
         self.create_signals_tab(tab_control)
 
-        # New frame for the copyright text
         self.copyright_frame = ctk.CTkFrame(self)
         self.copyright_frame.grid(row=2, column=1, columnspan=1, sticky="ew")
-        ctk.CTkLabel(self.copyright_frame, text="© Dash Global Analytics added 2024", font=ctk.CTkFont(size=10)).pack(pady=5)
+        ctk.CTkLabel(self.copyright_frame, text="© Dash Global Analytics 2024", font=ctk.CTkFont(size=10)).pack(pady=5)
 
-        right_sidebar = ctk.CTkFrame(self, width=200)
-        right_sidebar.grid(row=0, column=2, rowspan=2, sticky="ns")
+        image_path = "IMG_3858.JPG"
+        image = Image.open(image_path)
+        image = image.resize((120, 120)) 
+        rounded_image = utilities.round_corners(image, radius=10)
+        ctk_image = ctk.CTkImage(light_image=rounded_image, dark_image=rounded_image, size=(120, 120))
+        image_label = ctk.CTkLabel(right_sidebar, image=ctk_image, text="")
+        image_label.pack(pady=(10, 0), anchor="center")
 
-        # Adding theme selection menu to right sidebar
         ctk.CTkLabel(right_sidebar, text="Theme Mode:", font=bold_font).pack(pady=(20, 0))
         theme_options = ["Light", "Dark"]
-        ctk.CTkOptionMenu(right_sidebar, values=theme_options, variable=self.theme_mode, command=self.change_theme).pack(pady=(5, 20))
+        theme_menu = ctk.CTkOptionMenu(right_sidebar, values=theme_options, variable=self.theme_mode, command=self.change_theme)
+        theme_menu.pack(pady=(0, 20), padx=(10, 10)) 
 
     def change_theme(self, selected_theme):
         """
