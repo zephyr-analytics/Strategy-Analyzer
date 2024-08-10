@@ -15,16 +15,16 @@ def adjusted_weights(assets_weights, data, bond_ticker, cash_ticker, weighting_s
         dict
             Dictionary of adjusted asset weights.
         """
-        if weighting_strategy == 'use_file_weights':
+        if weighting_strategy == 'Use File Weights':
             adjusted_weights = assets_weights.copy()
-        elif weighting_strategy == 'equal':
+        elif weighting_strategy == 'Equal Weight':
             adjusted_weights = equal_weighting(assets_weights)
-        elif weighting_strategy == 'risk_contribution':
+        elif weighting_strategy == 'Risk Contribution':
             adjusted_weights = risk_contribution_weighting(data.cov(), assets_weights)
-        elif weighting_strategy == 'min_volatility':
+        elif weighting_strategy == 'Min Volatility':
             weights = min_volatility_weighting(data.cov())
             adjusted_weights = dict(zip(assets_weights.keys(), weights))
-        elif weighting_strategy == 'max_sharpe':
+        elif weighting_strategy == 'Max Sharpe':
             returns = data.pct_change().mean()
             weights = max_sharpe_ratio_weighting(data.cov(), returns)
             adjusted_weights = dict(zip(assets_weights.keys(), weights))

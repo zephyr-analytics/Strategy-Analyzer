@@ -19,12 +19,12 @@ def calculate_cagr(portfolio_value, trading_frequency):
     """
     total_period_years = (portfolio_value.index[-1] - portfolio_value.index[0]).days / 365.25
     
-    if trading_frequency == 'monthly':
+    if trading_frequency == 'Monthly':
         periods_per_year = 12
-    elif trading_frequency == 'bi-monthly':
+    elif trading_frequency == 'Bi-Monthly':
         periods_per_year = 6
     else:
-        raise ValueError("Invalid trading frequency. Choose 'monthly' or 'bi-monthly'.")
+        raise ValueError("Invalid trading frequency. Choose 'Monthly' or 'Bi-Monthly'.")
 
     total_periods = len(portfolio_value) - 1
     total_years = total_periods / periods_per_year
@@ -68,12 +68,12 @@ def calculate_average_annual_return(returns, trading_frequency):
     """
     average_periodic_return = returns.mean()
     
-    if trading_frequency == 'monthly':
+    if trading_frequency == 'Monthly':
         average_annual_return = (1 + average_periodic_return) ** 12 - 1
-    elif trading_frequency == 'bi-monthly':
+    elif trading_frequency == 'Bi-Monthly':
         average_annual_return = (1 + average_periodic_return) ** 6 - 1
     else:
-        raise ValueError("Invalid trading frequency. Choose 'monthly' or 'bi-monthly'.")
+        raise ValueError("Invalid trading frequency. Choose 'Monthly' or 'Bi-Monthly'.")
 
     return average_annual_return
 
@@ -137,10 +137,10 @@ def calculate_portfolio_metrics(backtest):
     """
     initial_value = backtest.get_portfolio_value().iloc[0]
     cagr = calculate_cagr(backtest.get_portfolio_value(), backtest.trading_frequency)
-    if backtest.trading_frequency == 'monthly':
+    if backtest.trading_frequency == 'Monthly':
         annual_volatility = backtest._returns.std() * np.sqrt(12)
-    elif backtest.trading_frequency == 'bi-monthly':
+    elif backtest.trading_frequency == 'Bi-Monthly':
         annual_volatility = backtest._returns.std() * np.sqrt(6)
     else:
-        raise ValueError("Invalid trading frequency. Choose 'monthly' or 'bi-monthly'.")
+        raise ValueError("Invalid trading frequency. Choose 'Monthly' or 'Bi-Monthly'.")
     return initial_value, cagr, annual_volatility
