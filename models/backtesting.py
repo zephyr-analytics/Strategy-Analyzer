@@ -82,7 +82,7 @@ class BacktestStaticPortfolio:
         self._data = utilities.fetch_data(self.assets_weights, self.start_date, self.end_date, self.bond_ticker, self.cash_ticker)
         self._run_backtest()
         results_processor = ResultsProcessor(self.output_filename)
-        results_processor.plot_portfolio_value(self.get_portfolio_value())
+        results_processor.plot_portfolio_value(self.get_portfolio_value(), self.trading_frequency)
         results_processor.plot_var_cvar(self._returns, self.get_portfolio_value(), self.trading_frequency)
 
     def _adjust_weights(self, current_date):
