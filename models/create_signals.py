@@ -92,4 +92,3 @@ class CreateSignals:
             height=600,
             margin=dict(t=50, b=50, l=50, r=50)
         )
-        fig.show()
