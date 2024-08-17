@@ -110,7 +110,8 @@ class MonteCarloApp(ctk.CTk):
         """
         Creates the content for the Momentum Testing tab.
         """
-        ctk.CTkLabel(tab, text="Momentum Testing Content Here", font=ctk.CTkFont(size=20, weight="bold")).pack(pady=10)
+        ctk.CTkLabel(tab, text="Momentum Testing", font=ctk.CTkFont(size=20, weight="bold")).pack(pady=10)
+        ctk.CTkButton(tab, text="Run Momentum Backtest", command=self.run_momentum).pack(pady=10)
 
     def monitor_tab_changes(self):
         """
@@ -193,12 +194,10 @@ class MonteCarloApp(ctk.CTk):
         ctk.CTkEntry(sidebar, textvariable=self.end_date_var).pack(pady=(0, 10))
         self.end_date_var.trace_add("write", self.update_end_date)
 
-        ctk.CTkLabel(sidebar, text="Lookback Period (days):", font=self.bold_font).pack(pady=(0, 0))
-        momentum_windows = ["63", "126", "252", "504"]
-        self.momentum_window = ctk.StringVar(value="252")
-        ctk.CTkOptionMenu(sidebar, values=momentum_windows, variable=self.momentum_window).pack(pady=(0, 10))
-
-        ctk.CTkButton(sidebar, text="Run Momentum Test", command=self.run_momentum_test).pack(pady=(10, 10))
+        # ctk.CTkLabel(sidebar, text="Lookback Period (days):", font=self.bold_font).pack(pady=(0, 0))
+        # momentum_windows = ["63", "126", "252", "504"]
+        # self.momentum_window = ctk.StringVar(value="252")
+        # ctk.CTkOptionMenu(sidebar, values=momentum_windows, variable=self.momentum_window).pack(pady=(0, 10))
 
     def run_momentum_test(self):
         """
@@ -383,6 +382,20 @@ class MonteCarloApp(ctk.CTk):
         """
         self.data_models.end_date = current_date
         result = main.run_signals(self.data_models)
+        self.after(0, lambda: self.display_result(result))
+
+    def run_momentum(self):
+        """
+        Runs the momentum test.
+        """
+        self.clear_bottom_text()
+        threading.Thread(target=self._run_momentum_backtest_task).start()
+
+    def _run_momentum_backtest_task(self):
+        """
+        Runs the momentum backtest task in a separate thread.
+        """
+        result = main.run_momentum_backtest(self.data_models)
         self.after(0, lambda: self.display_result(result))
 
     def display_result(self, result):
