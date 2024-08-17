@@ -37,43 +37,33 @@ class BacktestStaticPortfolio:
         Series to store the portfolio returns over time.
     """
 
-    def __init__(self, assets_weights, start_date, end_date, trading_frequency, output_filename, weighting_strategy, sma_period, bond_ticker, cash_ticker, rebalance_threshold=0.02):
+    def __init__(self, data_models):
         """
-        Initializes the BacktestStaticPortfolio class with given asset weights, start date, end date, and weighting strategy.
+        Initializes the BacktestStaticPortfolio class with data from ModelsData.
 
         Parameters
         ----------
-        assets_weights : dict
-            Dictionary of asset tickers and their corresponding weights in the portfolio.
-        start_date : str
-            The start date for the backtest.
-        end_date : str
-            The end date for the backtest.
-        trading_frequency : str
-            The frequency of trades. Either 'monthly' or 'bi-monthly'.
-        output_filename : str
-            The name of the file to save the output.
-        rebalance_threshold : float, optional
-            The threshold for rebalancing the portfolio weights. Default is 0.02.
-        weighting_strategy : str, optional
-            The strategy used to weight the assets. Default is 'use_file_weights'.
+        data_models : ModelsData
+            An instance of the ModelsData class containing all relevant parameters and data for backtesting.
         """
-        self.assets_weights = assets_weights
-        self.start_date = start_date
-        self.end_date = end_date
-        self.trading_frequency = trading_frequency
-        self.output_filename = output_filename
-        self.rebalance_threshold = rebalance_threshold
-        self.weighting_strategy = weighting_strategy
-        self.sma_period = sma_period
-        self.bond_ticker = bond_ticker
-        self.cash_ticker = cash_ticker
+        self.data_models = data_models
 
-        #Class defined
+        # Extract necessary attributes from ModelsData
+        self.assets_weights = data_models.assets_weights
+        self.start_date = data_models.start_date
+        self.end_date = data_models.end_date
+        self.trading_frequency = data_models.trading_frequency
+        self.output_filename = data_models.weights_filename
+        self.rebalance_threshold = 0.02  # Default value
+        self.weighting_strategy = data_models.weighting_strategy
+        self.sma_period = int(data_models.sma_window)
+        self.bond_ticker = data_models.bond_ticker
+        self.cash_ticker = data_models.cash_ticker
+
+        # Class-defined attributes
         self.initial_portfolio_value = 10000
         self._data = None
-        self._portfolio_value = pd.Series(dtype=float)
-        self._returns = pd.Series(dtype=float)
+
 
     def process(self):
         """
@@ -81,9 +71,11 @@ class BacktestStaticPortfolio:
         """
         self._data = utilities.fetch_data(self.assets_weights, self.start_date, self.end_date, self.bond_ticker, self.cash_ticker)
         self._run_backtest()
-        results_processor = ResultsProcessor(self.output_filename)
-        results_processor.plot_portfolio_value(self.get_portfolio_value(), self.trading_frequency)
-        results_processor.plot_var_cvar(self._returns, self.get_portfolio_value(), self.trading_frequency)
+        self._get_portfolio_statistics()
+        results_processor = ResultsProcessor(self.data_models)
+        results_processor.plot_portfolio_value()
+        results_processor.plot_var_cvar()
+
 
     def _adjust_weights(self, current_date):
         """
@@ -127,6 +119,7 @@ class BacktestStaticPortfolio:
             adjusted_weights[ticker] /= total_weight
         return adjusted_weights
 
+
     def _run_backtest(self):
         """
         Runs the backtest by calculating portfolio values and returns over time.
@@ -157,8 +150,24 @@ class BacktestStaticPortfolio:
             new_portfolio_value = previous_value * (1 + month_return)
             portfolio_values.append(new_portfolio_value)
             portfolio_returns.append(month_return)
-        self._portfolio_value = pd.Series(portfolio_values, index=pd.date_range(start=self.start_date, periods=len(portfolio_values), freq='M'))
-        self._returns = pd.Series(portfolio_returns, index=pd.date_range(start=self.start_date, periods=len(portfolio_returns), freq='M'))
+        self.data_models.portfolio_values = pd.Series(portfolio_values, index=pd.date_range(start=self.start_date, periods=len(portfolio_values), freq='M'))
+        self.data_models.portfolio_returns = pd.Series(portfolio_returns, index=pd.date_range(start=self.start_date, periods=len(portfolio_returns), freq='M'))
+
+
+    def _get_portfolio_statistics(self):
+        """
+        Calculates and sets portfolio statistics such as CAGR, average annual return, max drawdown, VaR, and CVaR in models_data.
+        """
+        cagr = utilities.calculate_cagr(self.data_models.portfolio_values, self.trading_frequency)
+        average_annual_return = utilities.calculate_average_annual_return(self.data_models.portfolio_returns, self.trading_frequency)
+        max_drawdown = utilities.calculate_max_drawdown(self.data_models.portfolio_values)
+        var, cvar = utilities.calculate_var_cvar(self.data_models.portfolio_returns)
+
+        self.data_models.cagr = cagr
+        self.data_models.average_annual_return =average_annual_return
+        self.data_models.max_drawdown = max_drawdown
+        self.data_models.var = var
+        self.data_models.cvar = cvar
 
 
     def _rebalance_portfolio(self, current_weights):
@@ -184,15 +193,3 @@ class BacktestStaticPortfolio:
             rebalanced_weights[ticker] /= total_weight
 
         return rebalanced_weights
-
-
-    def get_portfolio_value(self):
-        """
-        Returns the portfolio value series.
-
-        Returns
-        -------
-        Series
-            Series containing the portfolio values over time.
-        """
-        return self._portfolio_value

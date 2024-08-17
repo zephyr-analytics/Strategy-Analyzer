@@ -1,5 +1,5 @@
 """
-Main module for encapsulating calling modules.
+Main module for encapsulating calling processors.
 """
 
 import utilities as utilities
@@ -10,66 +10,46 @@ from models.monte_carlo_sim import MonteCarloSimulation
 from models.create_signals import CreateSignals
 
 def run_backtest(data_models: ModelsData):
+    """
+    Method for passing models_data to Backtest Processor.
+    """
     if not data_models.assets_weights:
         return "Please load asset weights file."
 
-    backtest = BacktestStaticPortfolio(
-        data_models.assets_weights,
-        data_models.start_date,
-        data_models.end_date,
-        data_models.trading_frequency,
-        output_filename=data_models.weights_filename,
-        weighting_strategy=data_models.weighting_strategy,
-        sma_period=int(data_models.sma_window),
-        bond_ticker=data_models.bond_ticker,
-        cash_ticker=data_models.cash_ticker
-    )
+    backtest = BacktestStaticPortfolio(data_models)
     backtest.process()
     return "Backtest completed and plots saved."
 
 def run_simulation(data_models: ModelsData):
+    """
+    Method for passing models_data to MonteCarlo Simulation Processor.
+    """
     if not data_models.assets_weights:
         return "Please load asset weights file."
 
-    backtest = BacktestStaticPortfolio(
-        data_models.assets_weights,
-        data_models.start_date,
-        data_models.end_date,
-        data_models.trading_frequency,
-        output_filename=data_models.weights_filename,
-        weighting_strategy=data_models.weighting_strategy,
-        sma_period=int(data_models.sma_window),
-        bond_ticker=data_models.bond_ticker,
-        cash_ticker=data_models.cash_ticker
-    )
+    backtest = BacktestStaticPortfolio(data_models)
     backtest.process()
     initial_value, cagr, annual_volatility = utilities.calculate_portfolio_metrics(backtest)
+    
     monte_carlo = MonteCarloSimulation(
+        data_models,
         initial_value,
         cagr,
-        annual_volatility,
-        output_filename=data_models.weights_filename,
-        num_simulations=data_models.num_simulations,
-        simulation_horizon=data_models.simulation_horizon
+        annual_volatility
     )
     monte_carlo.process()
     return "Simulation completed and plot saved."
 
 def run_signals(data_models: ModelsData):
+    """
+    Method for passing models_data to Create Signals Processor.
+    """
     if not data_models.assets_weights:
         return "Please load asset weights file."
 
     data = utilities.fetch_data(data_models.assets_weights, data_models.start_date, data_models.end_date)
 
-    create_signals = CreateSignals(
-        data_models.assets_weights,
-        data,
-        bond_ticker=data_models.bond_ticker,
-        cash_ticker=data_models.cash_ticker,
-        weighting_strategy=data_models.weighting_strategy,
-        sma_period=int(data_models.sma_window)
-    )
-
-    create_signals.generate_signals(data_models.end_date)
-
+    create_signals = CreateSignals(data_models, data)
+    create_signals.process()
+    
     return f"Signals generated for {data_models.end_date}."

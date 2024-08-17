@@ -3,55 +3,48 @@ Processor for processing results from models.
 """
 
 import numpy as np
-import pandas as pd
-
 import plotly.subplots as sp
 import plotly.graph_objects as go
-
 import utilities as utilities
-
 
 class ResultsProcessor:
     """
     A class to process and visualize the results of portfolio backtests and simulations.
-
-    Methods
-    -------
-    plot_portfolio_value(portfolio_value, output_filename, filename):
-        Plots the portfolio value over time.
-    
-    plot_var_cvar(returns, portfolio_value, trading_frequency, output_filename, confidence_level, filename):
-        Plots the portfolio returns with VaR and CVaR.
     """
 
-    def __init__(self, output_filename):
+    def __init__(self, data_models):
         """
-        Initializes the ResultsProcessor with a specified output filename.
+        Initializes the ResultsProcessor with the data from ModelsData.
 
         Parameters
         ----------
-        output_filename : str
-            The name of the file to save the output.
+        data_models : ModelsData
+            An instance of the ModelsData class containing all relevant parameters and data for processing results.
         """
-        self.output_filename = output_filename
+        self.data_models = data_models
+        self.output_filename = data_models.weights_filename
+        self.portfolio_values = data_models.portfolio_values
+        self.trading_frequency = data_models.trading_frequency
+        self.portfolio_returns = data_models.portfolio_returns
+        self.cagr = data_models.cagr
+        self.max_drawdown = data_models.max_drawdown
+        self.var = data_models.var
+        self.cvar = data_models.cvar
+        self.avg_annual_return = data_models.average_annual_return
 
 
-    def plot_portfolio_value(self, portfolio_value, trading_frequency, filename='portfolio_value.html'):
+    def plot_portfolio_value(self, filename='portfolio_value.html'):
         """
         Plots the portfolio value over time and saves the plot as an HTML file.
 
         Parameters
         ----------
-        portfolio_value : Series
-            Series containing the portfolio values over time.
-        trading_frequency : str
-            The frequency of trades. Used for calculating CAGR.
-        filename : str
+        filename : str, optional
             The name of the file to save the plot. Default is 'portfolio_value.html'.
         """
+        portfolio_value = self.portfolio_values
         final_value = portfolio_value.iloc[-1]
-        cagr = utilities.calculate_cagr(portfolio_value, trading_frequency)
-        max_drawdown = utilities.calculate_max_drawdown(portfolio_value)
+        
         fig = go.Figure()
         fig.add_trace(go.Scatter(
             x=portfolio_value.index,
@@ -59,6 +52,7 @@ class ResultsProcessor:
             mode='lines',
             name='Portfolio Value'
         ))
+        
         annotations = [
             dict(
                 xref='paper', yref='paper', x=0.25, y=1,
@@ -70,18 +64,19 @@ class ResultsProcessor:
             dict(
                 xref='paper', yref='paper', x=0.5, y=1,
                 xanchor='center', yanchor='bottom',
-                text=f'CAGR: {cagr:.2%}',
+                text=f'CAGR: {self.cagr:.2%}',
                 showarrow=False,
                 font=dict(size=12)
             ),
             dict(
                 xref='paper', yref='paper', x=0.75, y=1,
                 xanchor='center', yanchor='bottom',
-                text=f'Max Drawdown: {max_drawdown:.2%}',
+                text=f'Max Drawdown: {self.max_drawdown:.2%}',
                 showarrow=False,
                 font=dict(size=12)
             )
         ]
+        
         fig.update_layout(
             title=dict(
                 text='Portfolio Value Over Time',
@@ -105,39 +100,34 @@ class ResultsProcessor:
         fig.show()
 
 
-    def plot_var_cvar(self, returns, portfolio_value, trading_frequency, confidence_level=0.95, filename='var_cvar.html'):
+    def plot_var_cvar(self, confidence_level=0.95, filename='var_cvar.html'):
         """
         Plots the portfolio returns with VaR and CVaR and saves the plot as an HTML file.
 
         Parameters
         ----------
-        returns : Series
-            Series containing the portfolio returns over time.
-        portfolio_value : Series
-            Series containing the portfolio values over time.
-        trading_frequency : str
-            The frequency of trades. Either 'monthly' or 'bi-monthly'.
         confidence_level : float, optional
             The confidence level for calculating VaR and CVaR. Default is 0.95.
         filename : str, optional
             The name of the HTML file to save the plot. Default is 'var_cvar.html'.
         """
-        var, cvar = utilities.calculate_var_cvar(returns, confidence_level)
-        cagr = utilities.calculate_cagr(portfolio_value, trading_frequency)
-        avg_annual_return = utilities.calculate_average_annual_return(returns, trading_frequency)
-        max_drawdown = utilities.calculate_max_drawdown(portfolio_value)
+        returns = self.portfolio_returns
+        portfolio_value = self.portfolio_values
+        
         fig = go.Figure()
         fig.add_trace(go.Histogram(x=returns.dropna(), nbinsx=30, name='Returns', opacity=0.75, marker_color='blue'))
+        
         fig.add_shape(type="line",
-                    x0=var, y0=0, x1=var, y1=1,
-                    line=dict(color="Red", dash="dash"),
-                    xref='x', yref='paper',
-                    name=f'VaR ({confidence_level * 100}%): {var:.2%}')
+                      x0=self.var, y0=0, x1=self.var, y1=1,
+                      line=dict(color="Red", dash="dash"),
+                      xref='x', yref='paper',
+                      name=f'VaR ({confidence_level * 100}%): {self.var:.2%}')
         fig.add_shape(type="line",
-                    x0=cvar, y0=0, x1=cvar, y1=1,
-                    line=dict(color="Green", dash="dash"),
-                    xref='x', yref='paper',
-                    name=f'CVaR ({confidence_level * 100}%): {cvar:.2%}')
+                      x0=self.cvar, y0=0, x1=self.cvar, y1=1,
+                      line=dict(color="Green", dash="dash"),
+                      xref='x', yref='paper',
+                      name=f'CVaR ({confidence_level * 100}%): {self.cvar:.2%}')
+        
         fig.update_layout(
             title='Portfolio Returns with VaR and CVaR',
             xaxis_title='Returns',
@@ -154,37 +144,37 @@ class ResultsProcessor:
                 dict(
                     xref='paper', yref='paper', x=0.5, y=1.25,
                     xanchor='center', yanchor='bottom',
-                    text=f'CAGR: {cagr:.2%}',
+                    text=f'CAGR: {self.cagr:.2%}',
                     showarrow=False
                 ),
                 dict(
                     xref='paper', yref='paper', x=0.5, y=1.2,
                     xanchor='center', yanchor='bottom',
-                    text=f'Avg Annual Return: {avg_annual_return:.2%}',
+                    text=f'Avg Annual Return: {self.avg_annual_return:.2%}',
                     showarrow=False
                 ),
                 dict(
                     xref='paper', yref='paper', x=0.5, y=1.15,
                     xanchor='center', yanchor='bottom',
-                    text=f'Max Drawdown: {max_drawdown:.2%}',
+                    text=f'Max Drawdown: {self.max_drawdown:.2%}',
                     showarrow=False
                 ),
                 dict(
                     xref='paper', yref='paper', x=0.5, y=1.1,
                     xanchor='center', yanchor='bottom',
-                    text=f'VaR ({confidence_level * 100}%): {var:.2%}',
+                    text=f'VaR ({confidence_level * 100}%): {self.var:.2%}',
                     showarrow=False
                 ),
                 dict(
                     xref='paper', yref='paper', x=0.5, y=1.05,
                     xanchor='center', yanchor='bottom',
-                    text=f'CVaR ({confidence_level * 100}%): {cvar:.2%}',
+                    text=f'CVaR ({confidence_level * 100}%): {self.cvar:.2%}',
                     showarrow=False
                 )
             ]
         )
         utilities.save_html(fig, filename, self.output_filename)
-        # fig.show()
+        fig.show()
 
 
     def plot_monte_carlo_simulation(self, simulation_results, simulation_horizon, output_filename, filename='monte_carlo_simulation.html'):
