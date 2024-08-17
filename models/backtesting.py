@@ -48,13 +48,12 @@ class BacktestStaticPortfolio:
         """
         self.data_models = data_models
 
-        # Extract necessary attributes from ModelsData
         self.assets_weights = data_models.assets_weights
         self.start_date = data_models.start_date
         self.end_date = data_models.end_date
         self.trading_frequency = data_models.trading_frequency
         self.output_filename = data_models.weights_filename
-        self.rebalance_threshold = 0.02  # Default value
+        self.rebalance_threshold = 0.02
         self.weighting_strategy = data_models.weighting_strategy
         self.sma_period = int(data_models.sma_window)
         self.bond_ticker = data_models.bond_ticker
@@ -75,6 +74,7 @@ class BacktestStaticPortfolio:
         results_processor = ResultsProcessor(self.data_models)
         results_processor.plot_portfolio_value()
         results_processor.plot_var_cvar()
+        results_processor.plot_returns_heatmaps()
 
 
     def _adjust_weights(self, current_date):
@@ -162,12 +162,14 @@ class BacktestStaticPortfolio:
         average_annual_return = utilities.calculate_average_annual_return(self.data_models.portfolio_returns, self.trading_frequency)
         max_drawdown = utilities.calculate_max_drawdown(self.data_models.portfolio_values)
         var, cvar = utilities.calculate_var_cvar(self.data_models.portfolio_returns)
+        annual_volatility = utilities.calculate_annual_volatility(self.trading_frequency, self.data_models.portfolio_returns)
 
         self.data_models.cagr = cagr
         self.data_models.average_annual_return =average_annual_return
         self.data_models.max_drawdown = max_drawdown
         self.data_models.var = var
         self.data_models.cvar = cvar
+        self.data_models.annual_volatility = annual_volatility
 
 
     def _rebalance_portfolio(self, current_weights):

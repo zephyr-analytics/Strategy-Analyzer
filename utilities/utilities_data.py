@@ -1,10 +1,16 @@
-import yfinance as yf
-import pandas as pd
-import os
-from tkinter import filedialog
-import plotly
+"""
+Utilities module for loading and processing data.
+"""
 
-def fetch_data(assets_weights, start_date, end_date, bond_ticker='BND', cash_ticker='SHV'):
+import os
+
+from tkinter import filedialog
+
+import pandas as pd
+import yfinance as yf
+
+
+def fetch_data(assets_weights, start_date, end_date, bond_ticker, cash_ticker):
     """
     Fetches the adjusted closing prices of the assets.
 

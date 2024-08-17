@@ -3,14 +3,10 @@ GUI user interface for running application.
 """
 
 import threading
-
 import customtkinter as ctk
-
 from PIL import Image
-
 import main
 import utilities as utilities
-
 from models_data import ModelsData
 
 
@@ -20,6 +16,13 @@ class MonteCarloApp(ctk.CTk):
     """
 
     def __init__(self):
+        """
+        Initializes the MonteCarloApp.
+
+        Parameters
+        ----------
+        None
+        """
         super().__init__()
         self.title("Backtesting and Monte Carlo Simulation")
         self.geometry("1200x600")
@@ -44,6 +47,13 @@ class MonteCarloApp(ctk.CTk):
         self.bold_font = ctk.CTkFont(size=12, weight="bold", family="Arial")
 
     def create_widgets(self):
+        """
+        Creates the widgets and layouts for the application.
+
+        Parameters
+        ----------
+        None
+        """
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=3)
         self.grid_columnconfigure(2, weight=1)
@@ -127,12 +137,22 @@ class MonteCarloApp(ctk.CTk):
     def change_theme(self, selected_theme):
         """
         Changes the theme of the application based on user selection.
+
+        Parameters
+        ----------
+        selected_theme : str
+            The selected theme mode, either "Light" or "Dark".
         """
         ctk.set_appearance_mode(selected_theme)
 
     def create_backtesting_tab(self, tab_control):
         """
         Creates the backtesting tab with input fields and buttons for running a backtest.
+
+        Parameters
+        ----------
+        tab_control : ctk.CTkTabview
+            The tab control widget where the backtesting tab will be added.
         """
         backtesting_tab = tab_control.add("Portfolio Backtesting")
         ctk.CTkLabel(backtesting_tab, text="Portfolio Backtesting", font=ctk.CTkFont(size=20, weight="bold")).pack(pady=10)
@@ -141,6 +161,13 @@ class MonteCarloApp(ctk.CTk):
     def create_monte_carlo_tab(self, tab_control, bold_font):
         """
         Creates the Monte Carlo simulation tab with input fields and buttons for running a simulation.
+
+        Parameters
+        ----------
+        tab_control : ctk.CTkTabview
+            The tab control widget where the Monte Carlo simulation tab will be added.
+        bold_font : ctk.CTkFont
+            The font style to be applied to labels within the tab.
         """
         monte_carlo_tab = tab_control.add("Monte Carlo Simulation")
         ctk.CTkLabel(monte_carlo_tab, text="Monte Carlo Simulation", font=ctk.CTkFont(size=20, weight="bold")).pack(pady=10)
@@ -157,6 +184,13 @@ class MonteCarloApp(ctk.CTk):
     def create_signals_tab(self, tab_control, bold_font):
         """
         Creates the signals tab with input fields and buttons for generating signals.
+
+        Parameters
+        ----------
+        tab_control : ctk.CTkTabview
+            The tab control widget where the signals tab will be added.
+        bold_font : ctk.CTkFont
+            The font style to be applied to labels within the tab.
         """
         signals_tab = tab_control.add("Portfolio Signals")
         ctk.CTkLabel(signals_tab, text="Generate Portfolio Signals", font=ctk.CTkFont(size=20, weight="bold")).pack(pady=10)
@@ -168,6 +202,10 @@ class MonteCarloApp(ctk.CTk):
     def clear_bottom_text(self):
         """
         Clears the text at the bottom of the GUI.
+
+        Parameters
+        ----------
+        None
         """
         for widget in self.bottom_text_frame.winfo_children():
             widget.destroy()
@@ -175,6 +213,10 @@ class MonteCarloApp(ctk.CTk):
     def load_weights_and_update(self):
         """
         Loads the asset weights from a file and updates the assets_weights attribute.
+
+        Parameters
+        ----------
+        None
         """
         self.clear_bottom_text()
         self.data_models.assets_weights, self.data_models.weights_filename = utilities.load_weights()
@@ -185,6 +227,10 @@ class MonteCarloApp(ctk.CTk):
     def display_asset_weights(self):
         """
         Displays the loaded asset weights in the GUI.
+
+        Parameters
+        ----------
+        None
         """
         assets_text = "\n".join([f"{asset}: {weight}" for asset, weight in self.data_models.assets_weights.items()])
         self.bottom_text = ctk.CTkLabel(self.bottom_text_frame, text=f"Loaded Assets and Weights from {self.data_models.weights_filename}:\n{assets_text}", text_color="blue")
@@ -193,67 +239,193 @@ class MonteCarloApp(ctk.CTk):
     def run_backtest(self):
         """
         Task runner for passing environment variables to _run_backtest_task.
+
+        Parameters
+        ----------
+        None
         """
         self.clear_bottom_text()
         threading.Thread(target=self._run_backtest_task).start()
 
     def _run_backtest_task(self):
+        """
+        Runs the backtest task in a separate thread.
+
+        Parameters
+        ----------
+        None
+        """
         result = main.run_backtest(self.data_models)
         self.after(0, lambda: self.display_result(result))
 
     def run_simulation(self):
         """
         Task runner for passing environment variables to _run_simulation_task.
+
+        Parameters
+        ----------
+        None
         """
         self.clear_bottom_text()
         threading.Thread(target=self._run_simulation_task).start()
 
     def _run_simulation_task(self):
+        """
+        Runs the simulation task in a separate thread.
+
+        Parameters
+        ----------
+        None
+        """
         result = main.run_simulation(self.data_models)
         self.after(0, lambda: self.display_result(result))
 
     def run_signals_and_display(self, current_date):
+        """
+        Runs the signal generation task and displays the result.
+
+        Parameters
+        ----------
+        current_date : str
+            The date for which to generate signals.
+        """
         self.clear_bottom_text()
         threading.Thread(target=self._run_signals_and_display_task, args=(current_date,)).start()
 
     def _run_signals_and_display_task(self, current_date):
+        """
+        Runs the signal generation task in a separate thread.
+
+        Parameters
+        ----------
+        current_date : str
+            The date for which to generate signals.
+        """
         self.data_models.end_date = current_date
         result = main.run_signals(self.data_models)
         self.after(0, lambda: self.display_result(result))
 
     def display_result(self, result):
+        """
+        Displays the result of a task in the GUI.
+
+        Parameters
+        ----------
+        result : str
+            The result text to be displayed in the GUI.
+        """
         self.bottom_text = ctk.CTkLabel(self.bottom_text_frame, text=result, text_color="green" if "completed" in result else "red")
         self.bottom_text.pack(pady=5)
 
     # Update methods for ModelsData properties
     def update_start_date(self, *args):
+        """
+        Updates the start date in the data model.
+
+        Parameters
+        ----------
+        *args : tuple
+            Additional arguments passed by the trace method.
+        """
         self.data_models.start_date = self.start_date_var.get()
 
     def update_end_date(self, *args):
+        """
+        Updates the end date in the data model.
+
+        Parameters
+        ----------
+        *args : tuple
+            Additional arguments passed by the trace method.
+        """
         self.data_models.end_date = self.end_date_var.get()
 
     def update_cash_ticker(self, *args):
+        """
+        Updates the cash ticker in the data model.
+
+        Parameters
+        ----------
+        *args : tuple
+            Additional arguments passed by the trace method.
+        """
         self.data_models.cash_ticker = self.cash_ticker_var.get()
 
     def update_bond_ticker(self, *args):
+        """
+        Updates the bond ticker in the data model.
+
+        Parameters
+        ----------
+        *args : tuple
+            Additional arguments passed by the trace method.
+        """
         self.data_models.bond_ticker = self.bond_ticker_var.get()
 
     def update_trading_frequency(self, *args):
+        """
+        Updates the trading frequency in the data model.
+
+        Parameters
+        ----------
+        *args : tuple
+            Additional arguments passed by the trace method.
+        """
         self.data_models.trading_frequency = self.trading_frequency_var.get()
 
     def update_weighting_strategy(self, *args):
+        """
+        Updates the weighting strategy in the data model.
+
+        Parameters
+        ----------
+        *args : tuple
+            Additional arguments passed by the trace method.
+        """
         self.data_models.weighting_strategy = self.weighting_strategy_var.get()
 
     def update_sma_window(self, *args):
+        """
+        Updates the SMA window in the data model.
+
+        Parameters
+        ----------
+        *args : tuple
+            Additional arguments passed by the trace method.
+        """
         self.data_models.sma_window = self.sma_window_var.get()
 
     def update_num_simulations(self, *args):
+        """
+        Updates the number of simulations in the data model.
+
+        Parameters
+        ----------
+        *args : tuple
+            Additional arguments passed by the trace method.
+        """
         self.data_models.num_simulations = int(self.num_simulations_var.get())
 
     def update_simulation_horizon(self, *args):
+        """
+        Updates the simulation horizon in the data model.
+
+        Parameters
+        ----------
+        *args : tuple
+            Additional arguments passed by the trace method.
+        """
         self.data_models.simulation_horizon = int(self.simulation_horizon_var.get())
 
     def update_theme_mode(self, *args):
+        """
+        Updates the theme mode in the data model.
+
+        Parameters
+        ----------
+        *args : tuple
+            Additional arguments passed by the trace method.
+        """
         self.data_models.theme_mode = self.theme_mode_var.get()
 
 

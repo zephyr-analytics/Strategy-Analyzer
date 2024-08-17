@@ -29,14 +29,8 @@ def run_simulation(data_models: ModelsData):
 
     backtest = BacktestStaticPortfolio(data_models)
     backtest.process()
-    initial_value, cagr, annual_volatility = utilities.calculate_portfolio_metrics(backtest)
     
-    monte_carlo = MonteCarloSimulation(
-        data_models,
-        initial_value,
-        cagr,
-        annual_volatility
-    )
+    monte_carlo = MonteCarloSimulation(data_models)
     monte_carlo.process()
     return "Simulation completed and plot saved."
 
@@ -47,7 +41,8 @@ def run_signals(data_models: ModelsData):
     if not data_models.assets_weights:
         return "Please load asset weights file."
 
-    data = utilities.fetch_data(data_models.assets_weights, data_models.start_date, data_models.end_date)
+    data = utilities.fetch_data(data_models.assets_weights, data_models.start_date, data_models.end_date, 
+                                data_models.bond_ticker, data_models.cash_ticker)
 
     create_signals = CreateSignals(data_models, data)
     create_signals.process()
