@@ -1,7 +1,14 @@
+"""
+GUI user interface for running application.
+"""
+
 import os
 import threading
+
 import customtkinter as ctk
 from PIL import Image
+
+
 import main
 import utilities as utilities
 from models_data import ModelsData
@@ -38,14 +45,13 @@ class MonteCarloApp(ctk.CTk):
         self.num_simulations_var = ctk.StringVar(value=str(self.data_models.num_simulations))
         self.simulation_horizon_var = ctk.StringVar(value=str(self.data_models.simulation_horizon))
         self.theme_mode_var = ctk.StringVar(value=self.data_models.theme_mode)
-        self.current_tab = ctk.StringVar(value="SMA Testing")  # Default to SMA Testing
+        self.current_tab = ctk.StringVar(value="SMA Testing")
 
-        # Define the bold font style once and use it throughout the script
         self.bold_font = ctk.CTkFont(size=12, weight="bold", family="Arial")
 
         self.bottom_text = None
         self.create_widgets()
-        self.monitor_tab_changes()  # Start monitoring tab changes
+        self.monitor_tab_changes()
 
     def create_widgets(self):
         """
@@ -61,7 +67,7 @@ class MonteCarloApp(ctk.CTk):
         self.grid_rowconfigure(0, weight=1)
         self.grid_rowconfigure(1, weight=10)
 
-        # Right sidebar frame
+
         right_sidebar = ctk.CTkFrame(self, width=200)
         right_sidebar.grid(row=0, column=2, rowspan=2, sticky="ns", pady=(20, 0))
 
@@ -71,22 +77,17 @@ class MonteCarloApp(ctk.CTk):
         center_frame = ctk.CTkFrame(self)
         center_frame.grid(row=0, column=1, rowspan=1, sticky="nsew")
 
-        # Higher-level tab view
         self.high_level_tab_control = ctk.CTkTabview(center_frame)
         self.high_level_tab_control.pack(expand=1, fill="both")
 
-        # SMA Testing tab
         sma_testing_tab = self.high_level_tab_control.add("SMA Testing")
         self.create_sma_content(sma_testing_tab) 
 
-        # Momentum Testing tab
         momentum_testing_tab = self.high_level_tab_control.add("Momentum Testing")
         self.create_momentum_content(momentum_testing_tab)
 
-        # Select the "SMA Testing" tab by default
         self.high_level_tab_control.set("SMA Testing")
 
-        # Create the SMA sidebar after selecting the SMA Testing tab
         self.create_sma_sidebar()
 
         ctk.CTkLabel(right_sidebar, text="Theme Mode:", font=self.bold_font).pack(pady=(20, 0))
