@@ -1,5 +1,9 @@
+"""
+Utilities module for helper methods of processors.
+"""
+
 from scipy.optimize import minimize
-import numpy as np    
+import numpy as np
 
 def adjusted_weights(assets_weights, data, bond_ticker, cash_ticker, weighting_strategy, sma_period, current_date):
     """

@@ -1,5 +1,8 @@
+"""
+Utilities module for calculating portfolio statistics.
+"""
+
 import numpy as np
-import pandas as pd
 
 def calculate_cagr(portfolio_value, trading_frequency):
     """
@@ -17,8 +20,7 @@ def calculate_cagr(portfolio_value, trading_frequency):
     float
         CAGR value.
     """
-    total_period_years = (portfolio_value.index[-1] - portfolio_value.index[0]).days / 365.25
-    
+
     if trading_frequency == 'Monthly':
         periods_per_year = 12
     elif trading_frequency == 'Bi-Monthly':
@@ -31,6 +33,7 @@ def calculate_cagr(portfolio_value, trading_frequency):
 
     cagr = (portfolio_value.iloc[-1] / portfolio_value.iloc[0]) ** (1 / total_years) - 1
     return cagr
+
 
 def calculate_cagr_monte_carlo(portfolio_value):
     """
@@ -46,9 +49,10 @@ def calculate_cagr_monte_carlo(portfolio_value):
     float
         CAGR value.
     """
-    total_period = len(portfolio_value) - 1  
+    total_period = len(portfolio_value) - 1
     cagr = (portfolio_value.iloc[-1] / portfolio_value.iloc[0]) ** (1 / total_period) - 1
     return cagr
+
 
 def calculate_average_annual_return(returns, trading_frequency):
     """
@@ -67,7 +71,7 @@ def calculate_average_annual_return(returns, trading_frequency):
         Average annual return.
     """
     average_periodic_return = returns.mean()
-    
+
     if trading_frequency == 'Monthly':
         average_annual_return = (1 + average_periodic_return) ** 12 - 1
     elif trading_frequency == 'Bi-Monthly':
@@ -141,6 +145,5 @@ def calculate_annual_volatility(trading_frequency, portfolio_returns):
         annual_volatility = portfolio_returns.std() * np.sqrt(6)
     else:
         raise ValueError("Invalid trading frequency. Choose 'Monthly' or 'Bi-Monthly'.")
-    
-    return annual_volatility
 
+    return annual_volatility

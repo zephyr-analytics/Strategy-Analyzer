@@ -1,3 +1,7 @@
+"""
+Utilities module for helper methods of GUI.
+"""
+
 from PIL import Image, ImageOps, ImageDraw
 
 def round_corners(image, radius):
@@ -11,12 +15,9 @@ def round_corners(image, radius):
     Returns:
     - Image with rounded corners.
     """
-    # Create a mask for the rounded corners
     mask = Image.new('L', image.size, 0)
     draw = ImageDraw.Draw(mask)
     draw.rounded_rectangle((0, 0) + image.size, radius=radius, fill=255)
-
-    # Apply the rounded mask to the image
     rounded_image = ImageOps.fit(image, mask.size)
     rounded_image.putalpha(mask)
     return rounded_image
