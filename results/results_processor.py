@@ -49,53 +49,44 @@ class ResultsProcessor:
         filename : str
             The name of the file to save the plot. Default is 'portfolio_value.html'.
         """
-        # Calculate metrics
-        final_value = portfolio_value.iloc[-1]  # Get the final portfolio value
-        cagr = utilities.calculate_cagr(portfolio_value, trading_frequency)  # Calculate CAGR
-        max_drawdown = utilities.calculate_max_drawdown(portfolio_value)  # Calculate Max Drawdown
-        
-        # Create the plot
+        final_value = portfolio_value.iloc[-1]
+        cagr = utilities.calculate_cagr(portfolio_value, trading_frequency)
+        max_drawdown = utilities.calculate_max_drawdown(portfolio_value)
         fig = go.Figure()
-        
-        # Add trace for the portfolio value
         fig.add_trace(go.Scatter(
             x=portfolio_value.index,
             y=portfolio_value,
             mode='lines',
             name='Portfolio Value'
         ))
-        
-        # Add annotations for final value, CAGR, and Max Drawdown under the title
         annotations = [
             dict(
-                xref='paper', yref='paper', x=0.25, y=1,  # Position annotation under the title
+                xref='paper', yref='paper', x=0.25, y=1,
                 xanchor='center', yanchor='bottom',
                 text=f'Final Value: ${final_value:,.2f}',
                 showarrow=False,
                 font=dict(size=12)
             ),
             dict(
-                xref='paper', yref='paper', x=0.5, y=1,  # Position annotation under the first one
+                xref='paper', yref='paper', x=0.5, y=1,
                 xanchor='center', yanchor='bottom',
                 text=f'CAGR: {cagr:.2%}',
                 showarrow=False,
                 font=dict(size=12)
             ),
             dict(
-                xref='paper', yref='paper', x=0.75, y=1,  # Position annotation under the second one
+                xref='paper', yref='paper', x=0.75, y=1,
                 xanchor='center', yanchor='bottom',
                 text=f'Max Drawdown: {max_drawdown:.2%}',
                 showarrow=False,
                 font=dict(size=12)
             )
         ]
-        
-        # Update layout with annotations and main title
         fig.update_layout(
             title=dict(
                 text='Portfolio Value Over Time',
                 x=0.5,
-                y=1,  # Move title higher to make space for annotations
+                y=1,
                 xanchor='center',
                 yanchor='top'
             ),
@@ -110,8 +101,6 @@ class ResultsProcessor:
                 x=1
             )
         )
-        
-        # Save and display the plot
         utilities.save_html(fig, filename, self.output_filename)
         fig.show()
 
@@ -137,11 +126,8 @@ class ResultsProcessor:
         cagr = utilities.calculate_cagr(portfolio_value, trading_frequency)
         avg_annual_return = utilities.calculate_average_annual_return(returns, trading_frequency)
         max_drawdown = utilities.calculate_max_drawdown(portfolio_value)
-
         fig = go.Figure()
-
         fig.add_trace(go.Histogram(x=returns.dropna(), nbinsx=30, name='Returns', opacity=0.75, marker_color='blue'))
-
         fig.add_shape(type="line",
                     x0=var, y0=0, x1=var, y1=1,
                     line=dict(color="Red", dash="dash"),
@@ -152,7 +138,6 @@ class ResultsProcessor:
                     line=dict(color="Green", dash="dash"),
                     xref='x', yref='paper',
                     name=f'CVaR ({confidence_level * 100}%): {cvar:.2%}')
-
         fig.update_layout(
             title='Portfolio Returns with VaR and CVaR',
             xaxis_title='Returns',
@@ -228,24 +213,24 @@ class ResultsProcessor:
         upper_end_value = pd.Series(upper_bound).iloc[-1]
         fig = go.Figure()
         fig.add_trace(go.Scatter(
-            x=list(range(simulation_horizon + 1)), 
-            y=average_simulation, 
-            mode='lines', 
-            name=f'Average Simulation (CAGR: {average_cagr:.2%}, End Value: ${average_end_value:,.2f})', 
+            x=list(range(simulation_horizon + 1)),
+            y=average_simulation,
+            mode='lines',
+            name=f'Average Simulation (CAGR: {average_cagr:.2%}, End Value: ${average_end_value:,.2f})',
             line=dict(color='blue')
         ))
         fig.add_trace(go.Scatter(
-            x=list(range(simulation_horizon + 1)), 
-            y=lower_bound, 
-            mode='lines', 
-            name=f'Lower Bound (5%) (CAGR: {lower_cagr:.2%}, End Value: ${lower_end_value:,.2f})', 
+            x=list(range(simulation_horizon + 1)),
+            y=lower_bound,
+            mode='lines',
+            name=f'Lower Bound (5%) (CAGR: {lower_cagr:.2%}, End Value: ${lower_end_value:,.2f})',
             line=dict(color='red', dash='dash')
         ))
         fig.add_trace(go.Scatter(
-            x=list(range(simulation_horizon + 1)), 
-            y=upper_bound, 
-            mode='lines', 
-            name=f'Upper Bound (95%) (CAGR: {upper_cagr:.2%}, End Value: ${upper_end_value:,.2f})', 
+            x=list(range(simulation_horizon + 1)),
+            y=upper_bound,
+            mode='lines',
+            name=f'Upper Bound (95%) (CAGR: {upper_cagr:.2%}, End Value: ${upper_end_value:,.2f})',
             line=dict(color='green', dash='dash')
         ))
         fig.update_layout(
@@ -270,34 +255,34 @@ class ResultsProcessor:
             Series containing the yearly portfolio returns.
         """
         monthly_returns_df = monthly_returns.resample('M').sum().to_frame(name='Monthly Return')
-        monthly_returns_df['Monthly Return'] *= 100 
+        monthly_returns_df['Monthly Return'] *= 100
         monthly_returns_df['Year'] = monthly_returns_df.index.year
         monthly_returns_df['Month'] = monthly_returns_df.index.month
         monthly_heatmap_data = monthly_returns_df.pivot('Year', 'Month', 'Monthly Return')
-        monthly_heatmap_data = monthly_heatmap_data.reindex(columns=np.arange(1, 13))  
+        monthly_heatmap_data = monthly_heatmap_data.reindex(columns=np.arange(1, 13))
         yearly_returns_df = yearly_returns.resample('Y').sum().to_frame(name='Yearly Return')
-        yearly_returns_df['Yearly Return'] *= 100  
+        yearly_returns_df['Yearly Return'] *= 100
         yearly_returns_df['Year'] = yearly_returns_df.index.year
         yearly_returns_df = yearly_returns_df.sort_values('Year')
         fig = sp.make_subplots(
             rows=2, cols=1,
             subplot_titles=("Monthly Returns Heatmap", "Yearly Returns Heatmap"),
-            shared_xaxes=False, 
-            row_heights=[0.75, 0.25], 
-            vertical_spacing=0.1  
+            shared_xaxes=False,
+            row_heights=[0.75, 0.25],
+            vertical_spacing=0.1
         )
         fig.add_trace(go.Heatmap(
             z=monthly_heatmap_data.values,
             x=['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
             y=monthly_heatmap_data.index,
             colorscale='RdYlGn',
-            colorbar=dict(title="Color Scale", tickformat=".2%"),  
+            colorbar=dict(title="Color Scale", tickformat=".2%"),
         ), row=1, col=1)
         monthly_annotations = []
         for i in range(monthly_heatmap_data.shape[0]):
             for j in range(monthly_heatmap_data.shape[1]):
                 value = monthly_heatmap_data.iloc[i, j]
-                if not np.isnan(value):  
+                if not np.isnan(value):
                     monthly_annotations.append(
                         dict(
                             text=f"{value:.2f}%",
@@ -310,11 +295,11 @@ class ResultsProcessor:
                         )
                     )
         fig.add_trace(go.Heatmap(
-            z=[yearly_returns_df['Yearly Return'].values],  
-            x=yearly_returns_df['Year'], 
-            y=["Yearly Returns"],  
+            z=[yearly_returns_df['Yearly Return'].values],
+            x=yearly_returns_df['Year'],
+            y=["Yearly Returns"],
             colorscale='RdYlGn',
-            showscale=False,  
+            showscale=False,
         ), row=2, col=1)
         yearly_annotations = []
         for i in range(yearly_returns_df.shape[0]):

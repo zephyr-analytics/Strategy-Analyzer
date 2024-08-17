@@ -68,7 +68,7 @@ class BacktestStaticPortfolio:
         self.sma_period = sma_period
         self.bond_ticker = bond_ticker
         self.cash_ticker = cash_ticker
-        
+
         #Class defined
         self.initial_portfolio_value = 10000
         self._data = None
