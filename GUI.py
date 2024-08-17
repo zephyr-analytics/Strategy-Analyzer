@@ -2,6 +2,7 @@
 GUI user interface for running application.
 """
 
+import os
 import threading
 import customtkinter as ctk
 from PIL import Image
@@ -24,7 +25,7 @@ class MonteCarloApp(ctk.CTk):
         None
         """
         super().__init__()
-        self.title("Backtesting and Monte Carlo Simulation")
+        self.title("Portfolio Strategy Analyzer")
         self.geometry("1200x600")
 
         # Initialize ModelsData object
@@ -121,13 +122,13 @@ class MonteCarloApp(ctk.CTk):
         self.copyright_frame.grid(row=2, column=1, columnspan=1, sticky="ew")
         ctk.CTkLabel(self.copyright_frame, text="© Dash Global Analytics 2024", font=ctk.CTkFont(size=10)).pack(pady=5)
 
-        image_path = "IMG_3858.JPG"
-        image = Image.open(image_path)
-        image = image.resize((120, 100))
-        rounded_image = utilities.round_corners(image, radius=10)
-        ctk_image = ctk.CTkImage(light_image=rounded_image, dark_image=rounded_image, size=(120, 120))
-        image_label = ctk.CTkLabel(right_sidebar, image=ctk_image, text="")
-        image_label.pack(pady=(10, 0), anchor="center")
+        # image_path = os.path.join(os.getcwd(), "IMG_3858.JPG")
+        # image = Image.open(image_path)
+        # image = image.resize((120, 100))
+        # rounded_image = utilities.round_corners(image, radius=10)
+        # ctk_image = ctk.CTkImage(light_image=rounded_image, dark_image=rounded_image, size=(120, 120))
+        # image_label = ctk.CTkLabel(right_sidebar, image=ctk_image, text="")
+        # image_label.pack(pady=(10, 0), anchor="center")
 
         ctk.CTkLabel(right_sidebar, text="Theme Mode:", font=bold_font).pack(pady=(20, 0))
         theme_options = ["Light", "Dark"]
