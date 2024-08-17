@@ -1,7 +1,3 @@
-"""
-GUI user interface for running application.
-"""
-
 import os
 import threading
 import customtkinter as ctk
@@ -42,10 +38,14 @@ class MonteCarloApp(ctk.CTk):
         self.num_simulations_var = ctk.StringVar(value=str(self.data_models.num_simulations))
         self.simulation_horizon_var = ctk.StringVar(value=str(self.data_models.simulation_horizon))
         self.theme_mode_var = ctk.StringVar(value=self.data_models.theme_mode)
+        self.current_tab = ctk.StringVar(value="SMA Testing")  # Default to SMA Testing
+
+        # Define the bold font style once and use it throughout the script
+        self.bold_font = ctk.CTkFont(size=12, weight="bold", family="Arial")
 
         self.bottom_text = None
         self.create_widgets()
-        self.bold_font = ctk.CTkFont(size=12, weight="bold", family="Arial")
+        self.monitor_tab_changes()  # Start monitoring tab changes
 
     def create_widgets(self):
         """
@@ -61,49 +61,9 @@ class MonteCarloApp(ctk.CTk):
         self.grid_rowconfigure(0, weight=1)
         self.grid_rowconfigure(1, weight=10)
 
-        bold_font = ctk.CTkFont(size=12, weight="bold", family="Arial")
-
-        # Left sidebar frame
-        sidebar = ctk.CTkFrame(self, width=200)
-        sidebar.grid(row=0, column=0, rowspan=2, sticky="ns", pady=(20, 0))
         # Right sidebar frame
         right_sidebar = ctk.CTkFrame(self, width=200)
         right_sidebar.grid(row=0, column=2, rowspan=2, sticky="ns", pady=(20, 0))
-
-        ctk.CTkLabel(sidebar, text="Strategy Settings", font=ctk.CTkFont(size=20, weight="bold")).pack(pady=(10, 5))
-
-        ctk.CTkLabel(sidebar, text="Start Date:", font=bold_font).pack(pady=(0, 0))
-        ctk.CTkEntry(sidebar, textvariable=self.start_date_var).pack(pady=(0, 5))
-        self.start_date_var.trace_add("write", self.update_start_date)
-
-        ctk.CTkLabel(sidebar, text="End Date:", font=bold_font).pack(pady=(0, 0))
-        ctk.CTkEntry(sidebar, textvariable=self.end_date_var).pack(pady=(0, 10))
-        self.end_date_var.trace_add("write", self.update_end_date)
-
-        ctk.CTkLabel(sidebar, text="Cash Ticker:", font=bold_font).pack(pady=(0, 0))
-        ctk.CTkEntry(sidebar, textvariable=self.cash_ticker_var).pack(pady=(0, 5))
-        self.cash_ticker_var.trace_add("write", self.update_cash_ticker)
-
-        ctk.CTkLabel(sidebar, text="Bond Ticker:", font=bold_font).pack(pady=(0, 0))
-        ctk.CTkEntry(sidebar, textvariable=self.bond_ticker_var).pack(pady=(0, 10))
-        self.bond_ticker_var.trace_add("write", self.update_bond_ticker)
-
-        ctk.CTkLabel(sidebar, text="Trading Frequency:", font=bold_font).pack(pady=(0, 0))
-        trading_options = ["Monthly", "Bi-Monthly"]
-        ctk.CTkOptionMenu(sidebar, values=trading_options, variable=self.trading_frequency_var).pack(pady=(0, 10))
-        self.trading_frequency_var.trace_add("write", self.update_trading_frequency)
-
-        ctk.CTkLabel(sidebar, text="Weighting Strategy:", font=bold_font).pack(pady=(0, 0))
-        weighting_options = ["Use File Weights", "Equal Weight", "Risk Contribution", "Min Volatility", "Max Sharpe"]
-        ctk.CTkOptionMenu(sidebar, values=weighting_options, variable=self.weighting_strategy_var).pack(pady=(0, 10))
-        self.weighting_strategy_var.trace_add("write", self.update_weighting_strategy)
-
-        ctk.CTkLabel(sidebar, text="SMA Window (days):", font=bold_font).pack(pady=(0, 0))
-        sma_windows = ["21", "42", "63", "84", "105", "126", "147", "168", "210"]
-        ctk.CTkOptionMenu(sidebar, values=sma_windows, variable=self.sma_window_var).pack(pady=(0, 10))
-        self.sma_window_var.trace_add("write", self.update_sma_window)
-
-        ctk.CTkButton(sidebar, text="Select Asset Weights File", command=self.load_weights_and_update).pack(pady=(10, 10))
 
         self.bottom_text_frame = ctk.CTkFrame(self)
         self.bottom_text_frame.grid(row=1, column=1, columnspan=1, sticky="ew")
@@ -111,29 +71,147 @@ class MonteCarloApp(ctk.CTk):
         center_frame = ctk.CTkFrame(self)
         center_frame.grid(row=0, column=1, rowspan=1, sticky="nsew")
 
-        tab_control = ctk.CTkTabview(center_frame)
-        tab_control.pack(expand=1, fill="both")
+        # Higher-level tab view
+        self.high_level_tab_control = ctk.CTkTabview(center_frame)
+        self.high_level_tab_control.pack(expand=1, fill="both")
 
-        self.create_signals_tab(tab_control, bold_font)
-        self.create_backtesting_tab(tab_control)
-        self.create_monte_carlo_tab(tab_control, bold_font)
+        # SMA Testing tab
+        sma_testing_tab = self.high_level_tab_control.add("SMA Testing")
+        self.create_sma_content(sma_testing_tab) 
 
-        self.copyright_frame = ctk.CTkFrame(self)
-        self.copyright_frame.grid(row=2, column=1, columnspan=1, sticky="ew")
-        ctk.CTkLabel(self.copyright_frame, text="© Dash Global Analytics 2024", font=ctk.CTkFont(size=10)).pack(pady=5)
+        # Momentum Testing tab
+        momentum_testing_tab = self.high_level_tab_control.add("Momentum Testing")
+        self.create_momentum_content(momentum_testing_tab)
 
-        # image_path = os.path.join(os.getcwd(), "IMG_3858.JPG")
-        # image = Image.open(image_path)
-        # image = image.resize((120, 100))
-        # rounded_image = utilities.round_corners(image, radius=10)
-        # ctk_image = ctk.CTkImage(light_image=rounded_image, dark_image=rounded_image, size=(120, 120))
-        # image_label = ctk.CTkLabel(right_sidebar, image=ctk_image, text="")
-        # image_label.pack(pady=(10, 0), anchor="center")
+        # Select the "SMA Testing" tab by default
+        self.high_level_tab_control.set("SMA Testing")
 
-        ctk.CTkLabel(right_sidebar, text="Theme Mode:", font=bold_font).pack(pady=(20, 0))
+        # Create the SMA sidebar after selecting the SMA Testing tab
+        self.create_sma_sidebar()
+
+        ctk.CTkLabel(right_sidebar, text="Theme Mode:", font=self.bold_font).pack(pady=(20, 0))
         theme_options = ["Light", "Dark"]
         ctk.CTkOptionMenu(right_sidebar, values=theme_options, variable=self.theme_mode_var, command=self.change_theme).pack(pady=(0, 20), padx=(10, 10))
         self.theme_mode_var.trace_add("write", self.update_theme_mode)
+
+    def create_sma_content(self, tab):
+        """
+        Creates the content for the SMA Testing tab.
+        """
+        tab_control = ctk.CTkTabview(tab)
+        tab_control.pack(expand=1, fill="both")
+
+        self.create_signals_tab(tab_control, self.bold_font)
+        self.create_backtesting_tab(tab_control)
+        self.create_monte_carlo_tab(tab_control, self.bold_font)
+
+    def create_momentum_content(self, tab):
+        """
+        Creates the content for the Momentum Testing tab.
+        """
+        ctk.CTkLabel(tab, text="Momentum Testing Content Here", font=ctk.CTkFont(size=20, weight="bold")).pack(pady=10)
+
+    def monitor_tab_changes(self):
+        """
+        Monitors tab changes and updates the sidebar accordingly.
+        """
+        selected_tab = self.high_level_tab_control.get() 
+        if selected_tab != self.current_tab.get():
+            self.current_tab.set(selected_tab)
+            self.on_tab_change()
+        self.after(100, self.monitor_tab_changes)
+
+    def on_tab_change(self):
+        """
+        Handles tab switching to update the left sidebar accordingly.
+        """
+        for widget in self.grid_slaves(column=0):
+            widget.destroy()
+
+        if self.current_tab.get() == "SMA Testing":
+            self.create_sma_sidebar()
+        elif self.current_tab.get() == "Momentum Testing":
+            self.create_momentum_sidebar()
+
+    def create_sma_sidebar(self):
+        """
+        Creates the sidebar specific to SMA Testing.
+        """
+        sidebar = ctk.CTkFrame(self, width=200)
+        sidebar.grid(row=0, column=0, rowspan=2, sticky="ns", pady=(20, 0))
+
+        ctk.CTkLabel(sidebar, text="Strategy Settings", font=ctk.CTkFont(size=20, weight="bold")).pack(pady=(10, 5))
+
+        ctk.CTkLabel(sidebar, text="Start Date:", font=self.bold_font).pack(pady=(0, 0))
+        ctk.CTkEntry(sidebar, textvariable=self.start_date_var).pack(pady=(0, 5))
+        self.start_date_var.trace_add("write", self.update_start_date)
+
+        ctk.CTkLabel(sidebar, text="End Date:", font=self.bold_font).pack(pady=(0, 0))
+        ctk.CTkEntry(sidebar, textvariable=self.end_date_var).pack(pady=(0, 10))
+        self.end_date_var.trace_add("write", self.update_end_date)
+
+        ctk.CTkLabel(sidebar, text="Cash Ticker:", font=self.bold_font).pack(pady=(0, 0))
+        ctk.CTkEntry(sidebar, textvariable=self.cash_ticker_var).pack(pady=(0, 5))
+        self.cash_ticker_var.trace_add("write", self.update_cash_ticker)
+
+        ctk.CTkLabel(sidebar, text="Bond Ticker:", font=self.bold_font).pack(pady=(0, 0))
+        ctk.CTkEntry(sidebar, textvariable=self.bond_ticker_var).pack(pady=(0, 10))
+        self.bond_ticker_var.trace_add("write", self.update_bond_ticker)
+
+        ctk.CTkLabel(sidebar, text="Trading Frequency:", font=self.bold_font).pack(pady=(0, 0))
+        trading_options = ["Monthly", "Bi-Monthly"]
+        ctk.CTkOptionMenu(sidebar, values=trading_options, variable=self.trading_frequency_var).pack(pady=(0, 10))
+        self.trading_frequency_var.trace_add("write", self.update_trading_frequency)
+
+        ctk.CTkLabel(sidebar, text="Weighting Strategy:", font=self.bold_font).pack(pady=(0, 0))
+        weighting_options = ["Use File Weights", "Equal Weight", "Risk Contribution", "Min Volatility", "Max Sharpe"]
+        ctk.CTkOptionMenu(sidebar, values=weighting_options, variable=self.weighting_strategy_var).pack(pady=(0, 10))
+        self.weighting_strategy_var.trace_add("write", self.update_weighting_strategy)
+
+        ctk.CTkLabel(sidebar, text="SMA Window (days):", font=self.bold_font).pack(pady=(0, 0))
+        sma_windows = ["21", "42", "63", "84", "105", "126", "147", "168", "210"]
+        ctk.CTkOptionMenu(sidebar, values=sma_windows, variable=self.sma_window_var).pack(pady=(0, 10))
+        self.sma_window_var.trace_add("write", self.update_sma_window)
+
+        ctk.CTkButton(sidebar, text="Select Asset Weights File", command=self.load_weights_and_update).pack(pady=(10, 10))
+
+    def create_momentum_sidebar(self):
+        """
+        Creates the sidebar specific to Momentum Testing.
+        """
+        sidebar = ctk.CTkFrame(self, width=200)
+        sidebar.grid(row=0, column=0, rowspan=2, sticky="ns", pady=(20, 0))
+
+        ctk.CTkLabel(sidebar, text="Momentum Settings", font=ctk.CTkFont(size=20, weight="bold")).pack(pady=(10, 5))
+
+        ctk.CTkLabel(sidebar, text="Start Date:", font=self.bold_font).pack(pady=(0, 0))
+        ctk.CTkEntry(sidebar, textvariable=self.start_date_var).pack(pady=(0, 5))
+        self.start_date_var.trace_add("write", self.update_start_date)
+
+        ctk.CTkLabel(sidebar, text="End Date:", font=self.bold_font).pack(pady=(0, 0))
+        ctk.CTkEntry(sidebar, textvariable=self.end_date_var).pack(pady=(0, 10))
+        self.end_date_var.trace_add("write", self.update_end_date)
+
+        ctk.CTkLabel(sidebar, text="Lookback Period (days):", font=self.bold_font).pack(pady=(0, 0))
+        momentum_windows = ["63", "126", "252", "504"]
+        self.momentum_window = ctk.StringVar(value="252")
+        ctk.CTkOptionMenu(sidebar, values=momentum_windows, variable=self.momentum_window).pack(pady=(0, 10))
+
+        ctk.CTkButton(sidebar, text="Run Momentum Test", command=self.run_momentum_test).pack(pady=(10, 10))
+
+    def run_momentum_test(self):
+        """
+        Runs the momentum test.
+        """
+        self.clear_bottom_text()
+        threading.Thread(target=self._run_momentum_test_task).start()
+
+    def _run_momentum_test_task(self):
+        """
+        Runs the momentum test task in a separate thread.
+        """
+        result = "Momentum test completed."
+        self.after(0, lambda: self.display_result(result))
 
     def change_theme(self, selected_theme):
         """
@@ -318,7 +396,6 @@ class MonteCarloApp(ctk.CTk):
         self.bottom_text = ctk.CTkLabel(self.bottom_text_frame, text=result, text_color="green" if "completed" in result else "red")
         self.bottom_text.pack(pady=5)
 
-    # Update methods for ModelsData properties
     def update_start_date(self, *args):
         """
         Updates the start date in the data model.
