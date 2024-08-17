@@ -1,12 +1,15 @@
+"""
+Processor for processing results from models.
+"""
+
 import numpy as np
-import os
 import pandas as pd
 
 import plotly.subplots as sp
 import plotly.graph_objects as go
+
 import utilities as utilities
 
-# TODO seperate out results processor for each module. 
 
 class ResultsProcessor:
     """
@@ -32,28 +35,8 @@ class ResultsProcessor:
         """
         self.output_filename = output_filename
 
-    def plot_all_scenarios(self, performance_data):
-        """
-        Plots the portfolio performance for all weighting strategies together.
 
-        Parameters
-        ----------
-        performance_data : dict
-            Dictionary where keys are strategy names and values are Series of portfolio values.
-        """
-        fig = go.Figure()
-        for strategy, data in performance_data.items():
-            fig.add_trace(go.Scatter(x=data.index, y=data, mode='lines', name=strategy))
-        fig.update_layout(
-            title='Portfolio Performance Across Different Weighting Strategies',
-            xaxis_title='Date',
-            yaxis_title='Portfolio Value ($)',
-            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
-        )
-        utilities.save_html(fig, "all_weighting_scenarios.html", self.output_filename)
-        # fig.show()
-
-    def plot_portfolio_value(self, portfolio_value, filename='portfolio_value.html'):
+    def plot_portfolio_value(self, portfolio_value, trading_frequency, filename='portfolio_value.html'):
         """
         Plots the portfolio value over time and saves the plot as an HTML file.
 
@@ -61,14 +44,77 @@ class ResultsProcessor:
         ----------
         portfolio_value : Series
             Series containing the portfolio values over time.
+        trading_frequency : str
+            The frequency of trades. Used for calculating CAGR.
         filename : str
             The name of the file to save the plot. Default is 'portfolio_value.html'.
         """
+        # Calculate metrics
+        final_value = portfolio_value.iloc[-1]  # Get the final portfolio value
+        cagr = utilities.calculate_cagr(portfolio_value, trading_frequency)  # Calculate CAGR
+        max_drawdown = utilities.calculate_max_drawdown(portfolio_value)  # Calculate Max Drawdown
+        
+        # Create the plot
         fig = go.Figure()
-        fig.add_trace(go.Scatter(x=portfolio_value.index, y=portfolio_value, mode='lines', name='Portfolio Value'))
-        fig.update_layout(title='Portfolio Value Over Time', xaxis_title='Date', yaxis_title='Portfolio Value ($)')
+        
+        # Add trace for the portfolio value
+        fig.add_trace(go.Scatter(
+            x=portfolio_value.index,
+            y=portfolio_value,
+            mode='lines',
+            name='Portfolio Value'
+        ))
+        
+        # Add annotations for final value, CAGR, and Max Drawdown under the title
+        annotations = [
+            dict(
+                xref='paper', yref='paper', x=0.25, y=1,  # Position annotation under the title
+                xanchor='center', yanchor='bottom',
+                text=f'Final Value: ${final_value:,.2f}',
+                showarrow=False,
+                font=dict(size=12)
+            ),
+            dict(
+                xref='paper', yref='paper', x=0.5, y=1,  # Position annotation under the first one
+                xanchor='center', yanchor='bottom',
+                text=f'CAGR: {cagr:.2%}',
+                showarrow=False,
+                font=dict(size=12)
+            ),
+            dict(
+                xref='paper', yref='paper', x=0.75, y=1,  # Position annotation under the second one
+                xanchor='center', yanchor='bottom',
+                text=f'Max Drawdown: {max_drawdown:.2%}',
+                showarrow=False,
+                font=dict(size=12)
+            )
+        ]
+        
+        # Update layout with annotations and main title
+        fig.update_layout(
+            title=dict(
+                text='Portfolio Value Over Time',
+                x=0.5,
+                y=1,  # Move title higher to make space for annotations
+                xanchor='center',
+                yanchor='top'
+            ),
+            xaxis_title='Date',
+            yaxis_title='Portfolio Value ($)',
+            annotations=annotations,
+            legend=dict(
+                orientation="h",
+                yanchor="bottom",
+                y=0.75,
+                xanchor="right",
+                x=1
+            )
+        )
+        
+        # Save and display the plot
         utilities.save_html(fig, filename, self.output_filename)
         fig.show()
+
 
     def plot_var_cvar(self, returns, portfolio_value, trading_frequency, confidence_level=0.95, filename='var_cvar.html'):
         """
@@ -155,6 +201,7 @@ class ResultsProcessor:
         utilities.save_html(fig, filename, self.output_filename)
         # fig.show()
 
+
     def plot_monte_carlo_simulation(self, simulation_results, simulation_horizon, output_filename, filename='monte_carlo_simulation.html'):
         """
         Plots the results of the Monte Carlo simulation.
@@ -209,6 +256,7 @@ class ResultsProcessor:
         )
         utilities.save_html(fig, filename, output_filename)
         # fig.show()
+
 
     def plot_returns_heatmaps(self, monthly_returns, yearly_returns, output_filename, filename='returns_heatmap.html'):
         """

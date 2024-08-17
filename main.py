@@ -1,10 +1,13 @@
+"""
+Main module for encapsulating calling modules.
+"""
+
 import utilities as utilities
+from models_data import ModelsData
 
 from models.backtesting import BacktestStaticPortfolio
 from models.monte_carlo_sim import MonteCarloSimulation
-from results.results_processor import ResultsProcessor
 from models.create_signals import CreateSignals
-from models_data import ModelsData
 
 def run_backtest(data_models: ModelsData):
     if not data_models.assets_weights:
@@ -57,7 +60,7 @@ def run_signals(data_models: ModelsData):
         return "Please load asset weights file."
 
     data = utilities.fetch_data(data_models.assets_weights, data_models.start_date, data_models.end_date)
-    
+
     create_signals = CreateSignals(
         data_models.assets_weights,
         data,
@@ -66,7 +69,7 @@ def run_signals(data_models: ModelsData):
         weighting_strategy=data_models.weighting_strategy,
         sma_period=int(data_models.sma_window)
     )
-    
+
     create_signals.generate_signals(data_models.end_date)
-    
+
     return f"Signals generated for {data_models.end_date}."
