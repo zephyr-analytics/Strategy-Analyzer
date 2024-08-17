@@ -29,6 +29,7 @@ class ModelsData:
         self._max_drawdown = None
         self._var = None
         self._cvar = None
+        self._annual_volatility = None
 
     # Getter and Setter for assets_weights
     @property
@@ -470,3 +471,11 @@ class ModelsData:
             The CVaR value to be set.
         """
         self._cvar = value
+    
+    @property
+    def annual_volatility(self):
+        return self._annual_volatility
+    
+    @annual_volatility.setter
+    def annual_volatility(self, value):
+        self._annual_volatility = value

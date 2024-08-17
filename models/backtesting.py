@@ -162,12 +162,14 @@ class BacktestStaticPortfolio:
         average_annual_return = utilities.calculate_average_annual_return(self.data_models.portfolio_returns, self.trading_frequency)
         max_drawdown = utilities.calculate_max_drawdown(self.data_models.portfolio_values)
         var, cvar = utilities.calculate_var_cvar(self.data_models.portfolio_returns)
+        annual_volatility = utilities.calculate_annual_volatility(self.trading_frequency, self.data_models.portfolio_returns)
 
         self.data_models.cagr = cagr
         self.data_models.average_annual_return =average_annual_return
         self.data_models.max_drawdown = max_drawdown
         self.data_models.var = var
         self.data_models.cvar = cvar
+        self.data_models.annual_volatility = annual_volatility
 
 
     def _rebalance_portfolio(self, current_weights):

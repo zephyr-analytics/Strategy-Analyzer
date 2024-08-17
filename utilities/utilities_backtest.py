@@ -121,9 +121,9 @@ def calculate_var_cvar(returns, confidence_level=0.95):
     return var, cvar
 
 
-def calculate_portfolio_metrics(backtest):
+def calculate_annual_volatility(trading_frequency, portfolio_returns):
     """
-    Calculates the initial portfolio value, CAGR, and annual volatility based on backtest results.
+    Calculates the annual volatility based on backtest results.
 
     Parameters
     ----------
@@ -132,15 +132,15 @@ def calculate_portfolio_metrics(backtest):
 
     Returns
     -------
-    tuple
-        Tuple containing the initial portfolio value, CAGR, and annual volatility.
+    float
+        The annual volatility of the portfolio.
     """
-    initial_value = backtest.get_portfolio_value().iloc[0]
-    cagr = calculate_cagr(backtest.get_portfolio_value(), backtest.trading_frequency)
-    if backtest.trading_frequency == 'Monthly':
-        annual_volatility = backtest._returns.std() * np.sqrt(12)
-    elif backtest.trading_frequency == 'Bi-Monthly':
-        annual_volatility = backtest._returns.std() * np.sqrt(6)
+    if trading_frequency == 'Monthly':
+        annual_volatility = portfolio_returns.std() * np.sqrt(12)
+    elif trading_frequency == 'Bi-Monthly':
+        annual_volatility = portfolio_returns.std() * np.sqrt(6)
     else:
         raise ValueError("Invalid trading frequency. Choose 'Monthly' or 'Bi-Monthly'.")
-    return initial_value, cagr, annual_volatility
+    
+    return annual_volatility
+

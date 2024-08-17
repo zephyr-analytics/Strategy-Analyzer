@@ -29,14 +29,8 @@ def run_simulation(data_models: ModelsData):
 
     backtest = BacktestStaticPortfolio(data_models)
     backtest.process()
-    initial_value, cagr, annual_volatility = utilities.calculate_portfolio_metrics(backtest)
     
-    monte_carlo = MonteCarloSimulation(
-        data_models,
-        initial_value,
-        cagr,
-        annual_volatility
-    )
+    monte_carlo = MonteCarloSimulation(data_models)
     monte_carlo.process()
     return "Simulation completed and plot saved."
 
