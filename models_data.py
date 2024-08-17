@@ -2,6 +2,8 @@
 Getter and Setter class for storing environment variables.
 """
 
+import pandas as pd
+
 class ModelsData:
     def __init__(self):
         """
@@ -20,6 +22,13 @@ class ModelsData:
         self._trading_frequency = "Monthly"
         self._weighting_strategy = "Use File Weights"
         self._weights_filename = ""
+        self._portfolio_values = pd.Series
+        self._portfolio_returns = pd.Series
+        self._cagr = None
+        self._average_annual_return = None
+        self._max_drawdown = None
+        self._var = None
+        self._cvar = None
 
     # Getter and Setter for assets_weights
     @property
@@ -293,3 +302,171 @@ class ModelsData:
             value (str): The filename of the weights file.
         """
         self._weights_filename = value
+
+    @property
+    def portfolio_values(self):
+        """
+        Getter method for portfolio value.
+
+        Returns
+        -------
+        Series
+            The series of portfolio values.
+        """
+        return self._portfolio_values
+
+    @portfolio_values.setter
+    def portfolio_values(self, value):
+        """
+        Setter method for portfolio value.
+        
+        Parameters
+        ----------
+        portfolio_value : Series
+            The series of portfolio values to be set.
+        """
+        self._portfolio_values = value
+
+    @property
+    def portfolio_returns(self):
+        """
+        Getter method for returns.
+
+        Returns
+        -------
+        Series
+            The series of portfolio returns.
+        """
+        return self._portfolio_returns
+
+    @portfolio_returns.setter
+    def portfolio_returns(self, value):
+        """
+        Setter method for returns.
+        
+        Parameters
+        ----------
+        returns : Series
+            The series of portfolio returns to be set.
+        """
+        self._portfolio_returns = value
+
+    @property
+    def cagr(self):
+        """
+        Getter method for CAGR.
+
+        Returns
+        -------
+        float
+            The CAGR value.
+        """
+        return self._cagr
+
+    @cagr.setter
+    def cagr(self, value):
+        """
+        Setter method for CAGR.
+
+        Parameters
+        ----------
+        value : float
+            The CAGR value to be set.
+        """
+        self._cagr = value
+
+    @property
+    def average_annual_return(self):
+        """
+        Getter method for average annual return.
+
+        Returns
+        -------
+        float
+            The average annual return value.
+        """
+        return self._average_annual_return
+
+    @average_annual_return.setter
+    def average_annual_return(self, value):
+        """
+        Setter method for average annual return.
+
+        Parameters
+        ----------
+        value : float
+            The average annual return value to be set.
+        """
+        self._average_annual_return = value
+
+    @property
+    def max_drawdown(self):
+        """
+        Getter method for max drawdown.
+
+        Returns
+        -------
+        float
+            The maximum drawdown value.
+        """
+        return self._max_drawdown
+
+    @max_drawdown.setter
+    def max_drawdown(self, value):
+        """
+        Setter method for max drawdown.
+
+        Parameters
+        ----------
+        value : float
+            The maximum drawdown value to be set.
+        """
+        self._max_drawdown = value
+
+    @property
+    def var(self):
+        """
+        Getter method for Value at Risk (VaR).
+
+        Returns
+        -------
+        float
+            The VaR value.
+        """
+        return self._var
+
+    @var.setter
+    def var(self, value):
+        """
+        Setter method for Value at Risk (VaR).
+
+        Parameters
+        ----------
+        value : float
+            The VaR value to be set.
+        """
+        self._var = value
+
+    @property
+    def cvar(self):
+        """
+        Getter method for Conditional Value at Risk (CVaR).
+
+        Returns
+        -------
+        float
+            The CVaR value.
+        """
+        return self._cvar
+
+    @cvar.setter
+    def cvar(self, value):
+        """
+        Setter method for Conditional Value at Risk (CVaR).
+
+        Parameters
+        ----------
+        value : float
+            The CVaR value to be set.
+        """
+        self._cvar = value
