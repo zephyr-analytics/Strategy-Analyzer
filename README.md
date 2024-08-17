@@ -1,4 +1,4 @@
-# Portfolio Analysis Application
+# Portfolio Strategy Analyzer
 
 ## Overview
 
