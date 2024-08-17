@@ -41,7 +41,8 @@ def run_signals(data_models: ModelsData):
     if not data_models.assets_weights:
         return "Please load asset weights file."
 
-    data = utilities.fetch_data(data_models.assets_weights, data_models.start_date, data_models.end_date)
+    data = utilities.fetch_data(data_models.assets_weights, data_models.start_date, data_models.end_date, 
+                                data_models.bond_ticker, data_models.cash_ticker)
 
     create_signals = CreateSignals(data_models, data)
     create_signals.process()
