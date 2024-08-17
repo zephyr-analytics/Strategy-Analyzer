@@ -3,6 +3,7 @@ Processor for processing results from models.
 """
 
 import numpy as np
+import pandas as pd
 import plotly.subplots as sp
 import plotly.graph_objects as go
 import utilities as utilities
@@ -44,7 +45,6 @@ class ResultsProcessor:
         """
         portfolio_value = self.portfolio_values
         final_value = portfolio_value.iloc[-1]
-        
         fig = go.Figure()
         fig.add_trace(go.Scatter(
             x=portfolio_value.index,
@@ -52,7 +52,6 @@ class ResultsProcessor:
             mode='lines',
             name='Portfolio Value'
         ))
-        
         annotations = [
             dict(
                 xref='paper', yref='paper', x=0.25, y=1,
@@ -76,7 +75,6 @@ class ResultsProcessor:
                 font=dict(size=12)
             )
         ]
-        
         fig.update_layout(
             title=dict(
                 text='Portfolio Value Over Time',
@@ -97,7 +95,6 @@ class ResultsProcessor:
             )
         )
         utilities.save_html(fig, filename, self.output_filename)
-        fig.show()
 
 
     def plot_var_cvar(self, confidence_level=0.95, filename='var_cvar.html'):
@@ -113,10 +110,9 @@ class ResultsProcessor:
         """
         returns = self.portfolio_returns
         portfolio_value = self.portfolio_values
-        
+
         fig = go.Figure()
         fig.add_trace(go.Histogram(x=returns.dropna(), nbinsx=30, name='Returns', opacity=0.75, marker_color='blue'))
-        
         fig.add_shape(type="line",
                       x0=self.var, y0=0, x1=self.var, y1=1,
                       line=dict(color="Red", dash="dash"),
@@ -127,7 +123,6 @@ class ResultsProcessor:
                       line=dict(color="Green", dash="dash"),
                       xref='x', yref='paper',
                       name=f'CVaR ({confidence_level * 100}%): {self.cvar:.2%}')
-        
         fig.update_layout(
             title='Portfolio Returns with VaR and CVaR',
             xaxis_title='Returns',
@@ -174,7 +169,6 @@ class ResultsProcessor:
             ]
         )
         utilities.save_html(fig, filename, self.output_filename)
-        fig.show()
 
 
     def plot_monte_carlo_simulation(self, simulation_results, simulation_horizon, output_filename, filename='monte_carlo_simulation.html'):
@@ -242,25 +236,18 @@ class ResultsProcessor:
         filename : str, optional
             The name of the file to save the plot. Default is 'returns_heatmap.html'.
         """
-        # Extract monthly and yearly returns from models_data
         monthly_returns = self.portfolio_returns.resample('M').sum()
         yearly_returns = self.portfolio_returns.resample('Y').sum()
-        
-        # Prepare data for monthly returns heatmap
         monthly_returns_df = monthly_returns.to_frame(name='Monthly Return')
         monthly_returns_df['Monthly Return'] *= 100
         monthly_returns_df['Year'] = monthly_returns_df.index.year
         monthly_returns_df['Month'] = monthly_returns_df.index.month
         monthly_heatmap_data = monthly_returns_df.pivot('Year', 'Month', 'Monthly Return')
         monthly_heatmap_data = monthly_heatmap_data.reindex(columns=np.arange(1, 13))
-        
-        # Prepare data for yearly returns heatmap
         yearly_returns_df = yearly_returns.to_frame(name='Yearly Return')
         yearly_returns_df['Yearly Return'] *= 100
         yearly_returns_df['Year'] = yearly_returns_df.index.year
         yearly_returns_df = yearly_returns_df.sort_values('Year')
-        
-        # Create subplots for monthly and yearly returns heatmaps
         fig = sp.make_subplots(
             rows=2, cols=1,
             subplot_titles=("Monthly Returns Heatmap", "Yearly Returns Heatmap"),
@@ -268,8 +255,6 @@ class ResultsProcessor:
             row_heights=[0.75, 0.25],
             vertical_spacing=0.1
         )
-        
-        # Add monthly returns heatmap to the figure
         fig.add_trace(go.Heatmap(
             z=monthly_heatmap_data.values,
             x=['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
@@ -277,8 +262,6 @@ class ResultsProcessor:
             colorscale='RdYlGn',
             colorbar=dict(title="Color Scale", tickformat=".2%"),
         ), row=1, col=1)
-        
-        # Add annotations for monthly returns
         monthly_annotations = []
         for i in range(monthly_heatmap_data.shape[0]):
             for j in range(monthly_heatmap_data.shape[1]):
@@ -295,8 +278,6 @@ class ResultsProcessor:
                             showarrow=False
                         )
                     )
-        
-        # Add yearly returns heatmap to the figure
         fig.add_trace(go.Heatmap(
             z=[yearly_returns_df['Yearly Return'].values],
             x=yearly_returns_df['Year'],
@@ -304,8 +285,6 @@ class ResultsProcessor:
             colorscale='RdYlGn',
             showscale=False,
         ), row=2, col=1)
-        
-        # Add annotations for yearly returns
         yearly_annotations = []
         for i in range(yearly_returns_df.shape[0]):
             value = yearly_returns_df['Yearly Return'].iloc[i]
@@ -320,12 +299,8 @@ class ResultsProcessor:
                     showarrow=False
                 )
             )
-        
-        # Update layout with title and annotations
         fig.update_layout(
             title="Combined Monthly and Yearly Returns Heatmaps",
             annotations=monthly_annotations + yearly_annotations
         )
-        
-        # Save the plot as an HTML file
         utilities.save_html(fig, filename, self.output_filename)
