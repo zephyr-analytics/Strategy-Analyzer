@@ -121,8 +121,6 @@ class MonteCarloApp(ctk.CTk):
                      font=ctk.CTkFont(size=20, weight="bold")).pack(pady=10)
         ctk.CTkButton(backtesting_tab, text="Run Backtest",
                       command=self.run_backtest).pack(pady=10)
-        ctk.CTkButton(backtesting_tab, text="Run All Scenarios",
-                      command=self.run_all_weighting_scenarios).pack(pady=10)
 
     def create_monte_carlo_tab(self, tab_control, bold_font):
         """
@@ -202,20 +200,12 @@ class MonteCarloApp(ctk.CTk):
         result = main.run_simulation(self.data_models)
         self.after(0, lambda: self.display_result(result))
 
-    def run_all_weighting_scenarios(self):
-        self.clear_bottom_text()
-        threading.Thread(target=self._run_all_weighting_scenarios_task).start()
-
-    def _run_all_weighting_scenarios_task(self):
-        result = main.run_all_weighting_scenarios(self.data_models)
-        self.after(0, lambda: self.display_result(result))
-
     def run_signals_and_display(self, current_date):
         self.clear_bottom_text()
         threading.Thread(target=self._run_signals_and_display_task, args=(current_date,)).start()
 
     def _run_signals_and_display_task(self, current_date):
-        self.data_models.end_date = current_date  # Example: setting current date in config
+        self.data_models.end_date = current_date 
         result = main.run_signals(self.data_models)
         self.after(0, lambda: self.display_result(result))
 
