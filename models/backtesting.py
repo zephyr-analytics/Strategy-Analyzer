@@ -48,13 +48,12 @@ class BacktestStaticPortfolio:
         """
         self.data_models = data_models
 
-        # Extract necessary attributes from ModelsData
         self.assets_weights = data_models.assets_weights
         self.start_date = data_models.start_date
         self.end_date = data_models.end_date
         self.trading_frequency = data_models.trading_frequency
         self.output_filename = data_models.weights_filename
-        self.rebalance_threshold = 0.02  # Default value
+        self.rebalance_threshold = 0.02
         self.weighting_strategy = data_models.weighting_strategy
         self.sma_period = int(data_models.sma_window)
         self.bond_ticker = data_models.bond_ticker
@@ -75,6 +74,7 @@ class BacktestStaticPortfolio:
         results_processor = ResultsProcessor(self.data_models)
         results_processor.plot_portfolio_value()
         results_processor.plot_var_cvar()
+        results_processor.plot_returns_heatmaps()
 
 
     def _adjust_weights(self, current_date):

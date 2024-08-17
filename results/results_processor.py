@@ -233,27 +233,34 @@ class ResultsProcessor:
         # fig.show()
 
 
-    def plot_returns_heatmaps(self, monthly_returns, yearly_returns, output_filename, filename='returns_heatmap.html'):
+    def plot_returns_heatmaps(self, filename='returns_heatmap.html'):
         """
         Plots a combined heatmap of monthly and yearly returns with values shown as percentages on each cell.
 
         Parameters
         ----------
-        monthly_returns : Series
-            Series containing the monthly portfolio returns.
-        yearly_returns : Series
-            Series containing the yearly portfolio returns.
+        filename : str, optional
+            The name of the file to save the plot. Default is 'returns_heatmap.html'.
         """
-        monthly_returns_df = monthly_returns.resample('M').sum().to_frame(name='Monthly Return')
+        # Extract monthly and yearly returns from models_data
+        monthly_returns = self.portfolio_returns.resample('M').sum()
+        yearly_returns = self.portfolio_returns.resample('Y').sum()
+        
+        # Prepare data for monthly returns heatmap
+        monthly_returns_df = monthly_returns.to_frame(name='Monthly Return')
         monthly_returns_df['Monthly Return'] *= 100
         monthly_returns_df['Year'] = monthly_returns_df.index.year
         monthly_returns_df['Month'] = monthly_returns_df.index.month
         monthly_heatmap_data = monthly_returns_df.pivot('Year', 'Month', 'Monthly Return')
         monthly_heatmap_data = monthly_heatmap_data.reindex(columns=np.arange(1, 13))
-        yearly_returns_df = yearly_returns.resample('Y').sum().to_frame(name='Yearly Return')
+        
+        # Prepare data for yearly returns heatmap
+        yearly_returns_df = yearly_returns.to_frame(name='Yearly Return')
         yearly_returns_df['Yearly Return'] *= 100
         yearly_returns_df['Year'] = yearly_returns_df.index.year
         yearly_returns_df = yearly_returns_df.sort_values('Year')
+        
+        # Create subplots for monthly and yearly returns heatmaps
         fig = sp.make_subplots(
             rows=2, cols=1,
             subplot_titles=("Monthly Returns Heatmap", "Yearly Returns Heatmap"),
@@ -261,6 +268,8 @@ class ResultsProcessor:
             row_heights=[0.75, 0.25],
             vertical_spacing=0.1
         )
+        
+        # Add monthly returns heatmap to the figure
         fig.add_trace(go.Heatmap(
             z=monthly_heatmap_data.values,
             x=['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
@@ -268,6 +277,8 @@ class ResultsProcessor:
             colorscale='RdYlGn',
             colorbar=dict(title="Color Scale", tickformat=".2%"),
         ), row=1, col=1)
+        
+        # Add annotations for monthly returns
         monthly_annotations = []
         for i in range(monthly_heatmap_data.shape[0]):
             for j in range(monthly_heatmap_data.shape[1]):
@@ -284,6 +295,8 @@ class ResultsProcessor:
                             showarrow=False
                         )
                     )
+        
+        # Add yearly returns heatmap to the figure
         fig.add_trace(go.Heatmap(
             z=[yearly_returns_df['Yearly Return'].values],
             x=yearly_returns_df['Year'],
@@ -291,6 +304,8 @@ class ResultsProcessor:
             colorscale='RdYlGn',
             showscale=False,
         ), row=2, col=1)
+        
+        # Add annotations for yearly returns
         yearly_annotations = []
         for i in range(yearly_returns_df.shape[0]):
             value = yearly_returns_df['Yearly Return'].iloc[i]
@@ -305,9 +320,12 @@ class ResultsProcessor:
                     showarrow=False
                 )
             )
+        
+        # Update layout with title and annotations
         fig.update_layout(
             title="Combined Monthly and Yearly Returns Heatmaps",
             annotations=monthly_annotations + yearly_annotations
         )
-        utilities.save_html(fig, filename, output_filename)
-        # fig.show()
+        
+        # Save the plot as an HTML file
+        utilities.save_html(fig, filename, self.output_filename)
