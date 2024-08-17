@@ -51,7 +51,7 @@ class ResultsProcessor:
             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
         )
         utilities.save_html(fig, "all_weighting_scenarios.html", self.output_filename)
-        fig.show()
+        # fig.show()
 
     def plot_portfolio_value(self, portfolio_value, filename='portfolio_value.html'):
         """
@@ -68,6 +68,7 @@ class ResultsProcessor:
         fig.add_trace(go.Scatter(x=portfolio_value.index, y=portfolio_value, mode='lines', name='Portfolio Value'))
         fig.update_layout(title='Portfolio Value Over Time', xaxis_title='Date', yaxis_title='Portfolio Value ($)')
         utilities.save_html(fig, filename, self.output_filename)
+        fig.show()
 
     def plot_var_cvar(self, returns, portfolio_value, trading_frequency, confidence_level=0.95, filename='var_cvar.html'):
         """
@@ -152,6 +153,7 @@ class ResultsProcessor:
             ]
         )
         utilities.save_html(fig, filename, self.output_filename)
+        # fig.show()
 
     def plot_monte_carlo_simulation(self, simulation_results, simulation_horizon, output_filename, filename='monte_carlo_simulation.html'):
         """
@@ -206,7 +208,7 @@ class ResultsProcessor:
             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
         )
         utilities.save_html(fig, filename, output_filename)
-
+        # fig.show()
 
     def plot_returns_heatmaps(self, monthly_returns, yearly_returns, output_filename, filename='returns_heatmap.html'):
         """
@@ -285,4 +287,4 @@ class ResultsProcessor:
             annotations=monthly_annotations + yearly_annotations
         )
         utilities.save_html(fig, filename, output_filename)
-        fig.show()
+        # fig.show()
