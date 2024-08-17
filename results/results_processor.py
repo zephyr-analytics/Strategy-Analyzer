@@ -1,8 +1,15 @@
+"""
+Processor for processing results from models.
+"""
+
 import numpy as np
 import pandas as pd
 
+import plotly.subplots as sp
 import plotly.graph_objects as go
+
 import utilities as utilities
+
 
 class ResultsProcessor:
     """
@@ -28,31 +35,8 @@ class ResultsProcessor:
         """
         self.output_filename = output_filename
 
-    def plot_all_scenarios(self, performance_data):
-        """
-        Plots the portfolio performance for all weighting strategies together.
 
-        Parameters
-        ----------
-        performance_data : dict
-            Dictionary where keys are strategy names and values are Series of portfolio values.
-        """
-        fig = go.Figure()
-
-        for strategy, data in performance_data.items():
-            fig.add_trace(go.Scatter(x=data.index, y=data, mode='lines', name=strategy))
-
-        fig.update_layout(
-            title='Portfolio Performance Across Different Weighting Strategies',
-            xaxis_title='Date',
-            yaxis_title='Portfolio Value ($)',
-            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
-        )
-
-        utilities.save_html(fig, "all_weighting_scenarios.html", self.output_filename)
-        fig.show()
-
-    def plot_portfolio_value(self, portfolio_value, filename='portfolio_value.html'):
+    def plot_portfolio_value(self, portfolio_value, trading_frequency, filename='portfolio_value.html'):
         """
         Plots the portfolio value over time and saves the plot as an HTML file.
 
@@ -60,13 +44,77 @@ class ResultsProcessor:
         ----------
         portfolio_value : Series
             Series containing the portfolio values over time.
+        trading_frequency : str
+            The frequency of trades. Used for calculating CAGR.
         filename : str
             The name of the file to save the plot. Default is 'portfolio_value.html'.
         """
+        # Calculate metrics
+        final_value = portfolio_value.iloc[-1]  # Get the final portfolio value
+        cagr = utilities.calculate_cagr(portfolio_value, trading_frequency)  # Calculate CAGR
+        max_drawdown = utilities.calculate_max_drawdown(portfolio_value)  # Calculate Max Drawdown
+        
+        # Create the plot
         fig = go.Figure()
-        fig.add_trace(go.Scatter(x=portfolio_value.index, y=portfolio_value, mode='lines', name='Portfolio Value'))
-        fig.update_layout(title='Portfolio Value Over Time', xaxis_title='Date', yaxis_title='Portfolio Value ($)')
+        
+        # Add trace for the portfolio value
+        fig.add_trace(go.Scatter(
+            x=portfolio_value.index,
+            y=portfolio_value,
+            mode='lines',
+            name='Portfolio Value'
+        ))
+        
+        # Add annotations for final value, CAGR, and Max Drawdown under the title
+        annotations = [
+            dict(
+                xref='paper', yref='paper', x=0.25, y=1,  # Position annotation under the title
+                xanchor='center', yanchor='bottom',
+                text=f'Final Value: ${final_value:,.2f}',
+                showarrow=False,
+                font=dict(size=12)
+            ),
+            dict(
+                xref='paper', yref='paper', x=0.5, y=1,  # Position annotation under the first one
+                xanchor='center', yanchor='bottom',
+                text=f'CAGR: {cagr:.2%}',
+                showarrow=False,
+                font=dict(size=12)
+            ),
+            dict(
+                xref='paper', yref='paper', x=0.75, y=1,  # Position annotation under the second one
+                xanchor='center', yanchor='bottom',
+                text=f'Max Drawdown: {max_drawdown:.2%}',
+                showarrow=False,
+                font=dict(size=12)
+            )
+        ]
+        
+        # Update layout with annotations and main title
+        fig.update_layout(
+            title=dict(
+                text='Portfolio Value Over Time',
+                x=0.5,
+                y=1,  # Move title higher to make space for annotations
+                xanchor='center',
+                yanchor='top'
+            ),
+            xaxis_title='Date',
+            yaxis_title='Portfolio Value ($)',
+            annotations=annotations,
+            legend=dict(
+                orientation="h",
+                yanchor="bottom",
+                y=0.75,
+                xanchor="right",
+                x=1
+            )
+        )
+        
+        # Save and display the plot
         utilities.save_html(fig, filename, self.output_filename)
+        fig.show()
+
 
     def plot_var_cvar(self, returns, portfolio_value, trading_frequency, confidence_level=0.95, filename='var_cvar.html'):
         """
@@ -151,60 +199,140 @@ class ResultsProcessor:
             ]
         )
         utilities.save_html(fig, filename, self.output_filename)
+        # fig.show()
+
 
     def plot_monte_carlo_simulation(self, simulation_results, simulation_horizon, output_filename, filename='monte_carlo_simulation.html'):
-            """
-            Plots the results of the Monte Carlo simulation.
+        """
+        Plots the results of the Monte Carlo simulation.
 
-            Parameters
-            ----------
-            simulation_results : DataFrame
-                DataFrame containing the simulated portfolio values.
-            simulation_horizon : int
-                Number of years to simulate.
-            output_filename : str
-                The name of the file to save the output.
-            filename : str, optional
-                The name of the HTML file to save the plot. Default is 'monte_carlo_simulation.html'.
-            """
-            average_simulation = simulation_results.mean(axis=1)
-            lower_bound = np.percentile(simulation_results, 5, axis=1)
-            upper_bound = np.percentile(simulation_results, 95, axis=1)
+        Parameters
+        ----------
+        simulation_results : DataFrame
+            DataFrame containing the simulated portfolio values.
+        simulation_horizon : int
+            Number of years to simulate.
+        output_filename : str
+            The name of the file to save the output.
+        filename : str, optional
+            The name of the HTML file to save the plot. Default is 'monte_carlo_simulation.html'.
+        """
+        average_simulation = simulation_results.mean(axis=1)
+        lower_bound = np.percentile(simulation_results, 5, axis=1)
+        upper_bound = np.percentile(simulation_results, 95, axis=1)
+        average_cagr = utilities.calculate_cagr_monte_carlo(pd.Series(average_simulation))
+        lower_cagr = utilities.calculate_cagr_monte_carlo(pd.Series(lower_bound))
+        upper_cagr = utilities.calculate_cagr_monte_carlo(pd.Series(upper_bound))
+        average_end_value = pd.Series(average_simulation).iloc[-1]
+        lower_end_value = pd.Series(lower_bound).iloc[-1]
+        upper_end_value = pd.Series(upper_bound).iloc[-1]
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(
+            x=list(range(simulation_horizon + 1)), 
+            y=average_simulation, 
+            mode='lines', 
+            name=f'Average Simulation (CAGR: {average_cagr:.2%}, End Value: ${average_end_value:,.2f})', 
+            line=dict(color='blue')
+        ))
+        fig.add_trace(go.Scatter(
+            x=list(range(simulation_horizon + 1)), 
+            y=lower_bound, 
+            mode='lines', 
+            name=f'Lower Bound (5%) (CAGR: {lower_cagr:.2%}, End Value: ${lower_end_value:,.2f})', 
+            line=dict(color='red', dash='dash')
+        ))
+        fig.add_trace(go.Scatter(
+            x=list(range(simulation_horizon + 1)), 
+            y=upper_bound, 
+            mode='lines', 
+            name=f'Upper Bound (95%) (CAGR: {upper_cagr:.2%}, End Value: ${upper_end_value:,.2f})', 
+            line=dict(color='green', dash='dash')
+        ))
+        fig.update_layout(
+            title='Monte Carlo Simulation of Portfolio Value',
+            xaxis_title='Year',
+            yaxis_title='Portfolio Value ($)',
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+        )
+        utilities.save_html(fig, filename, output_filename)
+        # fig.show()
 
-            average_cagr = utilities.calculate_cagr_monte_carlo(pd.Series(average_simulation))
-            lower_cagr = utilities.calculate_cagr_monte_carlo(pd.Series(lower_bound))
-            upper_cagr = utilities.calculate_cagr_monte_carlo(pd.Series(upper_bound))
 
-            average_end_value = pd.Series(average_simulation).iloc[-1]
-            lower_end_value = pd.Series(lower_bound).iloc[-1]
-            upper_end_value = pd.Series(upper_bound).iloc[-1]
+    def plot_returns_heatmaps(self, monthly_returns, yearly_returns, output_filename, filename='returns_heatmap.html'):
+        """
+        Plots a combined heatmap of monthly and yearly returns with values shown as percentages on each cell.
 
-            fig = go.Figure()
-            fig.add_trace(go.Scatter(
-                x=list(range(simulation_horizon + 1)), 
-                y=average_simulation, 
-                mode='lines', 
-                name=f'Average Simulation (CAGR: {average_cagr:.2%}, End Value: ${average_end_value:,.2f})', 
-                line=dict(color='blue')
-            ))
-            fig.add_trace(go.Scatter(
-                x=list(range(simulation_horizon + 1)), 
-                y=lower_bound, 
-                mode='lines', 
-                name=f'Lower Bound (5%) (CAGR: {lower_cagr:.2%}, End Value: ${lower_end_value:,.2f})', 
-                line=dict(color='red', dash='dash')
-            ))
-            fig.add_trace(go.Scatter(
-                x=list(range(simulation_horizon + 1)), 
-                y=upper_bound, 
-                mode='lines', 
-                name=f'Upper Bound (95%) (CAGR: {upper_cagr:.2%}, End Value: ${upper_end_value:,.2f})', 
-                line=dict(color='green', dash='dash')
-            ))
-            fig.update_layout(
-                title='Monte Carlo Simulation of Portfolio Value',
-                xaxis_title='Year',
-                yaxis_title='Portfolio Value ($)',
-                legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+        Parameters
+        ----------
+        monthly_returns : Series
+            Series containing the monthly portfolio returns.
+        yearly_returns : Series
+            Series containing the yearly portfolio returns.
+        """
+        monthly_returns_df = monthly_returns.resample('M').sum().to_frame(name='Monthly Return')
+        monthly_returns_df['Monthly Return'] *= 100 
+        monthly_returns_df['Year'] = monthly_returns_df.index.year
+        monthly_returns_df['Month'] = monthly_returns_df.index.month
+        monthly_heatmap_data = monthly_returns_df.pivot('Year', 'Month', 'Monthly Return')
+        monthly_heatmap_data = monthly_heatmap_data.reindex(columns=np.arange(1, 13))  
+        yearly_returns_df = yearly_returns.resample('Y').sum().to_frame(name='Yearly Return')
+        yearly_returns_df['Yearly Return'] *= 100  
+        yearly_returns_df['Year'] = yearly_returns_df.index.year
+        yearly_returns_df = yearly_returns_df.sort_values('Year')
+        fig = sp.make_subplots(
+            rows=2, cols=1,
+            subplot_titles=("Monthly Returns Heatmap", "Yearly Returns Heatmap"),
+            shared_xaxes=False, 
+            row_heights=[0.75, 0.25], 
+            vertical_spacing=0.1  
+        )
+        fig.add_trace(go.Heatmap(
+            z=monthly_heatmap_data.values,
+            x=['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            y=monthly_heatmap_data.index,
+            colorscale='RdYlGn',
+            colorbar=dict(title="Color Scale", tickformat=".2%"),  
+        ), row=1, col=1)
+        monthly_annotations = []
+        for i in range(monthly_heatmap_data.shape[0]):
+            for j in range(monthly_heatmap_data.shape[1]):
+                value = monthly_heatmap_data.iloc[i, j]
+                if not np.isnan(value):  
+                    monthly_annotations.append(
+                        dict(
+                            text=f"{value:.2f}%",
+                            x=['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][j],
+                            y=monthly_heatmap_data.index[i],
+                            xref='x1',
+                            yref='y1',
+                            font=dict(color="black"),
+                            showarrow=False
+                        )
+                    )
+        fig.add_trace(go.Heatmap(
+            z=[yearly_returns_df['Yearly Return'].values],  
+            x=yearly_returns_df['Year'], 
+            y=["Yearly Returns"],  
+            colorscale='RdYlGn',
+            showscale=False,  
+        ), row=2, col=1)
+        yearly_annotations = []
+        for i in range(yearly_returns_df.shape[0]):
+            value = yearly_returns_df['Yearly Return'].iloc[i]
+            yearly_annotations.append(
+                dict(
+                    text=f"{value:.2f}%",
+                    x=yearly_returns_df['Year'].iloc[i],
+                    y="Yearly Returns",
+                    xref='x2',
+                    yref='y2',
+                    font=dict(color="black"),
+                    showarrow=False
+                )
             )
-            utilities.save_html(fig, filename, output_filename)
+        fig.update_layout(
+            title="Combined Monthly and Yearly Returns Heatmaps",
+            annotations=monthly_annotations + yearly_annotations
+        )
+        utilities.save_html(fig, filename, output_filename)
+        # fig.show()

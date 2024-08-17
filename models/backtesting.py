@@ -1,11 +1,13 @@
-import numpy as np
-import os
+"""
+Backtesting processor module.
+"""
+
 import pandas as pd
-import plotly.graph_objects as go
+
+import utilities as utilities
 
 from results.results_processor import ResultsProcessor
 
-import utilities as utilities
 
 class BacktestStaticPortfolio:
     """
@@ -35,7 +37,7 @@ class BacktestStaticPortfolio:
         Series to store the portfolio returns over time.
     """
 
-    def __init__(self, assets_weights, start_date, end_date, trading_frequency, output_filename, weighting_strategy, rebalance_threshold=0.02):
+    def __init__(self, assets_weights, start_date, end_date, trading_frequency, output_filename, weighting_strategy, sma_period, bond_ticker, cash_ticker, rebalance_threshold=0.02):
         """
         Initializes the BacktestStaticPortfolio class with given asset weights, start date, end date, and weighting strategy.
 
@@ -63,9 +65,11 @@ class BacktestStaticPortfolio:
         self.output_filename = output_filename
         self.rebalance_threshold = rebalance_threshold
         self.weighting_strategy = weighting_strategy
-        self.sma_period = 168
-        self.bond_ticker = 'BND'
-        self.cash_ticker = 'SHV'
+        self.sma_period = sma_period
+        self.bond_ticker = bond_ticker
+        self.cash_ticker = cash_ticker
+        
+        #Class defined
         self.initial_portfolio_value = 10000
         self._data = None
         self._portfolio_value = pd.Series(dtype=float)
@@ -78,7 +82,7 @@ class BacktestStaticPortfolio:
         self._data = utilities.fetch_data(self.assets_weights, self.start_date, self.end_date, self.bond_ticker, self.cash_ticker)
         self._run_backtest()
         results_processor = ResultsProcessor(self.output_filename)
-        results_processor.plot_portfolio_value(self.get_portfolio_value())
+        results_processor.plot_portfolio_value(self.get_portfolio_value(), self.trading_frequency)
         results_processor.plot_var_cvar(self._returns, self.get_portfolio_value(), self.trading_frequency)
 
     def _adjust_weights(self, current_date):
@@ -95,16 +99,16 @@ class BacktestStaticPortfolio:
         dict
             Dictionary of adjusted asset weights.
         """
-        if self.weighting_strategy == 'use_file_weights':
+        if self.weighting_strategy == 'Use File Weights':
             adjusted_weights = self.assets_weights.copy()
-        elif self.weighting_strategy == 'equal':
+        elif self.weighting_strategy == 'Equal Weight':
             adjusted_weights = utilities.equal_weighting(self.assets_weights)
-        elif self.weighting_strategy == 'risk_contribution':
+        elif self.weighting_strategy == 'Risk Contribution':
             adjusted_weights = utilities.risk_contribution_weighting(self._data.cov(), self.assets_weights)
-        elif self.weighting_strategy == 'min_volatility':
+        elif self.weighting_strategy == 'Min Volatility':
             weights = utilities.min_volatility_weighting(self._data.cov())
             adjusted_weights = dict(zip(self.assets_weights.keys(), weights))
-        elif self.weighting_strategy == 'max_sharpe':
+        elif self.weighting_strategy == 'Max Sharpe':
             returns = self._data.pct_change().mean()
             weights = utilities.max_sharpe_ratio_weighting(self._data.cov(), returns)
             adjusted_weights = dict(zip(self.assets_weights.keys(), weights))
@@ -127,24 +131,25 @@ class BacktestStaticPortfolio:
         """
         Runs the backtest by calculating portfolio values and returns over time.
         """
+        print(self.sma_period, self.cash_ticker, self.bond_ticker)
         monthly_dates = pd.date_range(start=self.start_date, end=self.end_date, freq='M')
         portfolio_values = [self.initial_portfolio_value]
         portfolio_returns = []
-        if self.trading_frequency == 'monthly':
+        if self.trading_frequency == 'Monthly':
             step = 1
-        elif self.trading_frequency == 'bi-monthly':
+        elif self.trading_frequency == 'Bi-Monthly':
             step = 2
         else:
-            raise ValueError("Invalid trading frequency. Choose 'monthly' or 'bi-monthly'.")
+            raise ValueError("Invalid trading frequency. Choose 'Monthly' or 'Bi-Monthly'.")
         for i in range(0, len(monthly_dates) - 1, step):
             current_date = monthly_dates[i]
             next_date = monthly_dates[min(i + step, len(monthly_dates) - 1)]
             last_date_current_month = self._data.index[self._data.index.get_loc(current_date, method='pad')]
             adjusted_weights = self._adjust_weights(last_date_current_month)
-            adjusted_weights = self._rebalance_portfolio(adjusted_weights)
+            # adjusted_weights = self._rebalance_portfolio(adjusted_weights)
             previous_value = portfolio_values[-1]
             month_end_data = self._data.loc[last_date_current_month]
-            month_start_data = month_end_data  
+            month_start_data = month_end_data
             last_date_next_month = self._data.index[self._data.index.get_loc(next_date, method='pad')]
             next_month_end_data = self._data.loc[last_date_next_month]
             monthly_returns = (next_month_end_data / month_start_data) - 1
