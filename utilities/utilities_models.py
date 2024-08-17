@@ -1,5 +1,9 @@
+"""
+Utilities module for helper methods of processors.
+"""
+
 from scipy.optimize import minimize
-import numpy as np    
+import numpy as np
 
 def adjusted_weights(assets_weights, data, bond_ticker, cash_ticker, weighting_strategy, sma_period, current_date):
     """
@@ -31,8 +35,8 @@ def adjusted_weights(assets_weights, data, bond_ticker, cash_ticker, weighting_s
     else:
         raise ValueError("Invalid weighting strategy")
     for ticker in assets_weights.keys():
-        if data.loc[:current_date, ticker].iloc[-1] < data.loc[:current_date, ticker].rolling(window=sma_period).mean().iloc[-1]:
-            if data.loc[:current_date, bond_ticker].iloc[-1] < data.loc[:current_date, bond_ticker].rolling(window=sma_period).mean().iloc[-1]:
+        if data.loc[:current_date, ticker].iloc[-1] < data.loc[:current_date, ticker].rolling(sma_period).mean().iloc[-1]:
+            if data.loc[:current_date, bond_ticker].iloc[-1] < data.loc[:current_date, bond_ticker].rolling(sma_period).mean().iloc[-1]:
                 new_weights[ticker] = 0
                 new_weights[cash_ticker] = new_weights.get(cash_ticker, 0) + assets_weights[ticker]
             else:

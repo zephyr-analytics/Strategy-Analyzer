@@ -1,5 +1,8 @@
+"""
+Utilities module for calculating portfolio statistics.
+"""
+
 import numpy as np
-import pandas as pd
 
 def calculate_cagr(portfolio_value, trading_frequency):
     """
@@ -17,8 +20,7 @@ def calculate_cagr(portfolio_value, trading_frequency):
     float
         CAGR value.
     """
-    total_period_years = (portfolio_value.index[-1] - portfolio_value.index[0]).days / 365.25
-    
+
     if trading_frequency == 'Monthly':
         periods_per_year = 12
     elif trading_frequency == 'Bi-Monthly':
@@ -31,6 +33,7 @@ def calculate_cagr(portfolio_value, trading_frequency):
 
     cagr = (portfolio_value.iloc[-1] / portfolio_value.iloc[0]) ** (1 / total_years) - 1
     return cagr
+
 
 def calculate_cagr_monte_carlo(portfolio_value):
     """
@@ -46,9 +49,10 @@ def calculate_cagr_monte_carlo(portfolio_value):
     float
         CAGR value.
     """
-    total_period = len(portfolio_value) - 1  
+    total_period = len(portfolio_value) - 1
     cagr = (portfolio_value.iloc[-1] / portfolio_value.iloc[0]) ** (1 / total_period) - 1
     return cagr
+
 
 def calculate_average_annual_return(returns, trading_frequency):
     """
@@ -67,7 +71,7 @@ def calculate_average_annual_return(returns, trading_frequency):
         Average annual return.
     """
     average_periodic_return = returns.mean()
-    
+
     if trading_frequency == 'Monthly':
         average_annual_return = (1 + average_periodic_return) ** 12 - 1
     elif trading_frequency == 'Bi-Monthly':
@@ -121,9 +125,9 @@ def calculate_var_cvar(returns, confidence_level=0.95):
     return var, cvar
 
 
-def calculate_portfolio_metrics(backtest):
+def calculate_annual_volatility(trading_frequency, portfolio_returns):
     """
-    Calculates the initial portfolio value, CAGR, and annual volatility based on backtest results.
+    Calculates the annual volatility based on backtest results.
 
     Parameters
     ----------
@@ -132,15 +136,14 @@ def calculate_portfolio_metrics(backtest):
 
     Returns
     -------
-    tuple
-        Tuple containing the initial portfolio value, CAGR, and annual volatility.
+    float
+        The annual volatility of the portfolio.
     """
-    initial_value = backtest.get_portfolio_value().iloc[0]
-    cagr = calculate_cagr(backtest.get_portfolio_value(), backtest.trading_frequency)
-    if backtest.trading_frequency == 'Monthly':
-        annual_volatility = backtest._returns.std() * np.sqrt(12)
-    elif backtest.trading_frequency == 'Bi-Monthly':
-        annual_volatility = backtest._returns.std() * np.sqrt(6)
+    if trading_frequency == 'Monthly':
+        annual_volatility = portfolio_returns.std() * np.sqrt(12)
+    elif trading_frequency == 'Bi-Monthly':
+        annual_volatility = portfolio_returns.std() * np.sqrt(6)
     else:
         raise ValueError("Invalid trading frequency. Choose 'Monthly' or 'Bi-Monthly'.")
-    return initial_value, cagr, annual_volatility
+
+    return annual_volatility

@@ -1,57 +1,95 @@
-import utilities
+"""
+Processor for creating porfolio signals.
+"""
+
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots  
+from plotly.subplots import make_subplots
+
+import utilities as utilities
+
 
 class CreateSignals:
-    def __init__(self, assets_weights, data, bond_ticker='SHV', cash_ticker='BIL', weighting_strategy='use_file_weights', sma_period=168):
-        self.assets_weights = assets_weights
+    """
+    Processor for creating portfolio signals.
+    """
+
+    def __init__(self, models_data, data):
+        """
+        Initializes the CreateSignals class.
+
+        Parameters
+        ----------
+        models_data : object
+            An instance of the ModelsData class that holds all necessary attributes.
+        data : pandas.DataFrame
+            Data containing historical prices of the assets.
+        """
+        self.assets_weights = models_data.assets_weights
         self.data = data
-        self.bond_ticker = bond_ticker
-        self.cash_ticker = cash_ticker
-        self.weighting_strategy = weighting_strategy
-        self.sma_period = sma_period
+        self.bond_ticker = models_data.bond_ticker
+        self.cash_ticker = models_data.cash_ticker
+        self.weighting_strategy = models_data.weighting_strategy
+        self.sma_period = int(models_data.sma_window)
+        self.current_date = models_data.end_date
 
-    def generate_signals(self, current_date):
+    def process(self):
+        """
+        Processes the data to generate trading signals.
+        """
+        self.generate_signals()
+
+    def generate_signals(self):
+        """
+        Generates trading signals and plots the results.
+
+        Parameters
+        ----------
+        current_date : str
+            The date for which the signals are generated.
+        """
         latest_weights = utilities.adjusted_weights(
-            self.assets_weights, self.data, self.bond_ticker, self.cash_ticker, 
-            self.weighting_strategy, self.sma_period, current_date
+            self.assets_weights, self.data, self.bond_ticker, self.cash_ticker,
+            self.weighting_strategy, self.sma_period, self.current_date
         )
-        self.plot_signals(latest_weights, current_date)
+        self.plot_signals(latest_weights)
 
-# TODO needs to be shifted to results processor
-    def plot_signals(self, latest_weights, current_date):
+    def plot_signals(self, latest_weights):
+        """
+        Plots the SMA status and current portfolio weights.
+
+        Parameters
+        ----------
+        latest_weights : dict
+            The latest asset weights after adjustments.
+        """
         fig = make_subplots(
-            rows=1, cols=2, 
-            specs=[[{"type": "table"}, {"type": "domain"}]], 
-            column_widths=[0.6, 0.4], 
+            rows=1, cols=2,
+            specs=[[{"type": "table"}, {"type": "domain"}]],
+            column_widths=[0.6, 0.4],
             subplot_titles=("SMA Status", "Current Weights")
         )
-
         sma_status = []
         for ticker in self.assets_weights.keys():
-            price = self.data.loc[:current_date, ticker].iloc[-1]
-            sma = self.data.loc[:current_date, ticker].rolling(window=self.sma_period).mean().iloc[-1]
+            price = self.data.loc[:self.current_date, ticker].iloc[-1]
+            sma = self.data.loc[:self.current_date, ticker].rolling(window=self.sma_period).mean().iloc[-1]
             status = "Above SMA" if price > sma else "Below SMA"
             sma_status.append(f"{ticker}: {status}")
-        
         fig.add_trace(go.Table(
             header=dict(values=["Asset", "SMA Status"]),
             cells=dict(values=[list(self.assets_weights.keys()), sma_status]),
-            columnwidth=[80, 200],  
+            columnwidth=[80, 200],
         ), row=1, col=1)
-        
         fig.add_trace(go.Pie(
-            labels=list(latest_weights.keys()), 
-            values=list(latest_weights.values()), 
+            labels=list(latest_weights.keys()),
+            values=list(latest_weights.values()),
             title="Current Portfolio Weights",
-            textinfo='label+percent',  
+            textinfo='label+percent',
             hoverinfo='label+value+percent',
             showlegend=True
         ), row=1, col=2)
-        
         fig.update_layout(
-            title_text=f"Portfolio Signals on {current_date}",
-            height=600,  
-            margin=dict(t=50, b=50, l=50, r=50)  
+            title_text=f"Portfolio Signals on {self.current_date}",
+            height=600,
+            margin=dict(t=50, b=50, l=50, r=50)
         )
         fig.show()
