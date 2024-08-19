@@ -32,6 +32,7 @@ class CreateSignals:
         self.sma_period = int(models_data.sma_window)
         self.current_date = models_data.end_date
         self.output_filename = models_data.weights_filename
+        self.initial_portfolio_value = models_data.initial_portfolio_value
 
     def process(self):
         """
@@ -56,7 +57,7 @@ class CreateSignals:
 
     def plot_signals(self, latest_weights, filename='signals.html'):
         """
-        Plots the SMA status and current portfolio weights.
+        Plots the SMA status and current portfolio weights along with their dollar values.
 
         Parameters
         ----------
@@ -75,22 +76,31 @@ class CreateSignals:
             sma = self.data.loc[:self.current_date, ticker].rolling(window=self.sma_period).mean().iloc[-1]
             status = "Above SMA" if price > sma else "Below SMA"
             sma_status.append(f"{ticker}: {status}")
+        
         fig.add_trace(go.Table(
             header=dict(values=["Asset", "SMA Status"]),
             cells=dict(values=[list(self.assets_weights.keys()), sma_status]),
             columnwidth=[80, 200],
         ), row=1, col=1)
+        
+        asset_labels = list(latest_weights.keys())
+        asset_weights = list(latest_weights.values())
+        asset_values = [weight * self.initial_portfolio_value for weight in asset_weights]
+        
         fig.add_trace(go.Pie(
-            labels=list(latest_weights.keys()),
-            values=list(latest_weights.values()),
+            labels=asset_labels,
+            values=asset_weights,
             title="Current Portfolio Weights",
             textinfo='label+percent',
-            hoverinfo='label+value+percent',
+            hoverinfo='label+value+percent+text',
+            text=[f"${value:,.2f}" for value in asset_values],
             showlegend=True
         ), row=1, col=2)
+        
         fig.update_layout(
             title_text=f"Portfolio Signals on {self.current_date}",
             height=600,
             margin=dict(t=50, b=50, l=50, r=50)
         )
+        
         utilities.save_html(fig, filename, self.output_filename)

@@ -58,9 +58,9 @@ class BacktestStaticPortfolio:
         self.sma_period = int(data_models.sma_window)
         self.bond_ticker = data_models.bond_ticker
         self.cash_ticker = data_models.cash_ticker
+        self.initial_portfolio_value = int(data_models.initial_portfolio_value)
 
         # Class-defined attributes
-        self.initial_portfolio_value = 10000
         self._data = None
 
 
