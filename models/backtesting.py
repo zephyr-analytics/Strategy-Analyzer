@@ -71,8 +71,9 @@ class BacktestStaticPortfolio:
         self._data = utilities.fetch_data(self.assets_weights, self.start_date, self.end_date, self.bond_ticker, self.cash_ticker)
         self._run_backtest()
         self._get_portfolio_statistics()
+        buy_and_hold_values, buy_and_hold_returns = self._calculate_buy_and_hold()
         results_processor = ResultsProcessor(self.data_models)
-        results_processor.plot_portfolio_value()
+        results_processor.plot_portfolio_value(buy_and_hold_values)
         results_processor.plot_var_cvar()
         results_processor.plot_returns_heatmaps()
 
@@ -195,3 +196,41 @@ class BacktestStaticPortfolio:
             rebalanced_weights[ticker] /= total_weight
 
         return rebalanced_weights
+
+
+    def _calculate_buy_and_hold(self):
+        """
+        Calculates the buy-and-hold performance of the portfolio with the same assets and weights over the time frame.
+        
+        Returns
+        -------
+        buy_and_hold_values : Series
+            Series representing the portfolio value over time following a buy-and-hold strategy.
+        buy_and_hold_returns : Series
+            Series representing the portfolio returns over time following a buy-and-hold strategy.
+        """
+        
+        self._data = utilities.fetch_data(self.assets_weights, self.start_date, self.end_date, self.bond_ticker, self.cash_ticker)
+        
+        portfolio_values = [self.initial_portfolio_value]
+        portfolio_returns = []
+        
+        monthly_dates = pd.date_range(start=self.start_date, end=self.end_date, freq='M')
+        
+        for i in range(1, len(monthly_dates)):
+            start_index = self._data.index.get_indexer([monthly_dates[i-1]], method='nearest')[0]
+            end_index = self._data.index.get_indexer([monthly_dates[i]], method='nearest')[0]
+            start_data = self._data.iloc[start_index]
+            end_data = self._data.iloc[end_index]
+
+            previous_value = portfolio_values[-1]
+            monthly_returns = (end_data / start_data) - 1
+            month_return = sum([monthly_returns[ticker] * weight for ticker, weight in self.assets_weights.items()])
+            new_portfolio_value = previous_value * (1 + month_return)
+            portfolio_values.append(new_portfolio_value)
+            portfolio_returns.append(month_return)
+
+        buy_and_hold_values = pd.Series(portfolio_values, index=monthly_dates[:len(portfolio_values)])
+        buy_and_hold_returns = pd.Series(portfolio_returns, index=monthly_dates[1:len(portfolio_returns)+1])
+    
+        return buy_and_hold_values, buy_and_hold_returns

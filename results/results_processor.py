@@ -34,25 +34,54 @@ class ResultsProcessor:
         self.avg_annual_return = data_models.average_annual_return
 
 
-    def plot_portfolio_value(self, filename='portfolio_value.html'):
+    def plot_portfolio_value(self, buy_and_hold_values=None, filename='portfolio_value.html'):
         """
-        Plots the portfolio value over time and saves the plot as an HTML file.
+        Plots the portfolio value over time, including an optional buy-and-hold strategy line, and saves the plot as an HTML file.
 
         Parameters
         ----------
+        buy_and_hold_values : Series, optional
+            Series representing the buy-and-hold portfolio value over time. Default is None.
         filename : str, optional
             The name of the file to save the plot. Default is 'portfolio_value.html'.
         """
         portfolio_value = self.portfolio_values
         final_value = portfolio_value.iloc[-1]
         fig = go.Figure()
+
+        # Plot the main portfolio value
         fig.add_trace(go.Scatter(
             x=portfolio_value.index,
             y=portfolio_value,
             mode='lines',
             name='Portfolio Value'
         ))
-        annotations = [
+
+        # If buy_and_hold_values is provided, add it to the plot
+        if buy_and_hold_values is not None:
+            final_bnh_value = buy_and_hold_values.iloc[-1]
+            fig.add_trace(go.Scatter(
+                x=buy_and_hold_values.index,
+                y=buy_and_hold_values,
+                mode='lines',
+                name='Buy & Hold Value',
+                line=dict(dash='dash')
+            ))
+            # Add final value annotation for buy-and-hold strategy
+            annotations = [
+                dict(
+                    xref='paper', yref='paper', x=0.25, y=0.9,
+                    xanchor='center', yanchor='bottom',
+                    text=f'Final Value (B&H): ${final_bnh_value:,.2f}',
+                    showarrow=False,
+                    font=dict(size=12)
+                )
+            ]
+        else:
+            annotations = []
+
+        # Annotations for the main portfolio
+        annotations.extend([
             dict(
                 xref='paper', yref='paper', x=0.25, y=1,
                 xanchor='center', yanchor='bottom',
@@ -74,7 +103,9 @@ class ResultsProcessor:
                 showarrow=False,
                 font=dict(size=12)
             )
-        ]
+        ])
+        
+        # Update layout with annotations and titles
         fig.update_layout(
             title=dict(
                 text='Portfolio Value Over Time',
@@ -94,7 +125,10 @@ class ResultsProcessor:
                 x=1
             )
         )
+
+        # Save the plot as an HTML file
         utilities.save_html(fig, filename, self.output_filename)
+
 
 
     def plot_var_cvar(self, confidence_level=0.95, filename='var_cvar.html'):
