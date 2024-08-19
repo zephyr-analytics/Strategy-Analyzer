@@ -31,6 +31,7 @@ class CreateSignals:
         self.weighting_strategy = models_data.weighting_strategy
         self.sma_period = int(models_data.sma_window)
         self.current_date = models_data.end_date
+        self.output_filename = models_data.weights_filename
 
     def process(self):
         """
@@ -53,7 +54,7 @@ class CreateSignals:
         )
         self.plot_signals(latest_weights)
 
-    def plot_signals(self, latest_weights):
+    def plot_signals(self, latest_weights, filename='signals.html'):
         """
         Plots the SMA status and current portfolio weights.
 
@@ -92,3 +93,4 @@ class CreateSignals:
             height=600,
             margin=dict(t=50, b=50, l=50, r=50)
         )
+        utilities.save_html(fig, filename, self.output_filename)
