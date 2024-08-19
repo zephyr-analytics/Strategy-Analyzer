@@ -25,7 +25,7 @@ class MonteCarloApp(ctk.CTk):
         """
         super().__init__()
         self.title("Portfolio Strategy Analyzer")
-        self.geometry("1200x600")
+        self.geometry("1200x650")
 
         # Initialize ModelsData object
         self.data_models = ModelsData()
@@ -41,6 +41,7 @@ class MonteCarloApp(ctk.CTk):
         self.num_simulations_var = ctk.StringVar(value=str(self.data_models.num_simulations))
         self.simulation_horizon_var = ctk.StringVar(value=str(self.data_models.simulation_horizon))
         self.theme_mode_var = ctk.StringVar(value=self.data_models.theme_mode)
+        self.initial_portfolio_value_var = ctk.StringVar(value=str(self.data_models._initial_portfolio_value))
 
         self.bold_font = ctk.CTkFont(size=12, weight="bold", family="Arial")
 
@@ -76,11 +77,12 @@ class MonteCarloApp(ctk.CTk):
         sma_testing_tab = self.high_level_tab_control.add("SMA Strategies")
         self.create_tab_content(sma_testing_tab)
 
-        momentum_testing_tab = self.high_level_tab_control.add("Momentum Strategies")
-        self.create_tab_content(momentum_testing_tab)
+        # Uncomment the following lines if these tabs are required
+        # momentum_testing_tab = self.high_level_tab_control.add("Momentum Strategies")
+        # self.create_tab_content(momentum_testing_tab)
 
-        machine_learning_testing_tab = self.high_level_tab_control.add("Machine Learning Strategies")
-        self.create_tab_content(machine_learning_testing_tab)
+        # machine_learning_testing_tab = self.high_level_tab_control.add("Machine Learning Strategies")
+        # self.create_tab_content(machine_learning_testing_tab)
 
         self.high_level_tab_control.set("SMA Strategies")
 
@@ -93,6 +95,10 @@ class MonteCarloApp(ctk.CTk):
         sidebar.grid(row=0, column=0, rowspan=2, sticky="ns", pady=(20, 0))
 
         ctk.CTkLabel(sidebar, text="Strategy Settings", font=ctk.CTkFont(size=20, weight="bold")).pack(pady=(10, 5))
+
+        ctk.CTkLabel(sidebar, text="Initial Portfolio Value:", font=self.bold_font).pack(pady=(0, 0))
+        ctk.CTkEntry(sidebar, textvariable=self.initial_portfolio_value_var).pack(pady=(0, 5))
+        self.initial_portfolio_value_var.trace_add("write", self.update_initial_portfolio_value)
 
         ctk.CTkLabel(sidebar, text="Start Date:", font=self.bold_font).pack(pady=(0, 0))
         ctk.CTkEntry(sidebar, textvariable=self.start_date_var).pack(pady=(0, 5))
@@ -438,6 +444,17 @@ class MonteCarloApp(ctk.CTk):
         """
         self.data_models.simulation_horizon = int(self.simulation_horizon_var.get())
 
+    def update_initial_portfolio_value(self, *args):
+        """
+        Updates the initial portfolio value in the data model.
+
+        Parameters
+        ----------
+        *args : tuple
+            Additional arguments passed by the trace method.
+        """
+        self.data_models._initial_portfolio_value = int(self.initial_portfolio_value_var.get())
+
     def update_theme_mode(self, *args):
         """
         Updates the theme mode in the data model.
@@ -448,6 +465,7 @@ class MonteCarloApp(ctk.CTk):
             Additional arguments passed by the trace method.
         """
         self.data_models.theme_mode = self.theme_mode_var.get()
+
 
 if __name__ == "__main__":
     app = MonteCarloApp()
