@@ -1,19 +1,13 @@
-"""
-Backtesting processor module.
-"""
-
 import pandas as pd
-
 import utilities as utilities
-
 from results.results_processor import ResultsProcessor
-import warnings
 
+import warnings
 warnings.filterwarnings("ignore")
 
-class BacktestStaticPortfolio:
+class BacktestMomentumPortfolio:
     """
-    A class to backtest a static portfolio with adjustable weights based on Simple Moving Average (SMA).
+    A class to backtest a momentum-based portfolio with adjustable weights based on Simple Moving Average (SMA).
 
     Attributes
     ----------
@@ -37,11 +31,13 @@ class BacktestStaticPortfolio:
         Series to store the portfolio values over time.
     _returns : Series
         Series to store the portfolio returns over time.
+    _momentum_data : DataFrame
+        DataFrame to store the returns data for calculating momentum.
     """
 
     def __init__(self, data_models):
         """
-        Initializes the BacktestStaticPortfolio class with data from ModelsData.
+        Initializes the BacktestMomentumPortfolio class with data from ModelsData.
 
         Parameters
         ----------
@@ -64,13 +60,14 @@ class BacktestStaticPortfolio:
 
         # Class-defined attributes
         self._data = None
-
+        self._momentum_data = None  # New attribute for momentum calculation
 
     def process(self):
         """
         Processes the backtest by fetching data, running the backtest, and generating the plots.
         """
         self._data = utilities.fetch_data(self.assets_weights, self.start_date, self.end_date, self.bond_ticker, self.cash_ticker)
+        self._momentum_data = self._data.copy().pct_change().dropna()  # Populate momentum data based on percentage change
         self._run_backtest()
         self._get_portfolio_statistics()
         buy_and_hold_values, buy_and_hold_returns = self._calculate_buy_and_hold()
@@ -79,49 +76,50 @@ class BacktestStaticPortfolio:
         results_processor.plot_var_cvar()
         results_processor.plot_returns_heatmaps()
 
+    def calculate_momentum(self, current_date):
+        """Calculate average momentum based on 1, 3, 6, 9, and 12-month cumulative returns."""
+        momentum_1m = (self._momentum_data.loc[:current_date].iloc[-21:] + 1).prod() - 1
+        momentum_3m = (self._momentum_data.loc[:current_date].iloc[-63:] + 1).prod() - 1
+        momentum_6m = (self._momentum_data.loc[:current_date].iloc[-126:] + 1).prod() - 1
+        momentum_9m = (self._momentum_data.loc[:current_date].iloc[-189:] + 1).prod() - 1
+        momentum_12m = (self._momentum_data.loc[:current_date].iloc[-252:] + 1).prod() - 1
+        return (momentum_1m + momentum_3m + momentum_6m + momentum_9m + momentum_12m) / 5
 
-    def _adjust_weights(self, current_date):
+    def _adjust_weights(self, current_date, selected_assets):
         """
-        Adjusts the weights of the assets based on their SMA and the selected weighting strategy.
+        Adjusts the weights of the selected assets to equal weight and applies SMA-based adjustments.
 
         Parameters
         ----------
         current_date : datetime
             The current date for which the weights are being adjusted.
+        selected_assets : list
+            List of selected assets.
 
         Returns
         -------
         dict
             Dictionary of adjusted asset weights.
         """
-        if self.weighting_strategy == 'Use File Weights':
-            adjusted_weights = self.assets_weights.copy()
-        elif self.weighting_strategy == 'Equal Weight':
-            adjusted_weights = utilities.equal_weighting(self.assets_weights)
-        elif self.weighting_strategy == 'Risk Contribution':
-            adjusted_weights = utilities.risk_contribution_weighting(self._data.cov(), self.assets_weights)
-        elif self.weighting_strategy == 'Min Volatility':
-            weights = utilities.min_volatility_weighting(self._data.cov())
-            adjusted_weights = dict(zip(self.assets_weights.keys(), weights))
-        elif self.weighting_strategy == 'Max Sharpe':
-            returns = self._data.pct_change().mean()
-            weights = utilities.max_sharpe_ratio_weighting(self._data.cov(), returns)
-            adjusted_weights = dict(zip(self.assets_weights.keys(), weights))
-        else:
-            raise ValueError("Invalid weighting strategy")
-        for ticker in self.assets_weights.keys():
+        num_assets = len(selected_assets)
+        equal_weight = 1 / num_assets
+        adjusted_weights = {asset: equal_weight for asset in selected_assets}
+
+        # Apply SMA-based adjustments
+        for ticker in list(adjusted_weights.keys()):
             if self._data.loc[:current_date, ticker].iloc[-1] < self._data.loc[:current_date, ticker].rolling(window=self.sma_period).mean().iloc[-1]:
                 if self._data.loc[:current_date, self.bond_ticker].iloc[-1] < self._data.loc[:current_date, self.bond_ticker].rolling(window=self.sma_period).mean().iloc[-1]:
+                    adjusted_weights[self.cash_ticker] = adjusted_weights.get(self.cash_ticker, 0) + adjusted_weights[ticker]
                     adjusted_weights[ticker] = 0
-                    adjusted_weights[self.cash_ticker] = adjusted_weights.get(self.cash_ticker, 0) + self.assets_weights[ticker]
                 else:
+                    adjusted_weights[self.bond_ticker] = adjusted_weights.get(self.bond_ticker, 0) + adjusted_weights[ticker]
                     adjusted_weights[ticker] = 0
-                    adjusted_weights[self.bond_ticker] = adjusted_weights.get(self.bond_ticker, 0) + self.assets_weights[ticker]
+
         total_weight = sum(adjusted_weights.values())
         for ticker in adjusted_weights:
             adjusted_weights[ticker] /= total_weight
+        
         return adjusted_weights
-
 
     def _run_backtest(self):
         """
@@ -137,25 +135,33 @@ class BacktestStaticPortfolio:
             step = 2
         else:
             raise ValueError("Invalid trading frequency. Choose 'Monthly' or 'Bi-Monthly'.")
+
         for i in range(0, len(monthly_dates) - 1, step):
             current_date = monthly_dates[i]
             next_date = monthly_dates[min(i + step, len(monthly_dates) - 1)]
             last_date_current_month = self._data.index[self._data.index.get_loc(current_date, method='pad')]
-            adjusted_weights = self._adjust_weights(last_date_current_month)
-            # adjusted_weights = self._rebalance_portfolio(adjusted_weights)
+
+            # Calculate momentum within each iteration
+            momentum = self.calculate_momentum(last_date_current_month)
+            
+            # Select assets based on momentum
+            selected_assets = momentum.nlargest(2).index.tolist()  # Select top 2 assets based on momentum
+
+            # Adjust weights based on the selected assets
+            adjusted_weights = self._adjust_weights(last_date_current_month, selected_assets)
+
             previous_value = portfolio_values[-1]
             month_end_data = self._data.loc[last_date_current_month]
-            month_start_data = month_end_data
             last_date_next_month = self._data.index[self._data.index.get_loc(next_date, method='pad')]
             next_month_end_data = self._data.loc[last_date_next_month]
-            monthly_returns = (next_month_end_data / month_start_data) - 1
+            monthly_returns = (next_month_end_data / month_end_data) - 1
             month_return = sum([monthly_returns[ticker] * weight for ticker, weight in adjusted_weights.items()])
             new_portfolio_value = previous_value * (1 + month_return)
             portfolio_values.append(new_portfolio_value)
             portfolio_returns.append(month_return)
+        
         self.data_models.portfolio_values = pd.Series(portfolio_values, index=pd.date_range(start=self.start_date, periods=len(portfolio_values), freq='M'))
         self.data_models.portfolio_returns = pd.Series(portfolio_returns, index=pd.date_range(start=self.start_date, periods=len(portfolio_returns), freq='M'))
-
 
     def _get_portfolio_statistics(self):
         """
@@ -168,37 +174,11 @@ class BacktestStaticPortfolio:
         annual_volatility = utilities.calculate_annual_volatility(self.trading_frequency, self.data_models.portfolio_returns)
 
         self.data_models.cagr = cagr
-        self.data_models.average_annual_return =average_annual_return
+        self.data_models.average_annual_return = average_annual_return
         self.data_models.max_drawdown = max_drawdown
         self.data_models.var = var
         self.data_models.cvar = cvar
         self.data_models.annual_volatility = annual_volatility
-
-
-    def _rebalance_portfolio(self, current_weights):
-        """
-        Rebalances the portfolio if the weights are outside their target range.
-
-        Parameters
-        ----------
-        current_weights : dict
-            Dictionary of current asset weights.
-
-        Returns
-        -------
-        dict
-            Dictionary of rebalanced asset weights.
-        """
-        rebalanced_weights = current_weights.copy()
-        for ticker, target_weight in self.assets_weights.items():
-            if abs(current_weights[ticker] - target_weight) > self.rebalance_threshold:
-                rebalanced_weights[ticker] = target_weight
-        total_weight = sum(rebalanced_weights.values())
-        for ticker in rebalanced_weights:
-            rebalanced_weights[ticker] /= total_weight
-
-        return rebalanced_weights
-
 
     def _calculate_buy_and_hold(self):
         """
@@ -211,7 +191,6 @@ class BacktestStaticPortfolio:
         buy_and_hold_returns : Series
             Series representing the portfolio returns over time following a buy-and-hold strategy.
         """
-        
         self._data = utilities.fetch_data(self.assets_weights, self.start_date, self.end_date, self.bond_ticker, self.cash_ticker)
         
         portfolio_values = [self.initial_portfolio_value]
@@ -236,3 +215,4 @@ class BacktestStaticPortfolio:
         buy_and_hold_returns = pd.Series(portfolio_returns, index=monthly_dates[1:len(portfolio_returns)+1])
     
         return buy_and_hold_values, buy_and_hold_returns
+

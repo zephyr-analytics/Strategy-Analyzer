@@ -4,6 +4,7 @@ Utilities module for loading and processing data.
 
 import os
 
+from datetime import datetime
 from tkinter import filedialog
 
 import pandas as pd
@@ -85,7 +86,12 @@ def save_html(fig, filename, output_filename):
         The output filename to include in the file path.
     """
     current_directory = os.getcwd()
+    current_date = datetime.now().strftime("%Y-%m-%d")
     artifacts_directory = os.path.join(current_directory, 'artifacts')
     os.makedirs(artifacts_directory, exist_ok=True)
-    file_path = os.path.join(artifacts_directory, f"{output_filename}_{filename}")
+    
+    file_path = os.path.join(artifacts_directory, f"{output_filename}_{current_date}_{filename}.html")
     fig.write_html(file_path)
+
+    # jpg_file_path = os.path.join(artifacts_directory, f"{output_filename}_{current_date}_{filename}.jpg")
+    # fig.write_image(jpg_file_path)

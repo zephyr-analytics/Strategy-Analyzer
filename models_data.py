@@ -30,6 +30,7 @@ class ModelsData:
         self._var = None
         self._cvar = None
         self._annual_volatility = None
+        self._max_distance = 1
 
     # Getter and Setter for assets_weights
     @property
@@ -479,3 +480,11 @@ class ModelsData:
     @annual_volatility.setter
     def annual_volatility(self, value):
         self._annual_volatility = value
+
+    @property
+    def max_distance(self):
+        return self._max_distance
+    
+    @max_distance.setter
+    def max_distance(self, value):
+        self._max_distance = value
