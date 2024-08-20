@@ -71,7 +71,7 @@ class BacktestClusteringPortfolio:
         Processes the backtest by fetching data, running the backtest, and generating the plots.
         """
         self._data = utilities.fetch_data(self.assets_weights, self.start_date, self.end_date, self.bond_ticker, self.cash_ticker)
-        self._momentum_data = self._data.copy().pct_change().dropna()  # Populate momentum data based on percentage change
+        self._momentum_data = self._data.copy().pct_change().dropna()
         self._run_backtest()
         self._get_portfolio_statistics()
         buy_and_hold_values, buy_and_hold_returns = self._calculate_buy_and_hold()
@@ -95,6 +95,7 @@ class BacktestClusteringPortfolio:
         Perform hierarchical clustering on the filtered assets and add labels to the dendrogram.
         """
         filtered_returns = self._momentum_data.loc[:current_date, filtered_assets]
+        print(filtered_returns)
         cov_matrix = filtered_returns.cov()
         distance_matrix = 1 - cov_matrix.corr()
         condensed_distance_matrix = squareform(distance_matrix)
@@ -122,7 +123,7 @@ class BacktestClusteringPortfolio:
         clustered_assets = pd.DataFrame({'Asset': filtered_assets, 'Cluster': clusters, 'Momentum': momentum[filtered_assets]})
         selected_assets = clustered_assets.groupby('Cluster').apply(lambda x: x.nlargest(1, 'Momentum')).reset_index(drop=True)
         
-        if len(selected_assets) > 1:
+        if len(selected_assets) > 2:
             selected_assets = selected_assets[~selected_assets['Asset'].isin(['BND', 'SHV'])]
         return selected_assets
 
