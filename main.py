@@ -8,7 +8,10 @@ from models_data import ModelsData
 from models.backtesting import BacktestStaticPortfolio
 from models.monte_carlo_sim import MonteCarloSimulation
 from models.create_signals import CreateSignals
-from momentum_models.momentum_backtest import MomentumBacktesting
+
+from momentum_models.momentum_backtest import BacktestMomentumPortfolio
+
+from machine_learning_models.hierarchical_clustering import BacktestClusteringPortfolio
 
 def run_backtest(data_models: ModelsData):
     """
@@ -29,7 +32,7 @@ def run_momentum_backtest(data_models: ModelsData):
     """
     if not data_models.assets_weights:
         return "Please load asset weights file."
-    momentum_backtest = MomentumBacktesting(data_models)
+    momentum_backtest = BacktestMomentumPortfolio(data_models)
     momentum_backtest.process()
 
     return "Momentum backtest completed and plots saved"
@@ -41,10 +44,10 @@ def run_machine_learning_backtest(data_models: ModelsData):
     """
     if not data_models.assets_weights:
         return "Please load asset weights file."
-    momentum_backtest = MomentumBacktesting(data_models)
+    momentum_backtest = BacktestClusteringPortfolio(data_models)
     momentum_backtest.process()
 
-    return "Momentum backtest completed and plots saved"
+    return "Machine learning backtest completed and plots saved"
 
 
 def run_simulation(data_models: ModelsData):

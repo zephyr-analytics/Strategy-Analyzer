@@ -1,1 +1,1 @@
-from machine_learning_models.hieracrhical_clustering import ClusteringPortfolio
+from machine_learning_models.hierarchical_clustering import BacktestClusteringPortfolio

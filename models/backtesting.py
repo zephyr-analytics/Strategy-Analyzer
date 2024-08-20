@@ -7,7 +7,9 @@ import pandas as pd
 import utilities as utilities
 
 from results.results_processor import ResultsProcessor
+import warnings
 
+warnings.filterwarnings("ignore")
 
 class BacktestStaticPortfolio:
     """

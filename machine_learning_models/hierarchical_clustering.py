@@ -1,13 +1,17 @@
 import pandas as pd
+import matplotlib.pyplot as plt
+from scipy.cluster.hierarchy import linkage, dendrogram, fcluster
+from scipy.spatial.distance import squareform
+
 import utilities as utilities
 from results.results_processor import ResultsProcessor
 
 import warnings
 warnings.filterwarnings("ignore")
 
-class BacktestMomentumPortfolio:
+class BacktestClusteringPortfolio:
     """
-    A class to backtest a momentum-based portfolio with adjustable weights based on Simple Moving Average (SMA).
+    A class to backtest a static portfolio with adjustable weights based on Simple Moving Average (SMA).
 
     Attributes
     ----------
@@ -37,7 +41,7 @@ class BacktestMomentumPortfolio:
 
     def __init__(self, data_models):
         """
-        Initializes the BacktestMomentumPortfolio class with data from ModelsData.
+        Initializes the BacktestStaticPortfolio class with data from ModelsData.
 
         Parameters
         ----------
@@ -85,16 +89,53 @@ class BacktestMomentumPortfolio:
         momentum_12m = (self._momentum_data.loc[:current_date].iloc[-252:] + 1).prod() - 1
         return (momentum_1m + momentum_3m + momentum_6m + momentum_9m + momentum_12m) / 5
 
+
+    def perform_clustering(self, current_date, filtered_assets):
+        """
+        Perform hierarchical clustering on the filtered assets and add labels to the dendrogram.
+        """
+        filtered_returns = self._momentum_data.loc[:current_date, filtered_assets]
+        cov_matrix = filtered_returns.cov()
+        distance_matrix = 1 - cov_matrix.corr()
+        condensed_distance_matrix = squareform(distance_matrix)
+        Z = linkage(condensed_distance_matrix, method='ward')
+
+        # plt.figure(figsize=(20, 10))
+        # dendro = dendrogram(Z, labels=distance_matrix.columns)
+
+        # # Add labels to the dendrogram
+        # plt.title('Hierarchical Clustering of Assets')
+        # plt.xlabel('Assets')
+        # plt.ylabel('Distance')
+        # plt.xticks(rotation=90)
+        # plt.tight_layout()
+        # plt.show()
+
+        clusters = fcluster(Z, self.data_models.max_distance, criterion='distance')
+        return clusters
+
+    def select_assets(self, filtered_assets, clusters, momentum):
+        """
+        Select the top 2 assets with the highest momentum from each cluster.
+        If more than 4 assets are selected, drop SGOV and SHV if present.
+        """
+        clustered_assets = pd.DataFrame({'Asset': filtered_assets, 'Cluster': clusters, 'Momentum': momentum[filtered_assets]})
+        selected_assets = clustered_assets.groupby('Cluster').apply(lambda x: x.nlargest(1, 'Momentum')).reset_index(drop=True)
+        
+        if len(selected_assets) > 1:
+            selected_assets = selected_assets[~selected_assets['Asset'].isin(['BND', 'SHV'])]
+        return selected_assets
+
     def _adjust_weights(self, current_date, selected_assets):
         """
-        Adjusts the weights of the selected assets to equal weight and applies SMA-based adjustments.
+        Adjusts the weights of the selected assets based on their SMA and the selected weighting strategy.
 
         Parameters
         ----------
         current_date : datetime
             The current date for which the weights are being adjusted.
-        selected_assets : list
-            List of selected assets.
+        selected_assets : DataFrame
+            DataFrame of selected assets and their weights.
 
         Returns
         -------
@@ -103,9 +144,9 @@ class BacktestMomentumPortfolio:
         """
         num_assets = len(selected_assets)
         equal_weight = 1 / num_assets
-        adjusted_weights = {asset: equal_weight for asset in selected_assets}
-
-        # Apply SMA-based adjustments
+        adjusted_weights = {asset: equal_weight for asset in selected_assets['Asset']}
+        
+        # Create a list of keys to iterate over to avoid modifying the dictionary during iteration
         for ticker in list(adjusted_weights.keys()):
             if self._data.loc[:current_date, ticker].iloc[-1] < self._data.loc[:current_date, ticker].rolling(window=self.sma_period).mean().iloc[-1]:
                 if self._data.loc[:current_date, self.bond_ticker].iloc[-1] < self._data.loc[:current_date, self.bond_ticker].rolling(window=self.sma_period).mean().iloc[-1]:
@@ -118,7 +159,7 @@ class BacktestMomentumPortfolio:
         total_weight = sum(adjusted_weights.values())
         for ticker in adjusted_weights:
             adjusted_weights[ticker] /= total_weight
-        
+        print(f'{current_date}: Weights: {adjusted_weights}')
         return adjusted_weights
 
     def _run_backtest(self):
@@ -141,11 +182,12 @@ class BacktestMomentumPortfolio:
             next_date = monthly_dates[min(i + step, len(monthly_dates) - 1)]
             last_date_current_month = self._data.index[self._data.index.get_loc(current_date, method='pad')]
 
-            # Calculate momentum within each iteration
+            # Calculate momentum and perform clustering within each iteration
             momentum = self.calculate_momentum(last_date_current_month)
+            clusters = self.perform_clustering(last_date_current_month, self.assets_weights.keys())
             
-            # Select assets based on momentum
-            selected_assets = momentum.nlargest(2).index.tolist()  # Select top 2 assets based on momentum
+            # Select assets based on momentum and clustering
+            selected_assets = self.select_assets(self.assets_weights.keys(), clusters, momentum)
 
             # Adjust weights based on the selected assets
             adjusted_weights = self._adjust_weights(last_date_current_month, selected_assets)
@@ -163,6 +205,8 @@ class BacktestMomentumPortfolio:
         self.data_models.portfolio_values = pd.Series(portfolio_values, index=pd.date_range(start=self.start_date, periods=len(portfolio_values), freq='M'))
         self.data_models.portfolio_returns = pd.Series(portfolio_returns, index=pd.date_range(start=self.start_date, periods=len(portfolio_returns), freq='M'))
 
+
+
     def _get_portfolio_statistics(self):
         """
         Calculates and sets portfolio statistics such as CAGR, average annual return, max drawdown, VaR, and CVaR in models_data.
@@ -174,11 +218,37 @@ class BacktestMomentumPortfolio:
         annual_volatility = utilities.calculate_annual_volatility(self.trading_frequency, self.data_models.portfolio_returns)
 
         self.data_models.cagr = cagr
-        self.data_models.average_annual_return = average_annual_return
+        self.data_models.average_annual_return =average_annual_return
         self.data_models.max_drawdown = max_drawdown
         self.data_models.var = var
         self.data_models.cvar = cvar
         self.data_models.annual_volatility = annual_volatility
+
+
+    def _rebalance_portfolio(self, current_weights):
+        """
+        Rebalances the portfolio if the weights are outside their target range.
+
+        Parameters
+        ----------
+        current_weights : dict
+            Dictionary of current asset weights.
+
+        Returns
+        -------
+        dict
+            Dictionary of rebalanced asset weights.
+        """
+        rebalanced_weights = current_weights.copy()
+        for ticker, target_weight in self.assets_weights.items():
+            if abs(current_weights[ticker] - target_weight) > self.rebalance_threshold:
+                rebalanced_weights[ticker] = target_weight
+        total_weight = sum(rebalanced_weights.values())
+        for ticker in rebalanced_weights:
+            rebalanced_weights[ticker] /= total_weight
+
+        return rebalanced_weights
+
 
     def _calculate_buy_and_hold(self):
         """
@@ -191,6 +261,7 @@ class BacktestMomentumPortfolio:
         buy_and_hold_returns : Series
             Series representing the portfolio returns over time following a buy-and-hold strategy.
         """
+        
         self._data = utilities.fetch_data(self.assets_weights, self.start_date, self.end_date, self.bond_ticker, self.cash_ticker)
         
         portfolio_values = [self.initial_portfolio_value]
@@ -215,4 +286,3 @@ class BacktestMomentumPortfolio:
         buy_and_hold_returns = pd.Series(portfolio_returns, index=monthly_dates[1:len(portfolio_returns)+1])
     
         return buy_and_hold_values, buy_and_hold_returns
-
