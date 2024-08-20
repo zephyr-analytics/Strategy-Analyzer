@@ -34,7 +34,7 @@ class ResultsProcessor:
         self.avg_annual_return = data_models.average_annual_return
 
 
-    def plot_portfolio_value(self, buy_and_hold_values=None, filename='portfolio_value.html'):
+    def plot_portfolio_value(self, buy_and_hold_values=None, filename='portfolio_value'):
         """
         Plots the portfolio value over time, including an optional buy-and-hold strategy line, and saves the plot as an HTML file.
 
@@ -70,7 +70,7 @@ class ResultsProcessor:
             # Add final value annotation for buy-and-hold strategy
             annotations = [
                 dict(
-                    xref='paper', yref='paper', x=0.25, y=0.9,
+                    xref='paper', yref='paper', x=0.25, y=0.95,
                     xanchor='center', yanchor='bottom',
                     text=f'Final Value (B&H): ${final_bnh_value:,.2f}',
                     showarrow=False,
@@ -104,7 +104,7 @@ class ResultsProcessor:
                 font=dict(size=12)
             )
         ])
-        
+
         # Update layout with annotations and titles
         fig.update_layout(
             title=dict(
@@ -120,9 +120,9 @@ class ResultsProcessor:
             legend=dict(
                 orientation="h",
                 yanchor="bottom",
-                y=0.75,
-                xanchor="right",
-                x=1
+                y=0.1,
+                xanchor="center",
+                x=0.5
             )
         )
 
@@ -131,7 +131,8 @@ class ResultsProcessor:
 
 
 
-    def plot_var_cvar(self, confidence_level=0.95, filename='var_cvar.html'):
+
+    def plot_var_cvar(self, confidence_level=0.95, filename='var_cvar'):
         """
         Plots the portfolio returns with VaR and CVaR and saves the plot as an HTML file.
 
@@ -205,7 +206,7 @@ class ResultsProcessor:
         utilities.save_html(fig, filename, self.output_filename)
 
 
-    def plot_monte_carlo_simulation(self, simulation_results, simulation_horizon, output_filename, filename='monte_carlo_simulation.html'):
+    def plot_monte_carlo_simulation(self, simulation_results, simulation_horizon, output_filename, filename='monte_carlo_simulation'):
         """
         Plots the results of the Monte Carlo simulation.
 
@@ -261,7 +262,7 @@ class ResultsProcessor:
         # fig.show()
 
 
-    def plot_returns_heatmaps(self, filename='returns_heatmap.html'):
+    def plot_returns_heatmaps(self, filename='returns_heatmap'):
         """
         Plots a combined heatmap of monthly and yearly returns with values shown as percentages on each cell.
 
@@ -334,7 +335,7 @@ class ResultsProcessor:
                 )
             )
         fig.update_layout(
-            title="Combined Monthly and Yearly Returns Heatmaps",
+            # title="Monthly and Yearly Returns Heatmaps",
             annotations=monthly_annotations + yearly_annotations
         )
         utilities.save_html(fig, filename, self.output_filename)
