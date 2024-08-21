@@ -323,15 +323,23 @@ class MonteCarloApp(ctk.CTk):
 
     def display_asset_weights(self):
         """
-        Displays the loaded asset weights in the GUI.
+        Displays the loaded asset weights in the GUI, capped at 20.
 
         Parameters
         ----------
         None
         """
-        assets_text = "\n".join([f"{asset}: {weight}" for asset, weight in self.data_models.assets_weights.items()])
-        self.bottom_text = ctk.CTkLabel(self.bottom_text_frame, text=f"Loaded Assets and Weights from {self.data_models.weights_filename}:\n{assets_text}", text_color="blue")
+        assets_text = "\n".join([f"{asset}: {weight}" for asset, weight in list(self.data_models.assets_weights.items())[:20]])
+        if len(self.data_models.assets_weights) > 20:
+            assets_text += f"\n... (and {(len(self.data_models.assets_weights)-20)} more)"
+            
+        self.bottom_text = ctk.CTkLabel(
+            self.bottom_text_frame,
+            text=f"Loaded Assets and Weights from {self.data_models.weights_filename}:\n{assets_text}",
+            text_color="blue"
+        )
         self.bottom_text.pack(pady=5)
+
 
     def display_result(self, result):
         """
