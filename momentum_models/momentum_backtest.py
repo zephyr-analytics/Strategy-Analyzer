@@ -1,4 +1,6 @@
 import pandas as pd
+import matplotlib.pyplot as plt
+
 import utilities as utilities
 from results.results_processor import ResultsProcessor
 
@@ -7,7 +9,7 @@ warnings.filterwarnings("ignore")
 
 class BacktestMomentumPortfolio:
     """
-    A class to backtest a momentum-based portfolio with adjustable weights based on Simple Moving Average (SMA).
+    A class to backtest a static portfolio with adjustable weights based on Simple Moving Average (SMA).
 
     Attributes
     ----------
@@ -57,6 +59,7 @@ class BacktestMomentumPortfolio:
         self.bond_ticker = data_models.bond_ticker
         self.cash_ticker = data_models.cash_ticker
         self.initial_portfolio_value = int(data_models.initial_portfolio_value)
+        self.num_assets_to_select = 2
 
         # Class-defined attributes
         self._data = None
@@ -67,7 +70,7 @@ class BacktestMomentumPortfolio:
         Processes the backtest by fetching data, running the backtest, and generating the plots.
         """
         self._data = utilities.fetch_data(self.assets_weights, self.start_date, self.end_date, self.bond_ticker, self.cash_ticker)
-        self._momentum_data = self._data.copy().pct_change().dropna()  # Populate momentum data based on percentage change
+        self._momentum_data = self._data.copy().pct_change().dropna()
         self._run_backtest()
         self._get_portfolio_statistics()
         buy_and_hold_values, buy_and_hold_returns = self._calculate_buy_and_hold()
@@ -87,14 +90,14 @@ class BacktestMomentumPortfolio:
 
     def _adjust_weights(self, current_date, selected_assets):
         """
-        Adjusts the weights of the selected assets to equal weight and applies SMA-based adjustments.
+        Adjusts the weights of the selected assets based on their SMA and the selected weighting strategy.
 
         Parameters
         ----------
         current_date : datetime
             The current date for which the weights are being adjusted.
-        selected_assets : list
-            List of selected assets.
+        selected_assets : DataFrame
+            DataFrame of selected assets and their weights.
 
         Returns
         -------
@@ -103,9 +106,9 @@ class BacktestMomentumPortfolio:
         """
         num_assets = len(selected_assets)
         equal_weight = 1 / num_assets
-        adjusted_weights = {asset: equal_weight for asset in selected_assets}
-
-        # Apply SMA-based adjustments
+        adjusted_weights = {asset: equal_weight for asset in selected_assets['Asset']}
+        
+        # Create a list of keys to iterate over to avoid modifying the dictionary during iteration
         for ticker in list(adjusted_weights.keys()):
             if self._data.loc[:current_date, ticker].iloc[-1] < self._data.loc[:current_date, ticker].rolling(window=self.sma_period).mean().iloc[-1]:
                 if self._data.loc[:current_date, self.bond_ticker].iloc[-1] < self._data.loc[:current_date, self.bond_ticker].rolling(window=self.sma_period).mean().iloc[-1]:
@@ -118,14 +121,13 @@ class BacktestMomentumPortfolio:
         total_weight = sum(adjusted_weights.values())
         for ticker in adjusted_weights:
             adjusted_weights[ticker] /= total_weight
-        
+        print(f'{current_date}: Weights: {adjusted_weights}')
         return adjusted_weights
 
     def _run_backtest(self):
         """
         Runs the backtest by calculating portfolio values and returns over time.
         """
-        print(self.sma_period, self.cash_ticker, self.bond_ticker)
         monthly_dates = pd.date_range(start=self.start_date, end=self.end_date, freq='M')
         portfolio_values = [self.initial_portfolio_value]
         portfolio_returns = []
@@ -141,11 +143,11 @@ class BacktestMomentumPortfolio:
             next_date = monthly_dates[min(i + step, len(monthly_dates) - 1)]
             last_date_current_month = self._data.index[self._data.index.get_loc(current_date, method='pad')]
 
-            # Calculate momentum within each iteration
+            # Calculate momentum
             momentum = self.calculate_momentum(last_date_current_month)
             
             # Select assets based on momentum
-            selected_assets = momentum.nlargest(2).index.tolist()  # Select top 2 assets based on momentum
+            selected_assets = pd.DataFrame({'Asset': momentum.nlargest(self.num_assets_to_select).index, 'Momentum': momentum.nlargest(self.num_assets_to_select).values})  # Select top 2 assets
 
             # Adjust weights based on the selected assets
             adjusted_weights = self._adjust_weights(last_date_current_month, selected_assets)
@@ -191,6 +193,7 @@ class BacktestMomentumPortfolio:
         buy_and_hold_returns : Series
             Series representing the portfolio returns over time following a buy-and-hold strategy.
         """
+        
         self._data = utilities.fetch_data(self.assets_weights, self.start_date, self.end_date, self.bond_ticker, self.cash_ticker)
         
         portfolio_values = [self.initial_portfolio_value]
@@ -215,4 +218,3 @@ class BacktestMomentumPortfolio:
         buy_and_hold_returns = pd.Series(portfolio_returns, index=monthly_dates[1:len(portfolio_returns)+1])
     
         return buy_and_hold_values, buy_and_hold_returns
-

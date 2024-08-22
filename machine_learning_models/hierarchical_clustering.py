@@ -121,7 +121,7 @@ class BacktestClusteringPortfolio:
         If more than 4 assets are selected, drop SGOV and SHV if present.
         """
         clustered_assets = pd.DataFrame({'Asset': filtered_assets, 'Cluster': clusters, 'Momentum': momentum[filtered_assets]})
-        selected_assets = clustered_assets.groupby('Cluster').apply(lambda x: x.nlargest(1, 'Momentum')).reset_index(drop=True)
+        selected_assets = clustered_assets.groupby('Cluster').apply(lambda x: x.nlargest(2, 'Momentum')).reset_index(drop=True)
         
         if len(selected_assets) > 2:
             selected_assets = selected_assets[~selected_assets['Asset'].isin(['BND', 'SHV'])]

@@ -30,7 +30,7 @@ class ModelsData:
         self._var = None
         self._cvar = None
         self._annual_volatility = None
-        self._max_distance = 0.75
+        self._max_distance = 1.5
 
     # Getter and Setter for assets_weights
     @property

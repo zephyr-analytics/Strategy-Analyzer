@@ -77,9 +77,8 @@ class MonteCarloApp(ctk.CTk):
         sma_testing_tab = self.high_level_tab_control.add("SMA Strategies")
         self.create_tab_content(sma_testing_tab)
 
-        # Uncomment the following lines if these tabs are required
-        # momentum_testing_tab = self.high_level_tab_control.add("Momentum Strategies")
-        # self.create_tab_content(momentum_testing_tab)
+        momentum_testing_tab = self.high_level_tab_control.add("Momentum Strategies")
+        self.create_tab_content(momentum_testing_tab)
 
         machine_learning_testing_tab = self.high_level_tab_control.add("Machine Learning Strategies")
         self.create_tab_content(machine_learning_testing_tab)
