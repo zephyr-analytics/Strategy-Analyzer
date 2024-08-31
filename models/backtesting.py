@@ -73,9 +73,9 @@ class BacktestStaticPortfolio:
         self._data = utilities.fetch_data_wo_threhold(self.assets_weights, self.start_date, self.end_date, self.bond_ticker, self.cash_ticker)
         self._run_backtest()
         self._get_portfolio_statistics()
-        buy_and_hold_values, buy_and_hold_returns = self._calculate_buy_and_hold()
+        # buy_and_hold_values, buy_and_hold_returns = self._calculate_buy_and_hold()
         results_processor = ResultsProcessor(self.data_models)
-        results_processor.plot_portfolio_value(buy_and_hold_values)
+        results_processor.plot_portfolio_value()
         results_processor.plot_var_cvar()
         results_processor.plot_returns_heatmaps()
 
@@ -137,7 +137,7 @@ class BacktestStaticPortfolio:
             step = 2
         else:
             raise ValueError("Invalid trading frequency. Choose 'Monthly' or 'Bi-Monthly'.")
-        for i in range(0, len(monthly_dates) - 1, step):
+        for i in range(0, len(monthly_dates), step):
             current_date = monthly_dates[i]
             next_date = monthly_dates[min(i + step, len(monthly_dates) - 1)]
             last_date_current_month = self._data.index[self._data.index.get_loc(current_date, method='pad')]
@@ -149,6 +149,9 @@ class BacktestStaticPortfolio:
             last_date_next_month = self._data.index[self._data.index.get_loc(next_date, method='pad')]
             next_month_end_data = self._data.loc[last_date_next_month]
             monthly_returns = (next_month_end_data / month_start_data) - 1
+            print(next_month_end_data)
+            print(month_start_data)
+            print(monthly_returns)
             month_return = sum([monthly_returns[ticker] * weight for ticker, weight in adjusted_weights.items()])
             new_portfolio_value = previous_value * (1 + month_return)
             portfolio_values.append(new_portfolio_value)

@@ -82,6 +82,7 @@ class BacktestMomentumPortfolio:
 
     def calculate_momentum(self, current_date):
         """Calculate average momentum based on 1, 3, 6, 9, and 12-month cumulative returns."""
+        # TODO need seperate dataframe for momentum data.
         momentum_1m = (self._momentum_data.loc[:current_date].iloc[-21:] + 1).prod() - 1
         momentum_3m = (self._momentum_data.loc[:current_date].iloc[-63:] + 1).prod() - 1
         momentum_6m = (self._momentum_data.loc[:current_date].iloc[-126:] + 1).prod() - 1
@@ -156,7 +157,7 @@ class BacktestMomentumPortfolio:
         else:
             raise ValueError("Invalid trading frequency. Choose 'Monthly' or 'Bi-Monthly'.")
 
-        for i in range(0, len(monthly_dates) - 1, step):
+        for i in range(0, len(monthly_dates), step):
             current_date = monthly_dates[i]
             next_date = monthly_dates[min(i + step, len(monthly_dates) - 1)]
             last_date_current_month = self._data.index[self._data.index.get_loc(current_date, method='pad')]
