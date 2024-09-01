@@ -73,9 +73,9 @@ class BacktestStaticPortfolio:
         self._data = utilities.fetch_data_wo_threhold(self.assets_weights, self.start_date, self.end_date, self.bond_ticker, self.cash_ticker)
         self._run_backtest()
         self._get_portfolio_statistics()
-        # buy_and_hold_values, buy_and_hold_returns = self._calculate_buy_and_hold()
+        buy_and_hold_values, buy_and_hold_returns = self._calculate_buy_and_hold()
         results_processor = ResultsProcessor(self.data_models)
-        results_processor.plot_portfolio_value()
+        results_processor.plot_portfolio_value(buy_and_hold_values)
         results_processor.plot_var_cvar()
         results_processor.plot_returns_heatmaps()
 

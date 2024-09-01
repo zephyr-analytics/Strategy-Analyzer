@@ -274,7 +274,7 @@ class ResultsProcessor:
         monthly_returns = self.portfolio_returns.resample('M').sum()
         yearly_returns = self.portfolio_returns.resample('Y').sum()
         monthly_returns.index = monthly_returns.index + pd.DateOffset(months=1)
-        yearly_returns.index = yearly_returns.index + pd.DateOffset(months=1)
+        # yearly_returns.index = yearly_returns.index + pd.DateOffset(months=1)
         monthly_returns_df = monthly_returns.to_frame(name='Monthly Return')
         monthly_returns_df['Monthly Return'] *= 100
         monthly_returns_df['Year'] = monthly_returns_df.index.year
