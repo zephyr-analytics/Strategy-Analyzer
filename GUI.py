@@ -6,9 +6,11 @@ import os
 import threading
 import customtkinter as ctk
 from PIL import Image
+
 import main
 import utilities as utilities
 from models_data import ModelsData
+
 
 class MonteCarloApp(ctk.CTk):
     """
