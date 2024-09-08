@@ -59,8 +59,8 @@ class BacktestMomentumPortfolio:
         self.bond_ticker = data_models.bond_ticker
         self.cash_ticker = data_models.cash_ticker
         self.initial_portfolio_value = int(data_models.initial_portfolio_value)
-        self.num_assets_to_select = 2
-        self.thershold_asset = 'SPY'
+        self.num_assets_to_select = 1
+        self.thershold_asset = 'VINIX'
 
         # Class-defined attributes
         self._data = None
