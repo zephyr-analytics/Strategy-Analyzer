@@ -70,7 +70,7 @@ class BacktestStaticPortfolio:
         """
         Processes the backtest by fetching data, running the backtest, and generating the plots.
         """
-        self._data = utilities.fetch_data_wo_threhold(self.assets_weights, self.start_date, self.end_date, self.bond_ticker, self.cash_ticker)
+        self._data = utilities.fetch_data_wo_threshold(self.assets_weights, self.start_date, self.end_date, self.bond_ticker, self.cash_ticker)
         self._run_backtest()
         self._get_portfolio_statistics()
         buy_and_hold_values, buy_and_hold_returns = self._calculate_buy_and_hold()
@@ -215,7 +215,7 @@ class BacktestStaticPortfolio:
             Series representing the portfolio returns over time following a buy-and-hold strategy.
         """
         
-        self._data = utilities.fetch_data_wo_threhold(self.assets_weights, self.start_date, self.end_date, self.bond_ticker, self.cash_ticker)
+        self._data = utilities.fetch_data_wo_threshold(self.assets_weights, self.start_date, self.end_date, self.bond_ticker, self.cash_ticker)
         
         portfolio_values = [self.initial_portfolio_value]
         portfolio_returns = []

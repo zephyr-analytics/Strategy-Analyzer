@@ -60,7 +60,7 @@ class BacktestMomentumPortfolio:
         self.cash_ticker = data_models.cash_ticker
         self.initial_portfolio_value = int(data_models.initial_portfolio_value)
         self.num_assets_to_select = 1
-        self.thershold_asset = 'VINIX'
+        self.thershold_asset = 'VTI'
 
         # Class-defined attributes
         self._data = None
@@ -70,7 +70,10 @@ class BacktestMomentumPortfolio:
         """
         Processes the backtest by fetching data, running the backtest, and generating the plots.
         """
-        self._data = utilities.fetch_data_w_threhold(self.assets_weights, self.start_date, self.end_date, self.bond_ticker, self.cash_ticker, self.thershold_asset)
+        if self.thershold_asset == '':
+                self._data = utilities.fetch_data_wo_threshold(self.assets_weights, self.start_date, self.end_date, self.bond_ticker, self.cash_ticker)
+        else:
+            self._data = utilities.fetch_data_w_threshold(self.assets_weights, self.start_date, self.end_date, self.bond_ticker, self.cash_ticker, self.thershold_asset)
         self._momentum_data = self._data.copy().pct_change().dropna()
         self._run_backtest()
         self._get_portfolio_statistics()
@@ -213,7 +216,7 @@ class BacktestMomentumPortfolio:
             Series representing the portfolio returns over time following a buy-and-hold strategy.
         """
         
-        self._data = utilities.fetch_data_w_threhold(self.assets_weights, self.start_date, self.end_date, self.bond_ticker, self.cash_ticker, self.thershold_asset)
+        self._data = utilities.fetch_data_wo_threshold(self.assets_weights, self.start_date, self.end_date, self.bond_ticker, self.cash_ticker)
         
         portfolio_values = [self.initial_portfolio_value]
         portfolio_returns = []
