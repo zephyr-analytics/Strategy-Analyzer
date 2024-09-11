@@ -30,7 +30,9 @@ class ModelsData:
         self._var = None
         self._cvar = None
         self._annual_volatility = None
-        self._max_distance = 1
+        self._max_distance = 1.5
+        self._threshold_asset = "VTI"
+        self._num_assets_to_select = 1
 
     # Getter and Setter for assets_weights
     @property
@@ -488,3 +490,43 @@ class ModelsData:
     @max_distance.setter
     def max_distance(self, value):
         self._max_distance = value
+
+    @property
+    def threshold_asset(self):
+        """
+        Gets the threshold asset value used for portfolio management.
+
+        Returns:
+            str: The threshold asset as a string.
+        """
+        return self._threshold_asset
+
+    @threshold_asset.setter
+    def threshold_asset(self, value):
+        """
+        Sets the threshold asset value used for portfolio management.
+
+        Args:
+            value (str): The asset ticker symbol to be set as the threshold asset.
+        """
+        self._threshold_asset = value
+
+    @property
+    def num_assets_to_select(self):
+        """
+        Gets the threshold asset value used for portfolio management.
+
+        Returns:
+            str: The threshold asset as a string.
+        """
+        return self._num_assets_to_select
+
+    @num_assets_to_select.setter
+    def num_assets_to_select(self, value):
+        """
+        Sets the threshold asset value used for portfolio management.
+
+        Args:
+            value (str): The asset ticker symbol to be set as the threshold asset.
+        """
+        self._num_assets_to_select = value
