@@ -195,7 +195,7 @@ class BacktestMomentumPortfolio:
             new_portfolio_value = previous_value * (1 + month_return)
             portfolio_values.append(new_portfolio_value)
             portfolio_returns.append(month_return)
-        print(portfolio_returns)
+        self.data_models.adjusted_weights = adjusted_weights
         self.data_models.portfolio_values = pd.Series(portfolio_values, index=pd.date_range(start=self.start_date, periods=len(portfolio_values), freq='M'))
         self.data_models.portfolio_returns = pd.Series(portfolio_returns, index=pd.date_range(start=self.start_date, periods=len(portfolio_returns), freq='M'))
 
