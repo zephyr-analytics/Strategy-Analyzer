@@ -32,49 +32,91 @@ class ResultsProcessor:
         self.var = data_models.var
         self.cvar = data_models.cvar
         self.avg_annual_return = data_models.average_annual_return
+        self.standard_deviation = data_models.standard_deviation
 
 
-    def plot_portfolio_value(self, filename='portfolio_value.html'):
+    def plot_portfolio_value(self, buy_and_hold_values=None, filename='portfolio_value'):
         """
-        Plots the portfolio value over time and saves the plot as an HTML file.
+        Plots the portfolio value over time, including an optional buy-and-hold strategy line, and saves the plot as an HTML file.
 
         Parameters
         ----------
+        buy_and_hold_values : Series, optional
+            Series representing the buy-and-hold portfolio value over time. Default is None.
         filename : str, optional
             The name of the file to save the plot. Default is 'portfolio_value.html'.
         """
         portfolio_value = self.portfolio_values
         final_value = portfolio_value.iloc[-1]
+        
+        # Calculate the standard deviation of portfolio returns
+        std_dev = utilities.calculate_standard_deviation(self.portfolio_returns)
+        
         fig = go.Figure()
+
+        # Plot the main portfolio value
         fig.add_trace(go.Scatter(
             x=portfolio_value.index,
             y=portfolio_value,
             mode='lines',
             name='Portfolio Value'
         ))
-        annotations = [
+
+        # If buy_and_hold_values is provided, add it to the plot
+        if buy_and_hold_values is not None:
+            final_bnh_value = buy_and_hold_values.iloc[-1]
+            fig.add_trace(go.Scatter(
+                x=buy_and_hold_values.index,
+                y=buy_and_hold_values,
+                mode='lines',
+                name='Buy & Hold Value',
+                line=dict(dash='dash')
+            ))
+            annotations = [
+                dict(
+                    xref='paper', yref='paper', x=0.25, y=0.95,
+                    xanchor='center', yanchor='bottom',
+                    text=f'Final Value (B&H): ${final_bnh_value:,.2f}',
+                    showarrow=False,
+                    font=dict(size=12)
+                )
+            ]
+        else:
+            annotations = []
+
+        # Annotations for the main portfolio
+        annotations.extend([
             dict(
-                xref='paper', yref='paper', x=0.25, y=1,
+                xref='paper', yref='paper', x=0.2, y=1,
                 xanchor='center', yanchor='bottom',
                 text=f'Final Value: ${final_value:,.2f}',
                 showarrow=False,
                 font=dict(size=12)
             ),
             dict(
-                xref='paper', yref='paper', x=0.5, y=1,
+                xref='paper', yref='paper', x=0.4, y=1,
                 xanchor='center', yanchor='bottom',
                 text=f'CAGR: {self.cagr:.2%}',
                 showarrow=False,
                 font=dict(size=12)
             ),
             dict(
-                xref='paper', yref='paper', x=0.75, y=1,
+                xref='paper', yref='paper', x=0.6, y=1,
                 xanchor='center', yanchor='bottom',
                 text=f'Max Drawdown: {self.max_drawdown:.2%}',
                 showarrow=False,
                 font=dict(size=12)
+            ),
+            dict(
+                xref='paper', yref='paper', x=0.8, y=1,
+                xanchor='center', yanchor='bottom',
+                text=f'Standard Deviation: {std_dev:.2%}',
+                showarrow=False,
+                font=dict(size=12)
             )
-        ]
+        ])
+
+        # Update layout with annotations and titles
         fig.update_layout(
             title=dict(
                 text='Portfolio Value Over Time',
@@ -89,15 +131,18 @@ class ResultsProcessor:
             legend=dict(
                 orientation="h",
                 yanchor="bottom",
-                y=0.75,
-                xanchor="right",
-                x=1
+                y=0.1,
+                xanchor="center",
+                x=0.5
             )
         )
+
+        # Save the plot as an HTML file
         utilities.save_html(fig, filename, self.output_filename)
 
 
-    def plot_var_cvar(self, confidence_level=0.95, filename='var_cvar.html'):
+
+    def plot_var_cvar(self, confidence_level=0.95, filename='var_cvar'):
         """
         Plots the portfolio returns with VaR and CVaR and saves the plot as an HTML file.
 
@@ -171,7 +216,7 @@ class ResultsProcessor:
         utilities.save_html(fig, filename, self.output_filename)
 
 
-    def plot_monte_carlo_simulation(self, simulation_results, simulation_horizon, output_filename, filename='monte_carlo_simulation.html'):
+    def plot_monte_carlo_simulation(self, simulation_results, simulation_horizon, output_filename, filename='monte_carlo_simulation'):
         """
         Plots the results of the Monte Carlo simulation.
 
@@ -227,7 +272,7 @@ class ResultsProcessor:
         # fig.show()
 
 
-    def plot_returns_heatmaps(self, filename='returns_heatmap.html'):
+    def plot_returns_heatmaps(self, filename='returns_heatmap'):
         """
         Plots a combined heatmap of monthly and yearly returns with values shown as percentages on each cell.
 
@@ -238,6 +283,8 @@ class ResultsProcessor:
         """
         monthly_returns = self.portfolio_returns.resample('M').sum()
         yearly_returns = self.portfolio_returns.resample('Y').sum()
+        monthly_returns.index = monthly_returns.index + pd.DateOffset(months=1)
+        # yearly_returns.index = yearly_returns.index + pd.DateOffset(months=1)
         monthly_returns_df = monthly_returns.to_frame(name='Monthly Return')
         monthly_returns_df['Monthly Return'] *= 100
         monthly_returns_df['Year'] = monthly_returns_df.index.year
@@ -300,7 +347,7 @@ class ResultsProcessor:
                 )
             )
         fig.update_layout(
-            title="Combined Monthly and Yearly Returns Heatmaps",
+            # title="Monthly and Yearly Returns Heatmaps",
             annotations=monthly_annotations + yearly_annotations
         )
         utilities.save_html(fig, filename, self.output_filename)

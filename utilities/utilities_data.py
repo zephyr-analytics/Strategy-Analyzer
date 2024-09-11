@@ -4,13 +4,41 @@ Utilities module for loading and processing data.
 
 import os
 
+from datetime import datetime
 from tkinter import filedialog
 
 import pandas as pd
 import yfinance as yf
 
 
-def fetch_data(assets_weights, start_date, end_date, bond_ticker, cash_ticker):
+def fetch_data_w_threshold(assets_weights, start_date, end_date, bond_ticker, cash_ticker, threshold_asset):
+    """
+    Fetches the adjusted closing prices of the assets.
+
+    Parameters
+    ----------
+    assets_weights : dict
+        Dictionary of asset tickers and their corresponding weights in the portfolio.
+    start_date : str
+        The start date for fetching the data.
+    end_date : str
+        The end date for fetching the data.
+    bond_ticker : str, optional
+        The ticker symbol for the bond asset. Default is 'BND'.
+    cash_ticker : str, optional
+        The ticker symbol for the cash asset. Default is 'SHV'.
+
+    Returns
+    -------
+    DataFrame
+        DataFrame containing the adjusted closing prices of the assets.
+    """
+    all_tickers = list(assets_weights.keys()) + [bond_ticker, cash_ticker, threshold_asset]
+    data = yf.download(all_tickers, start=start_date, end=end_date)['Adj Close']
+    return data
+
+
+def fetch_data_wo_threshold(assets_weights, start_date, end_date, bond_ticker, cash_ticker):
     """
     Fetches the adjusted closing prices of the assets.
 
@@ -85,7 +113,12 @@ def save_html(fig, filename, output_filename):
         The output filename to include in the file path.
     """
     current_directory = os.getcwd()
+    current_date = datetime.now().strftime("%Y-%m-%d")
     artifacts_directory = os.path.join(current_directory, 'artifacts')
     os.makedirs(artifacts_directory, exist_ok=True)
-    file_path = os.path.join(artifacts_directory, f"{output_filename}_{filename}")
+    
+    file_path = os.path.join(artifacts_directory, f"{output_filename}_{current_date}_{filename}.html")
     fig.write_html(file_path)
+
+    # jpg_file_path = os.path.join(artifacts_directory, f"{output_filename}_{current_date}_{filename}.jpg")
+    # fig.write_image(jpg_file_path)
