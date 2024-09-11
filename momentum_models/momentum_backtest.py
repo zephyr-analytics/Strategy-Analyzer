@@ -195,7 +195,7 @@ class BacktestMomentumPortfolio:
             new_portfolio_value = previous_value * (1 + month_return)
             portfolio_values.append(new_portfolio_value)
             portfolio_returns.append(month_return)
-        
+        self.data_models.adjusted_weights = adjusted_weights
         self.data_models.portfolio_values = pd.Series(portfolio_values, index=pd.date_range(start=self.start_date, periods=len(portfolio_values), freq='M'))
         self.data_models.portfolio_returns = pd.Series(portfolio_returns, index=pd.date_range(start=self.start_date, periods=len(portfolio_returns), freq='M'))
 
@@ -208,6 +208,7 @@ class BacktestMomentumPortfolio:
         max_drawdown = utilities.calculate_max_drawdown(self.data_models.portfolio_values)
         var, cvar = utilities.calculate_var_cvar(self.data_models.portfolio_returns)
         annual_volatility = utilities.calculate_annual_volatility(self.trading_frequency, self.data_models.portfolio_returns)
+        standard_deviation = utilities.calculate_standard_deviation(self.data_models.portfolio_returns)
 
         self.data_models.cagr = cagr
         self.data_models.average_annual_return = average_annual_return
@@ -215,6 +216,7 @@ class BacktestMomentumPortfolio:
         self.data_models.var = var
         self.data_models.cvar = cvar
         self.data_models.annual_volatility = annual_volatility
+        self.data_models.standard_deviation = standard_deviation
 
     def _calculate_buy_and_hold(self):
         """

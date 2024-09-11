@@ -10,6 +10,7 @@ class ModelsData:
         Initializes the Config class with default values for portfolio parameters.
         """
         self._assets_weights = {}
+        self._adjusted_weights = {}
         self._bond_ticker = "BND"
         self._cash_ticker = "SGOV"
         self._end_date = "2024-01-01"
@@ -33,6 +34,7 @@ class ModelsData:
         self._max_distance = 1.5
         self._threshold_asset = "VTI"
         self._num_assets_to_select = 1
+        self._standard_deviation = None
 
     # Getter and Setter for assets_weights
     @property
@@ -54,6 +56,26 @@ class ModelsData:
             value (dict): A dictionary containing the asset weights.
         """
         self._assets_weights = value
+
+    @property
+    def adjusted_weights(self):
+        """
+        Gets the asset weights.
+
+        Returns:
+            dict: A dictionary containing the asset weights.
+        """
+        return self._adjusted_weights
+
+    @adjusted_weights.setter
+    def adjusted_weights(self, value):
+        """
+        Sets the asset weights.
+
+        Args:
+            value (dict): A dictionary containing the asset weights.
+        """
+        self._adjusted_weights = value
 
     # Getter and Setter for bond_ticker
     @property
@@ -530,3 +552,23 @@ class ModelsData:
             value (str): The asset ticker symbol to be set as the threshold asset.
         """
         self._num_assets_to_select = value
+
+    @property
+    def standard_deviation(self):
+        """
+        Gets the threshold asset value used for portfolio management.
+
+        Returns:
+            str: The threshold asset as a string.
+        """
+        return self._standard_deviation
+
+    @standard_deviation.setter
+    def standard_deviation(self, value):
+        """
+        Sets the threshold asset value used for portfolio management.
+
+        Args:
+            value (str): The asset ticker symbol to be set as the threshold asset.
+        """
+        self._standard_deviation = value

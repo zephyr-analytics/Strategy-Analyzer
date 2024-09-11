@@ -6,9 +6,10 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 import utilities as utilities
-from models.backtesting import BacktestStaticPortfolio
+from momentum_models.momentum_backtest import BacktestMomentumPortfolio
 
-class CreateSignals:
+
+class CreateSignalsMomentum:
     """
     Processor for creating portfolio signals using the _run_backtest method.
     """
@@ -36,7 +37,7 @@ class CreateSignals:
         self.current_date = models_data.end_date
         self.output_filename = models_data.weights_filename
         self.initial_portfolio_value = models_data.initial_portfolio_value
-        self.backtest_portfolio = BacktestStaticPortfolio(models_data)
+        self.backtest_portfolio = BacktestMomentumPortfolio(models_data)
 
     def process(self):
         """

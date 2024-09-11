@@ -147,3 +147,20 @@ def calculate_annual_volatility(trading_frequency, portfolio_returns):
         raise ValueError("Invalid trading frequency. Choose 'Monthly' or 'Bi-Monthly'.")
 
     return annual_volatility
+
+
+def calculate_standard_deviation(returns):
+    """
+    Calculates the standard deviation of the portfolio returns.
+
+    Parameters
+    ----------
+    returns : Series
+        Series containing the portfolio returns over time.
+
+    Returns
+    -------
+    float
+        Standard deviation of returns.
+    """
+    return returns.std()
