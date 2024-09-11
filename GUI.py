@@ -40,10 +40,12 @@ class MonteCarloApp(ctk.CTk):
         self.trading_frequency_var = ctk.StringVar(value=self.data_models.trading_frequency)
         self.weighting_strategy_var = ctk.StringVar(value=self.data_models.weighting_strategy)
         self.sma_window_var = ctk.StringVar(value=self.data_models.sma_window)
-        self.num_simulations_var = ctk.StringVar(value=str(self.data_models.num_simulations))
-        self.simulation_horizon_var = ctk.StringVar(value=str(self.data_models.simulation_horizon))
+        self.num_simulations_var = ctk.StringVar(value=self.data_models.num_simulations)
+        self.simulation_horizon_var = ctk.StringVar(value=self.data_models.simulation_horizon)
         self.theme_mode_var = ctk.StringVar(value=self.data_models.theme_mode)
-        self.initial_portfolio_value_var = ctk.StringVar(value=str(self.data_models._initial_portfolio_value))
+        self.initial_portfolio_value_var = ctk.StringVar(value=self.data_models._initial_portfolio_value)
+        self.threshold_asset_entry_var = ctk.StringVar(value=self.data_models._threshold_asset)
+        self.num_assets_to_select_entry_var = ctk.StringVar(value=self.data_models._num_assets_to_select)
 
         self.bold_font = ctk.CTkFont(size=12, weight="bold", family="Arial")
 
@@ -142,6 +144,29 @@ class MonteCarloApp(ctk.CTk):
         theme_options = ["Light", "Dark"]
         ctk.CTkOptionMenu(right_sidebar, values=theme_options, variable=self.theme_mode_var, command=self.change_theme).pack(pady=(0, 20), padx=(10, 10))
         self.theme_mode_var.trace_add("write", self.update_theme_mode)
+
+        # Entry box for threshold asset (always shown)
+        ctk.CTkLabel(right_sidebar, text="Threshold Asset:", font=self.bold_font).pack(pady=(0, 0))
+        ctk.CTkEntry(right_sidebar, textvariable=self.threshold_asset_entry_var).pack(pady=(0, 10))
+        self.threshold_asset_entry_var.trace_add("write", self.update_threshold_asset)
+
+        ctk.CTkLabel(right_sidebar, text="Number of assets to select:", font=self.bold_font).pack(pady=(0, 0))
+        ctk.CTkEntry(right_sidebar, textvariable=self.num_assets_to_select_entry_var).pack(pady=(0, 10))
+        self.num_assets_to_select_entry_var.trace_add("write", self.update_num_assets_to_select)
+
+    def toggle_threshold_asset_entry(self, selection):
+        """
+        Shows or hides the entry box for the threshold asset based on the dropdown selection.
+
+        Parameters
+        ----------
+        selection : str
+            The selected option from the threshold asset dropdown menu ("Yes" or "No").
+        """
+        if selection == "Yes":
+            self.threshold_asset_entry.pack(pady=(0, 10))  # Show entry box
+        else:
+            self.threshold_asset_entry.pack_forget()  # Hide entry box
 
     def create_tab_content(self, tab):
         """
@@ -462,7 +487,7 @@ class MonteCarloApp(ctk.CTk):
         *args : tuple
             Additional arguments passed by the trace method.
         """
-        self.data_models._initial_portfolio_value = int(self.initial_portfolio_value_var.get())
+        self.data_models.initial_portfolio_value = int(self.initial_portfolio_value_var.get())
 
     def update_theme_mode(self, *args):
         """
@@ -474,6 +499,28 @@ class MonteCarloApp(ctk.CTk):
             Additional arguments passed by the trace method.
         """
         self.data_models.theme_mode = self.theme_mode_var.get()
+
+    def update_threshold_asset(self, *args):
+        """
+        Updates the threshold asset in the data model based on the entry box.
+
+        Parameters
+        ----------
+        *args : tuple
+            Additional arguments passed by the trace method.
+        """
+        self.data_models.threshold_asset = str(self.threshold_asset_entry_var.get())
+
+    def update_num_assets_to_select(self, *args):
+        """
+        Updates the threshold asset in the data model based on the entry box.
+
+        Parameters
+        ----------
+        *args : tuple
+            Additional arguments passed by the trace method.
+        """
+        self.data_models.num_assets_to_select = str(self.num_assets_to_select_entry_var.get())
 
 
 if __name__ == "__main__":
