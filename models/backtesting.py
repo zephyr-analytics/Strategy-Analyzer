@@ -149,13 +149,11 @@ class BacktestStaticPortfolio:
             last_date_next_month = self._data.index[self._data.index.get_loc(next_date, method='pad')]
             next_month_end_data = self._data.loc[last_date_next_month]
             monthly_returns = (next_month_end_data / month_start_data) - 1
-            print(next_month_end_data)
-            print(month_start_data)
-            print(monthly_returns)
             month_return = sum([monthly_returns[ticker] * weight for ticker, weight in adjusted_weights.items()])
             new_portfolio_value = previous_value * (1 + month_return)
             portfolio_values.append(new_portfolio_value)
             portfolio_returns.append(month_return)
+        self.data_models.adjusted_weights = adjusted_weights
         self.data_models.portfolio_values = pd.Series(portfolio_values, index=pd.date_range(start=self.start_date, periods=len(portfolio_values), freq='M'))
         self.data_models.portfolio_returns = pd.Series(portfolio_returns, index=pd.date_range(start=self.start_date, periods=len(portfolio_returns), freq='M'))
 
