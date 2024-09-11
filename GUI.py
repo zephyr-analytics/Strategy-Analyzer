@@ -12,14 +12,14 @@ import utilities as utilities
 from models_data import ModelsData
 
 
-class MonteCarloApp(ctk.CTk):
+class PortfolioStrategyAnalyzer(ctk.CTk):
     """
     A GUI application for running backtests and Monte Carlo simulations on investment portfolios.
     """
 
     def __init__(self):
         """
-        Initializes the MonteCarloApp.
+        Initializes the PortfolioStrategyAnalyzer.
 
         Parameters
         ----------
@@ -524,5 +524,5 @@ class MonteCarloApp(ctk.CTk):
 
 
 if __name__ == "__main__":
-    app = MonteCarloApp()
+    app = PortfolioStrategyAnalyzer()
     app.mainloop()

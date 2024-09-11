@@ -32,6 +32,7 @@ class ResultsProcessor:
         self.var = data_models.var
         self.cvar = data_models.cvar
         self.avg_annual_return = data_models.average_annual_return
+        self.standard_deviation = data_models.standard_deviation
 
 
     def plot_portfolio_value(self, buy_and_hold_values=None, filename='portfolio_value'):
@@ -47,6 +48,10 @@ class ResultsProcessor:
         """
         portfolio_value = self.portfolio_values
         final_value = portfolio_value.iloc[-1]
+        
+        # Calculate the standard deviation of portfolio returns
+        std_dev = utilities.calculate_standard_deviation(self.portfolio_returns)
+        
         fig = go.Figure()
 
         # Plot the main portfolio value
@@ -67,7 +72,6 @@ class ResultsProcessor:
                 name='Buy & Hold Value',
                 line=dict(dash='dash')
             ))
-            # Add final value annotation for buy-and-hold strategy
             annotations = [
                 dict(
                     xref='paper', yref='paper', x=0.25, y=0.95,
@@ -83,23 +87,30 @@ class ResultsProcessor:
         # Annotations for the main portfolio
         annotations.extend([
             dict(
-                xref='paper', yref='paper', x=0.25, y=1,
+                xref='paper', yref='paper', x=0.2, y=1,
                 xanchor='center', yanchor='bottom',
                 text=f'Final Value: ${final_value:,.2f}',
                 showarrow=False,
                 font=dict(size=12)
             ),
             dict(
-                xref='paper', yref='paper', x=0.5, y=1,
+                xref='paper', yref='paper', x=0.4, y=1,
                 xanchor='center', yanchor='bottom',
                 text=f'CAGR: {self.cagr:.2%}',
                 showarrow=False,
                 font=dict(size=12)
             ),
             dict(
-                xref='paper', yref='paper', x=0.75, y=1,
+                xref='paper', yref='paper', x=0.6, y=1,
                 xanchor='center', yanchor='bottom',
                 text=f'Max Drawdown: {self.max_drawdown:.2%}',
+                showarrow=False,
+                font=dict(size=12)
+            ),
+            dict(
+                xref='paper', yref='paper', x=0.8, y=1,
+                xanchor='center', yanchor='bottom',
+                text=f'Standard Deviation: {std_dev:.2%}',
                 showarrow=False,
                 font=dict(size=12)
             )
@@ -128,7 +139,6 @@ class ResultsProcessor:
 
         # Save the plot as an HTML file
         utilities.save_html(fig, filename, self.output_filename)
-
 
 
 
