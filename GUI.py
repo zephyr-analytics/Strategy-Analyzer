@@ -27,7 +27,7 @@ class PortfolioStrategyAnalyzer(ctk.CTk):
         """
         super().__init__()
         self.title("Portfolio Strategy Analyzer")
-        self.geometry("1200x650")
+        self.geometry("1100x675")
 
         # Initialize ModelsData object
         self.data_models = ModelsData()
@@ -69,13 +69,13 @@ class PortfolioStrategyAnalyzer(ctk.CTk):
         # Create sidebars
         self.create_sidebars()
 
-        self.bottom_text_frame = ctk.CTkFrame(self)
+        self.bottom_text_frame = ctk.CTkFrame(self, fg_color="#edeaea")
         self.bottom_text_frame.grid(row=1, column=1, columnspan=1, sticky="ew")
 
-        center_frame = ctk.CTkFrame(self)
+        center_frame = ctk.CTkFrame(self, fg_color="#edeaea")
         center_frame.grid(row=0, column=1, rowspan=1, sticky="nsew")
 
-        self.high_level_tab_control = ctk.CTkTabview(center_frame)
+        self.high_level_tab_control = ctk.CTkTabview(center_frame, fg_color="#edeaea")
         self.high_level_tab_control.pack(expand=1, fill="both")
 
         sma_testing_tab = self.high_level_tab_control.add("SMA Strategies")
@@ -84,10 +84,24 @@ class PortfolioStrategyAnalyzer(ctk.CTk):
         momentum_testing_tab = self.high_level_tab_control.add("Momentum Strategies")
         self.create_tab_content(momentum_testing_tab)
 
+        in_and_out_momentum_testing_tab = self.high_level_tab_control.add("Momentum In & Out Strategies")
+        self.create_tab_content(in_and_out_momentum_testing_tab)
+
         machine_learning_testing_tab = self.high_level_tab_control.add("Machine Learning Strategies")
         self.create_tab_content(machine_learning_testing_tab)
 
         self.high_level_tab_control.set("SMA Strategies")
+
+        # Add copyright information
+        copyright_frame = ctk.CTkFrame(self, fg_color="#edeaea")
+        copyright_frame.grid(row=4, column=1, columnspan=1, sticky="ew", pady=(5, 5))
+
+        copyright_label = ctk.CTkLabel(
+            copyright_frame,
+            text="© Zephyr Analytics 2024",
+            font=ctk.CTkFont(size=12)
+        )
+        copyright_label.pack(pady=(0, 0))
 
     def create_sidebars(self):
         """
@@ -95,7 +109,7 @@ class PortfolioStrategyAnalyzer(ctk.CTk):
         """
         # Left sidebar
         sidebar = ctk.CTkFrame(self, width=200)
-        sidebar.grid(row=0, column=0, rowspan=2, sticky="ns", pady=(20, 0))
+        sidebar.grid(row=0, column=0, rowspan=4, sticky="ns", pady=(20, 0))
 
         ctk.CTkLabel(sidebar, text="Strategy Settings", font=ctk.CTkFont(size=20, weight="bold")).pack(pady=(10, 5))
 
@@ -138,12 +152,14 @@ class PortfolioStrategyAnalyzer(ctk.CTk):
 
         # Right sidebar
         right_sidebar = ctk.CTkFrame(self, width=200)
-        right_sidebar.grid(row=0, column=2, rowspan=2, sticky="ns", pady=(20, 0))
+        right_sidebar.grid(row=0, column=2, rowspan=4, sticky="ns", pady=(20, 0))
 
         ctk.CTkLabel(right_sidebar, text="Theme Mode:", font=self.bold_font).pack(pady=(20, 0))
         theme_options = ["Light", "Dark"]
         ctk.CTkOptionMenu(right_sidebar, values=theme_options, variable=self.theme_mode_var, command=self.change_theme).pack(pady=(0, 20), padx=(10, 10))
         self.theme_mode_var.trace_add("write", self.update_theme_mode)
+
+        ctk.CTkButton(right_sidebar, text="Select Asset Weights File", command=self.load_out_of_market_weights_and_update).pack(pady=(10, 10))
 
         # Entry box for threshold asset (always shown)
         ctk.CTkLabel(right_sidebar, text="Threshold Asset:", font=self.bold_font).pack(pady=(0, 0))
@@ -154,25 +170,11 @@ class PortfolioStrategyAnalyzer(ctk.CTk):
         ctk.CTkEntry(right_sidebar, textvariable=self.num_assets_to_select_entry_var).pack(pady=(0, 10))
         self.num_assets_to_select_entry_var.trace_add("write", self.update_num_assets_to_select)
 
-    def toggle_threshold_asset_entry(self, selection):
-        """
-        Shows or hides the entry box for the threshold asset based on the dropdown selection.
-
-        Parameters
-        ----------
-        selection : str
-            The selected option from the threshold asset dropdown menu ("Yes" or "No").
-        """
-        if selection == "Yes":
-            self.threshold_asset_entry.pack(pady=(0, 10))  # Show entry box
-        else:
-            self.threshold_asset_entry.pack_forget()  # Hide entry box
-
     def create_tab_content(self, tab):
         """
         Creates the content for the tabs.
         """
-        tab_control = ctk.CTkTabview(tab)
+        tab_control = ctk.CTkTabview(tab, border_color="#edeaea")
         tab_control.pack(expand=1, fill="both")
 
         self.create_signals_tab(tab_control, self.bold_font)
@@ -256,6 +258,8 @@ class PortfolioStrategyAnalyzer(ctk.CTk):
             threading.Thread(target=self._run_backtest_task, args=(main.run_momentum_backtest,)).start()
         elif active_tab == "Machine Learning Strategies":
             threading.Thread(target=self._run_backtest_task, args=(main.run_machine_learning_backtest,)).start()
+        elif active_tab == "Momentum In & Out Strategies":
+            threading.Thread(target=self._run_backtest_task, args=(main.run_in_and_out_of_market_backtest,)).start()
 
     def _run_backtest_task(self, backtest_func):
         """
@@ -346,26 +350,37 @@ class PortfolioStrategyAnalyzer(ctk.CTk):
         if self.data_models.assets_weights:
             self.data_models.weights_filename = utilities.strip_csv_extension(self.data_models.weights_filename)
             self.display_asset_weights()
-
-    def display_asset_weights(self):
+    
+    def load_out_of_market_weights_and_update(self):
         """
-        Displays the loaded asset weights in the GUI, capped at 20.
+        Loads the asset weights from a file and updates the assets_weights attribute.
 
         Parameters
         ----------
         None
         """
-        assets_text = "\n".join([f"{asset}: {weight}" for asset, weight in list(self.data_models.assets_weights.items())[:20]])
-        if len(self.data_models.assets_weights) > 20:
-            assets_text += f"\n... (and {(len(self.data_models.assets_weights)-20)} more)"
+        self.clear_bottom_text()
+        self.data_models.out_of_market_tickers, self.file_name = utilities.load_weights()
+
+    def display_asset_weights(self):
+        """
+        Displays the loaded asset weights in the GUI, capped at 10.
+
+        Parameters
+        ----------
+        None
+        """
+        assets_text = "\n".join([f"{asset}: {weight}" for asset, weight in list(self.data_models.assets_weights.items())[:10]])
+        if len(self.data_models.assets_weights) > 10:
+            assets_text += f"\n... (and {(len(self.data_models.assets_weights)-10)} more)"
             
         self.bottom_text = ctk.CTkLabel(
             self.bottom_text_frame,
-            text=f"Loaded Assets and Weights from {self.data_models.weights_filename}:\n{assets_text}",
-            text_color="blue"
+            text=f"Loaded Assets and Weights from: \n\n{self.data_models.weights_filename}:\n{assets_text}",
+            text_color="blue",
+            fg_color="#edeaea"
         )
         self.bottom_text.pack(pady=5)
-
 
     def display_result(self, result):
         """

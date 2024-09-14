@@ -10,6 +10,7 @@ from models.monte_carlo_sim import MonteCarloSimulation
 from models.create_signals import CreateSignals
 
 from momentum_models.momentum_backtest import BacktestMomentumPortfolio
+from in_and_out_momentum.iao_momentum_backtest import BacktestInAndOutMomentumPortfolio
 from momentum_models.create_signals_momentum import CreateSignalsMomentum
 
 from machine_learning_models.hierarchical_clustering import BacktestClusteringPortfolio
@@ -50,6 +51,20 @@ def run_machine_learning_backtest(data_models: ModelsData):
     momentum_backtest.process()
 
     return "Machine learning backtest completed and plots saved"
+
+
+def run_in_and_out_of_market_backtest(data_models: ModelsData):
+    """
+    Method for passing models_data to Momentum Backtest Processor.
+    """
+    if not data_models.assets_weights:
+        return "Please load asset weights file."
+    if not data_models.out_of_market_tickers:
+        return "Please load out of market assets file."
+    out_of_market_momentum_backtest = BacktestInAndOutMomentumPortfolio(data_models)
+    out_of_market_momentum_backtest.process()
+
+    return "Momentum backtest completed and plots saved"
 
 
 def run_simulation(data_models: ModelsData):
@@ -99,7 +114,9 @@ def run_momentum_signals(data_models: ModelsData):
     """
     Method for passing models_data to Create Signals Processor.
     """
-
+    if not data_models.assets_weights:
+        return "Please load asset weights file."
+    
     create_signals = CreateSignalsMomentum(data_models)
     create_signals.process()
     
@@ -113,6 +130,7 @@ def run_machine_learning_signals(data_models: ModelsData):
     """
     if not data_models.assets_weights:
         return "Please load asset weights file."
+    
     data = utilities.fetch_data_wo_threshold(data_models.assets_weights, data_models.start_date, data_models.end_date, 
                                 data_models.bond_ticker, data_models.cash_ticker)
 

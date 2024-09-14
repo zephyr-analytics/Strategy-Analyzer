@@ -35,6 +35,7 @@ class ModelsData:
         self._threshold_asset = "VTI"
         self._num_assets_to_select = 1
         self._standard_deviation = None
+        self._out_of_market_tickers = {}
 
     # Getter and Setter for assets_weights
     @property
@@ -572,3 +573,23 @@ class ModelsData:
             value (str): The asset ticker symbol to be set as the threshold asset.
         """
         self._standard_deviation = value
+
+    @property
+    def out_of_market_tickers(self):
+        """
+        Gets the asset weights.
+
+        Returns:
+            dict: A dictionary containing the asset weights.
+        """
+        return self._out_of_market_tickers
+
+    @out_of_market_tickers.setter
+    def out_of_market_tickers(self, value):
+        """
+        Sets the asset weights.
+
+        Args:
+            value (dict): A dictionary containing the asset weights.
+        """
+        self._out_of_market_tickers = value

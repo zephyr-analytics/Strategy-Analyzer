@@ -65,6 +65,29 @@ def fetch_data_wo_threshold(assets_weights, start_date, end_date, bond_ticker, c
     return data
 
 
+def fetch_out_of_market_data(assets_tickers, start_date, end_date):
+    """
+    Fetches the adjusted closing prices of the assets.
+
+    Parameters
+    ----------
+    assets_weights : dict
+        Dictionary of asset tickers and their corresponding weights in the portfolio.
+    start_date : str
+        The start date for fetching the data.
+    end_date : str
+        The end date for fetching the data.
+
+    Returns
+    -------
+    DataFrame
+        DataFrame containing the adjusted closing prices of the assets.
+    """
+    all_tickers = list(assets_tickers.keys())
+    data = yf.download(all_tickers, start=start_date, end=end_date)['Adj Close']
+    return data
+
+
 def load_weights():
     """
     Opens a file dialog to select a CSV file containing asset weights, and loads it into a dictionary.
