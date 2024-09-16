@@ -142,6 +142,3 @@ def save_html(fig, filename, output_filename):
     
     file_path = os.path.join(artifacts_directory, f"{output_filename}_{current_date}_{filename}.html")
     fig.write_html(file_path)
-
-    # jpg_file_path = os.path.join(artifacts_directory, f"{output_filename}_{current_date}_{filename}.jpg")
-    # fig.write_image(jpg_file_path)

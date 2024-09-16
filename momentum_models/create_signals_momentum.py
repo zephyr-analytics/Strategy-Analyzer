@@ -74,12 +74,14 @@ class CreateSignalsMomentum:
         asset_weights = list(latest_weights.values())
         asset_percentages = [weight * 100 for weight in asset_weights]
 
+        # Add the table for asset weights
         fig.add_trace(go.Table(
             header=dict(values=["Asset", "% Weight"]),
             cells=dict(values=[asset_labels, [f"{percentage:.2f}%" for percentage in asset_percentages]]),
             columnwidth=[80, 200],
         ), row=1, col=1)
 
+        # Add the pie chart for portfolio weights
         fig.add_trace(go.Pie(
             labels=asset_labels,
             values=asset_weights,
@@ -88,11 +90,26 @@ class CreateSignalsMomentum:
             hoverinfo='label+value+percent',
             showlegend=True
         ), row=1, col=2)
-        
+
+        # Update layout and add watermark annotation
         fig.update_layout(
             title_text=f"Portfolio Signals on {self.current_date}",
             height=600,
-            margin=dict(t=50, b=50, l=50, r=50)
+            margin=dict(t=50, b=50, l=50, r=50),
+            annotations=[
+                # Watermark annotation
+                dict(
+                    xref='paper', yref='paper', x=0.5, y=0.05,
+                    text="© Zephyr Analytics",
+                    showarrow=False,
+                    font=dict(size=80, color="#f8f9f9"),
+                    xanchor='center',
+                    yanchor='bottom',
+                    opacity=0.5
+                )
+            ]
         )
-        
+
+        # Save the plot as an HTML file
         utilities.save_html(fig, filename, self.output_filename)
+
