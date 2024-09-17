@@ -71,8 +71,8 @@ class BacktestMomentumPortfolio:
         """
         Processes the backtest by fetching data, running the backtest, and generating the plots.
         """
-        print(f"Threshold Asset: {self.threshold_asset}")
-        print(f"Bond Asset: {self.bond_ticker}")
+        # print(f"Threshold Asset: {self.threshold_asset}")
+        # print(f"Bond Asset: {self.bond_ticker}")
         if self.threshold_asset == str(""):
             self._data = utilities.fetch_data_wo_threshold(self.assets_weights, self.start_date, self.end_date, self.bond_ticker, self.cash_ticker)
         else:
@@ -154,7 +154,7 @@ class BacktestMomentumPortfolio:
                 for ticker in adjusted_weights:
                     adjusted_weights[ticker] /= total_weight
 
-        print(f'{current_date}: Weights: {adjusted_weights}')
+        # print(f'{current_date}: Weights: {adjusted_weights}')
         return adjusted_weights
 
 

@@ -86,7 +86,7 @@ class CreateSignalsMomentum:
             labels=asset_labels,
             values=asset_weights,
             title="Portfolio Weights",
-            textinfo='label+percent',
+            textinfo='label+percent+value',
             hoverinfo='label+value+percent',
             showlegend=True
         ), row=1, col=2)

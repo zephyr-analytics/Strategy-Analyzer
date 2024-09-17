@@ -28,6 +28,7 @@ class CreateSignals:
         """
         self.data_models = models_data
 
+        self.initial_portfolio_value = models_data.initial_portfolio_value
         self.assets_weights = models_data.assets_weights
         self.bond_ticker = models_data.bond_ticker
         self.cash_ticker = models_data.cash_ticker
@@ -72,12 +73,19 @@ class CreateSignals:
         asset_labels = list(latest_weights.keys())
         asset_weights = list(latest_weights.values())
         asset_percentages = [weight * 100 for weight in asset_weights]
+        
+        # Calculate expected value based on initial portfolio value
+        asset_values = [weight * self.initial_portfolio_value for weight in asset_weights]
 
-        # Add table with asset weights
+        # Add table with asset weights and expected values
         fig.add_trace(go.Table(
-            header=dict(values=["Asset", "% Weight"]),
-            cells=dict(values=[asset_labels, [f"{percentage:.2f}%" for percentage in asset_percentages]]),
-            columnwidth=[80, 200],
+            header=dict(values=["Asset", "% Weight", "Expected Value"]),
+            cells=dict(values=[
+                asset_labels, 
+                [f"{percentage:.2f}%" for percentage in asset_percentages], 
+                [f"${value:,.2f}" for value in asset_values]
+            ]),
+            columnwidth=[80, 200, 200],
         ), row=1, col=1)
 
         # Add pie chart with asset weight distribution
@@ -86,7 +94,7 @@ class CreateSignals:
             values=asset_weights,
             title="Portfolio Weights",
             textinfo='label+percent',
-            hoverinfo='label+value+percent',
+            hoverinfo='label+percent',
             showlegend=True
         ), row=1, col=2)
 
@@ -111,3 +119,4 @@ class CreateSignals:
         
         # Save the plot as an HTML file
         utilities.save_html(fig, filename, self.output_filename)
+
