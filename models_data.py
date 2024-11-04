@@ -32,7 +32,7 @@ class ModelsData:
         self._cvar = None
         self._annual_volatility = None
         self._max_distance = 1.5
-        self._threshold_asset = "VTI"
+        self._threshold_asset = ""
         self._num_assets_to_select = 1
         self._standard_deviation = None
         self._out_of_market_tickers = {}
