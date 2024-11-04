@@ -91,12 +91,11 @@ class BacktestMomentumPortfolio:
     def calculate_momentum(self, current_date):
         """Calculate average momentum based on 1, 3, 6, 9, and 12-month cumulative returns."""
         # TODO need seperate dataframe for momentum data.
-        momentum_1m = (self._momentum_data.loc[:current_date].iloc[-21:] + 1).prod() - 1
         momentum_3m = (self._momentum_data.loc[:current_date].iloc[-63:] + 1).prod() - 1
         momentum_6m = (self._momentum_data.loc[:current_date].iloc[-126:] + 1).prod() - 1
         momentum_9m = (self._momentum_data.loc[:current_date].iloc[-189:] + 1).prod() - 1
         momentum_12m = (self._momentum_data.loc[:current_date].iloc[-252:] + 1).prod() - 1
-        return (momentum_1m + momentum_3m + momentum_6m + momentum_9m + momentum_12m) / 5
+        return (momentum_3m + momentum_6m + momentum_9m + momentum_12m) / 5
 
 
     def _adjust_weights(self, current_date, selected_assets):
@@ -154,7 +153,7 @@ class BacktestMomentumPortfolio:
                 for ticker in adjusted_weights:
                     adjusted_weights[ticker] /= total_weight
 
-        # print(f'{current_date}: Weights: {adjusted_weights}')
+        print(f'{current_date}: Weights: {adjusted_weights}')
         return adjusted_weights
 
 

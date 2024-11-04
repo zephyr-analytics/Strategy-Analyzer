@@ -120,6 +120,7 @@ class BacktestStaticPortfolio:
         total_weight = sum(adjusted_weights.values())
         for ticker in adjusted_weights:
             adjusted_weights[ticker] /= total_weight
+        print(f'{current_date}: Weights: {adjusted_weights}')
         return adjusted_weights
 
 

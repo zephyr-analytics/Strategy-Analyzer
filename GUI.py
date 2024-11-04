@@ -27,7 +27,7 @@ class PortfolioAnalyzer(ctk.CTk):
         """
         super().__init__()
         self.title("Portfolio Analyzer")
-        self.geometry("1100x675")
+        self.geometry("1200x700")
 
         # Initialize ModelsData object
         self.data_models = ModelsData()
@@ -164,6 +164,7 @@ class PortfolioAnalyzer(ctk.CTk):
                           button_color="#8e44ad", button_hover_color="#8e44ad", variable=self.sma_window_var).pack(pady=(0, 10))
         self.sma_window_var.trace_add("write", self.update_sma_window)
 
+        ctk.CTkLabel(sidebar, text="Select portfolio assets:", font=self.bold_font).pack(pady=(0, 0))
         ctk.CTkButton(sidebar, text="Select Asset Weights File", fg_color="#bb8fce", text_color="#000000", hover_color="#8e44ad", command=self.load_weights_and_update).pack(pady=(10, 10))
 
         # Right sidebar
@@ -177,6 +178,7 @@ class PortfolioAnalyzer(ctk.CTk):
                           button_color="#8e44ad", button_hover_color="#8e44ad", variable=self.theme_mode_var, command=self.change_theme).pack(pady=(0, 20), padx=(10, 10))
         self.theme_mode_var.trace_add("write", self.update_theme_mode)
 
+        ctk.CTkLabel(right_sidebar, text="Select out of market assets:", font=self.bold_font).pack(pady=(0, 0))
         ctk.CTkButton(right_sidebar, text="Select Asset Weights File", fg_color="#bb8fce", text_color="#000000", hover_color="#8e44ad", command=self.load_out_of_market_weights_and_update).pack(pady=(10, 10))
 
         # Entry box for threshold asset (always shown)
