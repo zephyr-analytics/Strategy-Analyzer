@@ -54,12 +54,8 @@ class ResultsProcessor:
         portfolio_value = self.portfolio_values
         final_value = portfolio_value.iloc[-1]
 
-        # Calculate the standard deviation of portfolio returns
-        std_dev = utilities.calculate_standard_deviation(self.portfolio_returns)
-
         fig = go.Figure()
 
-        # Plot the main portfolio value
         fig.add_trace(go.Scatter(
             x=portfolio_value.index,
             y=portfolio_value,
@@ -68,7 +64,6 @@ class ResultsProcessor:
             line=dict(color="black")
         ))
 
-        # If buy_and_hold_values is provided, add it to the plot
         if self.buy_and_hold_values is not None:
             final_bnh_value = self.buy_and_hold_values.iloc[-1]
             fig.add_trace(go.Scatter(
@@ -90,7 +85,6 @@ class ResultsProcessor:
         else:
             annotations = []
 
-        # Annotations for the main portfolio
         annotations.extend([
             dict(
                 xref='paper', yref='paper', x=0.2, y=1,
@@ -113,16 +107,15 @@ class ResultsProcessor:
                 showarrow=False,
                 font=dict(size=12)
             ),
-            # dict(
-            #     xref='paper', yref='paper', x=0.8, y=1,
-            #     xanchor='center', yanchor='bottom',
-            #     text=f'Standard Deviation: {std_dev:.2%}',
-            #     showarrow=False,
-            #     font=dict(size=12)
-            # )
+            dict(
+                xref='paper', yref='paper', x=0.8, y=1,
+                xanchor='center', yanchor='bottom',
+                text=f'Standard Deviation: {self.standard_deviation:.2%}',
+                showarrow=False,
+                font=dict(size=12)
+            )
         ])
 
-        # Add watermark annotation (without the layer parameter)
         annotations.append(
             dict(
                 xref='paper', yref='paper', x=0.5, y=0.2,
@@ -135,7 +128,6 @@ class ResultsProcessor:
             )
         )
 
-        # Update layout with annotations and titles
         fig.update_layout(
             title=dict(
                 text='Portfolio Value Over Time',
@@ -156,7 +148,6 @@ class ResultsProcessor:
             )
         )
 
-        # Save the plot as an HTML file
         utilities.save_html(fig, filename, self.output_filename)
 
 
