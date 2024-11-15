@@ -20,7 +20,8 @@ class ResultsProcessor:
         Parameters
         ----------
         data_models : ModelsData
-            An instance of the ModelsData class containing all relevant parameters and data for processing results.
+            An instance of the ModelsData class containing all
+            relevant parameters and data for processing results.
         """
         self.data_models = data_models
         self.output_filename = data_models.weights_filename
@@ -37,7 +38,8 @@ class ResultsProcessor:
 
     def plot_portfolio_value(self, buy_and_hold_values=None, filename='portfolio_value'):
         """
-        Plots the portfolio value over time, including an optional buy-and-hold strategy line, and saves the plot as an HTML file.
+        Plots the portfolio value over time, including an optional buy-and-hold strategy line,
+        and saves the plot as an HTML file.
 
         Parameters
         ----------
@@ -48,10 +50,10 @@ class ResultsProcessor:
         """
         portfolio_value = self.portfolio_values
         final_value = portfolio_value.iloc[-1]
-        
+
         # Calculate the standard deviation of portfolio returns
         std_dev = utilities.calculate_standard_deviation(self.portfolio_returns)
-        
+
         fig = go.Figure()
 
         # Plot the main portfolio value
@@ -170,7 +172,15 @@ class ResultsProcessor:
         portfolio_value = self.portfolio_values
 
         fig = go.Figure()
-        fig.add_trace(go.Histogram(x=returns.dropna(), nbinsx=30, name='Returns', opacity=0.75, marker_color="#ce93d8"))
+        fig.add_trace(
+            go.Histogram(
+                x=returns.dropna(),
+                nbinsx=30,
+                name='Returns',
+                opacity=0.75,
+                marker_color="#ce93d8"
+            )
+        )
         fig.add_shape(type="line",
                     x0=self.var, y0=0, x1=self.var, y1=1,
                     line=dict(color="Black", dash="dash"),
@@ -239,7 +249,13 @@ class ResultsProcessor:
         utilities.save_html(fig, filename, self.output_filename)
 
 
-    def plot_monte_carlo_simulation(self, simulation_results, simulation_horizon, output_filename, filename='monte_carlo_simulation'):
+    def plot_monte_carlo_simulation(
+            self,
+            simulation_results,
+            simulation_horizon,
+            output_filename,
+            filename='monte_carlo_simulation'
+        ):
         """
         Plots the results of the Monte Carlo simulation.
 
@@ -310,7 +326,8 @@ class ResultsProcessor:
 
     def plot_returns_heatmaps(self, filename='returns_heatmap'):
         """
-        Plots a combined heatmap of monthly and yearly returns with values shown as percentages on each cell.
+        Plots a combined heatmap of monthly and yearly
+        returns with values shown as percentages on each cell.
 
         Parameters
         ----------
@@ -353,7 +370,20 @@ class ResultsProcessor:
                     monthly_annotations.append(
                         dict(
                             text=f"{value:.2f}%",
-                            x=['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][j],
+                            x=[
+                                'Jan',
+                                'Feb',
+                                'Mar',
+                                'Apr',
+                                'May',
+                                'Jun',
+                                'Jul',
+                                'Aug',
+                                'Sep',
+                                'Oct',
+                                'Nov',
+                                'Dec'
+                                ][j],
                             y=monthly_heatmap_data.index[i],
                             xref='x1',
                             yref='y1',
