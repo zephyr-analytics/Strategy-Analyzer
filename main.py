@@ -25,7 +25,7 @@ def run_backtest(data_models: ModelsData):
 
     backtest = BacktestStaticPortfolio(data_models)
     backtest.process()
-    
+
     return "Backtest completed and plots saved."
 
 
@@ -76,25 +76,25 @@ def run_simulation(data_models: ModelsData):
 
     backtest = BacktestStaticPortfolio(data_models)
     backtest.process()
-    
+
     monte_carlo = MonteCarloSimulation(data_models)
     monte_carlo.process()
 
     return "Simulation completed and plot saved."
 
 
-def run_momentum_simulation(data_models: ModelsData):
-    """
-    Method for passing models_data to MonteCarlo Simulation Processor.
-    """
-    pass
+# def run_momentum_simulation(data_models: ModelsData):
+#     """
+#     Method for passing models_data to MonteCarlo Simulation Processor.
+#     """
+#     pass
 
 
-def run_machine_learning_simulation(data_models: ModelsData):
-    """
-    Method for passing models_data to MonteCarlo Simulation Processor.
-    """
-    pass
+# def run_machine_learning_simulation(data_models: ModelsData):
+#     """
+#     Method for passing models_data to MonteCarlo Simulation Processor.
+#     """
+#     pass
 
 
 def run_signals(data_models: ModelsData):
@@ -106,7 +106,7 @@ def run_signals(data_models: ModelsData):
 
     create_signals = CreateSignals(data_models)
     create_signals.process()
-    
+
     return f"Signals generated for {data_models.end_date}."
 
 
@@ -116,10 +116,10 @@ def run_momentum_signals(data_models: ModelsData):
     """
     if not data_models.assets_weights:
         return "Please load asset weights file."
-    
+
     create_signals = CreateSignalsMomentum(data_models)
     create_signals.process()
-    
+
     return f"Signals generated for {data_models.end_date}."
 
 
@@ -130,9 +130,14 @@ def run_machine_learning_signals(data_models: ModelsData):
     """
     if not data_models.assets_weights:
         return "Please load asset weights file."
-    
-    data = utilities.fetch_data_wo_threshold(data_models.assets_weights, data_models.start_date, data_models.end_date, 
-                                data_models.bond_ticker, data_models.cash_ticker)
+
+    data = utilities.fetch_data_wo_threshold(
+        data_models.assets_weights,
+        data_models.start_date,
+        data_models.end_date,
+        data_models.bond_ticker,
+        data_models.cash_ticker
+    )
 
     create_signals = CreateMLSignals(data_models, data)
     create_signals.process()
