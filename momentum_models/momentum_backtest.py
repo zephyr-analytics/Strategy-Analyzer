@@ -1,5 +1,8 @@
+"""
+Module for backtesting momentum assets.
+"""
+
 import pandas as pd
-import matplotlib.pyplot as plt
 
 import utilities as utilities
 from results.results_processor import ResultsProcessor

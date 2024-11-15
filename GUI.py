@@ -32,9 +32,9 @@ class PortfolioAnalyzer(ctk.CTk):
         # Initialize ModelsData object
         self.data_models = ModelsData()
 
-        # Set custom icon
-        icon_path = "C:/Users/monic/OneDrive/Documents/Files for Zephyr Analytics/Zephyr Analytics FF/company_icon.ico"
-        self.iconbitmap(icon_path)
+        # # Set custom icon
+        # icon_path = "C:/Users/monic/OneDrive/Documents/Files for Zephyr Analytics/Zephyr Analytics FF/company_icon.ico"
+        # self.iconbitmap(icon_path)
 
         # Variables for binding to GUI
         self.start_date_var = ctk.StringVar(value=self.data_models.start_date)
