@@ -1,8 +1,14 @@
+"""
+Module for backtesting momentum assets.
+"""
+
+import datetime
+
 import pandas as pd
-import matplotlib.pyplot as plt
 
 import utilities as utilities
 from results.results_processor import ResultsProcessor
+from models_data import ModelsData
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -37,7 +43,7 @@ class BacktestMomentumPortfolio:
         DataFrame to store the returns data for calculating momentum.
     """
 
-    def __init__(self, data_models):
+    def __init__(self, data_models: ModelsData):
         """
         Initializes the BacktestMomentumPortfolio class with data from ModelsData.
 
@@ -71,35 +77,51 @@ class BacktestMomentumPortfolio:
         """
         Processes the backtest by fetching data, running the backtest, and generating the plots.
         """
-        print(f"Threshold Asset: {self.threshold_asset}")
-        print(f"Bond Asset: {self.bond_ticker}")
         if self.threshold_asset == str(""):
-            self._data = utilities.fetch_data_wo_threshold(self.assets_weights, self.start_date, self.end_date, self.bond_ticker, self.cash_ticker)
+            self._data = utilities.fetch_data_wo_threshold(
+                self.assets_weights,
+                self.start_date,
+                self.end_date,
+                self.bond_ticker,
+                self.cash_ticker
+            )
         else:
-            self._data = utilities.fetch_data_w_threshold(self.assets_weights, self.start_date, self.end_date, self.bond_ticker, self.cash_ticker, self.threshold_asset)
+            self._data = utilities.fetch_data_w_threshold(
+                self.assets_weights,
+                self.start_date,
+                self.end_date,
+                self.bond_ticker,
+                self.cash_ticker,
+                self.threshold_asset
+            )
 
         self._momentum_data = self._data.copy().pct_change().dropna()
         self._run_backtest()
         self._get_portfolio_statistics()
-        buy_and_hold_values, buy_and_hold_returns = self._calculate_buy_and_hold()
+        self._calculate_buy_and_hold()
         results_processor = ResultsProcessor(self.data_models)
-        results_processor.plot_portfolio_value(buy_and_hold_values)
+        results_processor.plot_portfolio_value()
         results_processor.plot_var_cvar()
         results_processor.plot_returns_heatmaps()
 
 
-    def calculate_momentum(self, current_date):
-        """Calculate average momentum based on 1, 3, 6, 9, and 12-month cumulative returns."""
-        # TODO need seperate dataframe for momentum data.
-        momentum_1m = (self._momentum_data.loc[:current_date].iloc[-21:] + 1).prod() - 1
+    def calculate_momentum(self, current_date: datetime) -> float:
+        """
+        Calculate average momentum based on 3, 6, 9, and 12-month cumulative returns.
+        
+        Parameters
+        ----------
+        current_date : datetime
+            The current date for which the weights are being adjusted.
+        """
         momentum_3m = (self._momentum_data.loc[:current_date].iloc[-63:] + 1).prod() - 1
         momentum_6m = (self._momentum_data.loc[:current_date].iloc[-126:] + 1).prod() - 1
         momentum_9m = (self._momentum_data.loc[:current_date].iloc[-189:] + 1).prod() - 1
         momentum_12m = (self._momentum_data.loc[:current_date].iloc[-252:] + 1).prod() - 1
-        return (momentum_1m + momentum_3m + momentum_6m + momentum_9m + momentum_12m) / 5
+        return (momentum_3m + momentum_6m + momentum_9m + momentum_12m) / 4
 
 
-    def _adjust_weights(self, current_date, selected_assets):
+    def _adjust_weights(self, current_date: datetime, selected_assets: list) -> dict:
         """
         Adjusts the weights of the selected assets based on their SMA and the selected weighting strategy.
 
@@ -115,44 +137,55 @@ class BacktestMomentumPortfolio:
         dict
             Dictionary of adjusted asset weights.
         """
-        if self.threshold_asset == "":
-            # If there is no threshold asset, allocate weights normally without comparing to SMA
-            num_assets = len(selected_assets)
-            equal_weight = 1 / num_assets
-            adjusted_weights = {asset: equal_weight for asset in selected_assets['Asset']}
-        else:
-            # Check if threshold asset is below its SMA
+        # TODO there are still cases where asset weights are not as expected.
+        # Initialize equal weights for selected assets
+        num_assets = len(selected_assets)
+        equal_weight = 1 / num_assets
+        adjusted_weights = {asset: equal_weight for asset in selected_assets['Asset']}
+        
+        if self.threshold_asset:
+            # Note this is logic for threshold asset adjusting.
             threshold_price = self._data.loc[:current_date, self.threshold_asset].iloc[-1]
             threshold_sma = self._data.loc[:current_date, self.threshold_asset].rolling(window=self.sma_period).mean().iloc[-1]
-            
             if threshold_price < threshold_sma:
-                # If threshold asset is below its SMA, move the entire portfolio to cash or bonds
                 if self._data.loc[:current_date, self.bond_ticker].iloc[-1] < self._data.loc[:current_date, self.bond_ticker].rolling(window=self.sma_period).mean().iloc[-1]:
-                    # Move to cash
                     adjusted_weights = {self.cash_ticker: 1.0}
                 else:
-                    # Move to bonds
                     adjusted_weights = {self.bond_ticker: 1.0}
             else:
-                # If threshold asset is above its SMA, allocate weights normally
-                num_assets = len(selected_assets)
-                equal_weight = 1 / num_assets
-                adjusted_weights = {asset: equal_weight for asset in selected_assets['Asset']}
-
-                # Adjust weights for selected assets based on their SMA
                 for ticker in list(adjusted_weights.keys()):
-                    if self._data.loc[:current_date, ticker].iloc[-1] < self._data.loc[:current_date, ticker].rolling(window=self.sma_period).mean().iloc[-1]:
+                    asset_price = self._data.loc[:current_date, ticker].iloc[-1]
+                    asset_sma = self._data.loc[:current_date, ticker].rolling(window=self.sma_period).mean().iloc[-1]
+
+                    if asset_price < asset_sma:
                         if self._data.loc[:current_date, self.bond_ticker].iloc[-1] < self._data.loc[:current_date, self.bond_ticker].rolling(window=self.sma_period).mean().iloc[-1]:
                             adjusted_weights[self.cash_ticker] = adjusted_weights.get(self.cash_ticker, 0) + adjusted_weights[ticker]
-                            adjusted_weights[ticker] = 0
                         else:
                             adjusted_weights[self.bond_ticker] = adjusted_weights.get(self.bond_ticker, 0) + adjusted_weights[ticker]
-                            adjusted_weights[ticker] = 0
+                        adjusted_weights[ticker] = 0
+        else:
+            # Note: This is logic for non-threshold asset adjusting.
+            for ticker in list(adjusted_weights.keys()):
+                asset_price = self._data.loc[:current_date, ticker].iloc[-1]
+                asset_sma = self._data.loc[:current_date, ticker].rolling(window=self.sma_period).mean().iloc[-1]
+                if asset_price < asset_sma:
+                    if self._data.loc[:current_date, self.bond_ticker].iloc[-1] < self._data.loc[:current_date, self.bond_ticker].rolling(window=self.sma_period).mean().iloc[-1]:
+                        adjusted_weights[self.cash_ticker] = adjusted_weights.get(self.cash_ticker, 0) + adjusted_weights[ticker]
+                    else:
+                        adjusted_weights[self.bond_ticker] = adjusted_weights.get(self.bond_ticker, 0) + adjusted_weights[ticker]
+                    adjusted_weights[ticker] = 0
 
-                # Normalize weights to ensure they sum to 1
-                total_weight = sum(adjusted_weights.values())
-                for ticker in adjusted_weights:
-                    adjusted_weights[ticker] /= total_weight
+        # Note a final check for # of assets and weights.
+        actual_assets_count = sum(1 for weight in adjusted_weights.values() if weight > 0)
+        if actual_assets_count < self.num_assets_to_select:
+            fill_asset = self.cash_ticker if self._data.loc[:current_date, self.bond_ticker].iloc[-1] < self._data.loc[:current_date, self.bond_ticker].rolling(window=self.sma_period).mean().iloc[-1] else self.bond_ticker
+            fill_weight = (self.num_assets_to_select - actual_assets_count) / self.num_assets_to_select
+            adjusted_weights[fill_asset] = adjusted_weights.get(fill_asset, 0) + fill_weight
+
+        #Note normalize weights to ensure they sum to 1.
+        total_weight = sum(adjusted_weights.values())
+        for ticker in adjusted_weights:
+            adjusted_weights[ticker] /= total_weight
 
         print(f'{current_date}: Weights: {adjusted_weights}')
         return adjusted_weights
@@ -181,8 +214,8 @@ class BacktestMomentumPortfolio:
             momentum = self.calculate_momentum(last_date_current_month)
             
             # Select assets based on momentum
-            selected_assets = pd.DataFrame({'Asset': momentum.nlargest(self.num_assets_to_select).index, 'Momentum': momentum.nlargest(self.num_assets_to_select).values})  # Select top 2 assets
-
+            selected_assets = pd.DataFrame({'Asset': momentum.nlargest(self.num_assets_to_select).index, 'Momentum': momentum.nlargest(self.num_assets_to_select).values})
+            print(selected_assets)
             # Adjust weights based on the selected assets
             adjusted_weights = self._adjust_weights(last_date_current_month, selected_assets)
 
@@ -195,6 +228,7 @@ class BacktestMomentumPortfolio:
             new_portfolio_value = previous_value * (1 + month_return)
             portfolio_values.append(new_portfolio_value)
             portfolio_returns.append(month_return)
+
         self.data_models.adjusted_weights = adjusted_weights
         self.data_models.portfolio_values = pd.Series(portfolio_values, index=pd.date_range(start=self.start_date, periods=len(portfolio_values), freq='M'))
         self.data_models.portfolio_returns = pd.Series(portfolio_returns, index=pd.date_range(start=self.start_date, periods=len(portfolio_returns), freq='M'))
@@ -250,7 +284,5 @@ class BacktestMomentumPortfolio:
             portfolio_values.append(new_portfolio_value)
             portfolio_returns.append(month_return)
 
-        buy_and_hold_values = pd.Series(portfolio_values, index=monthly_dates[:len(portfolio_values)])
-        buy_and_hold_returns = pd.Series(portfolio_returns, index=monthly_dates[1:len(portfolio_returns)+1])
-    
-        return buy_and_hold_values, buy_and_hold_returns
+        self.data_models.buy_and_hold_values = pd.Series(portfolio_values, index=monthly_dates[:len(portfolio_values)])
+        self.data_models.buy_and_hold_returns = pd.Series(portfolio_returns, index=monthly_dates[1:len(portfolio_returns)+1])

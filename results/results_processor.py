@@ -6,7 +6,9 @@ import numpy as np
 import pandas as pd
 import plotly.subplots as sp
 import plotly.graph_objects as go
+
 import utilities as utilities
+
 
 class ResultsProcessor:
     """
@@ -20,7 +22,8 @@ class ResultsProcessor:
         Parameters
         ----------
         data_models : ModelsData
-            An instance of the ModelsData class containing all relevant parameters and data for processing results.
+            An instance of the ModelsData class containing all
+            relevant parameters and data for processing results.
         """
         self.data_models = data_models
         self.output_filename = data_models.weights_filename
@@ -33,11 +36,13 @@ class ResultsProcessor:
         self.cvar = data_models.cvar
         self.avg_annual_return = data_models.average_annual_return
         self.standard_deviation = data_models.standard_deviation
+        self.buy_and_hold_values = data_models.buy_and_hold_values
 
 
-    def plot_portfolio_value(self, buy_and_hold_values=None, filename='portfolio_value'):
+    def plot_portfolio_value(self, filename='portfolio_value'):
         """
-        Plots the portfolio value over time, including an optional buy-and-hold strategy line, and saves the plot as an HTML file.
+        Plots the portfolio value over time, including an optional buy-and-hold strategy line,
+        and saves the plot as an HTML file.
 
         Parameters
         ----------
@@ -48,29 +53,25 @@ class ResultsProcessor:
         """
         portfolio_value = self.portfolio_values
         final_value = portfolio_value.iloc[-1]
-        
-        # Calculate the standard deviation of portfolio returns
-        std_dev = utilities.calculate_standard_deviation(self.portfolio_returns)
-        
+
         fig = go.Figure()
 
-        # Plot the main portfolio value
         fig.add_trace(go.Scatter(
             x=portfolio_value.index,
             y=portfolio_value,
             mode='lines',
-            name='Portfolio Value'
+            name='Portfolio Value',
+            line=dict(color="black")
         ))
 
-        # If buy_and_hold_values is provided, add it to the plot
-        if buy_and_hold_values is not None:
-            final_bnh_value = buy_and_hold_values.iloc[-1]
+        if self.buy_and_hold_values is not None:
+            final_bnh_value = self.buy_and_hold_values.iloc[-1]
             fig.add_trace(go.Scatter(
-                x=buy_and_hold_values.index,
-                y=buy_and_hold_values,
+                x=self.buy_and_hold_values.index,
+                y=self.buy_and_hold_values,
                 mode='lines',
                 name='Buy & Hold Value',
-                line=dict(dash='dash')
+                line=dict(color="#ce93d8")
             ))
             annotations = [
                 dict(
@@ -84,7 +85,6 @@ class ResultsProcessor:
         else:
             annotations = []
 
-        # Annotations for the main portfolio
         annotations.extend([
             dict(
                 xref='paper', yref='paper', x=0.2, y=1,
@@ -110,13 +110,24 @@ class ResultsProcessor:
             dict(
                 xref='paper', yref='paper', x=0.8, y=1,
                 xanchor='center', yanchor='bottom',
-                text=f'Standard Deviation: {std_dev:.2%}',
+                text=f'Standard Deviation: {self.standard_deviation:.2%}',
                 showarrow=False,
                 font=dict(size=12)
             )
         ])
 
-        # Update layout with annotations and titles
+        annotations.append(
+            dict(
+                xref='paper', yref='paper', x=0.5, y=0.2,
+                text="© Zehpyr Analytics",
+                showarrow=False,
+                font=dict(size=80, color="#f8f9f9"),
+                xanchor='center',
+                yanchor='bottom',
+                opacity=0.5
+            )
+        )
+
         fig.update_layout(
             title=dict(
                 text='Portfolio Value Over Time',
@@ -137,9 +148,7 @@ class ResultsProcessor:
             )
         )
 
-        # Save the plot as an HTML file
         utilities.save_html(fig, filename, self.output_filename)
-
 
 
     def plot_var_cvar(self, confidence_level=0.95, filename='var_cvar'):
@@ -157,66 +166,90 @@ class ResultsProcessor:
         portfolio_value = self.portfolio_values
 
         fig = go.Figure()
-        fig.add_trace(go.Histogram(x=returns.dropna(), nbinsx=30, name='Returns', opacity=0.75, marker_color='blue'))
+        fig.add_trace(
+            go.Histogram(
+                x=returns.dropna(),
+                nbinsx=30,
+                name='Returns',
+                opacity=0.75,
+                marker_color="#ce93d8"
+            )
+        )
         fig.add_shape(type="line",
-                      x0=self.var, y0=0, x1=self.var, y1=1,
-                      line=dict(color="Red", dash="dash"),
-                      xref='x', yref='paper',
-                      name=f'VaR ({confidence_level * 100}%): {self.var:.2%}')
+                    x0=self.var, y0=0, x1=self.var, y1=1,
+                    line=dict(color="Black", dash="dash"),
+                    xref='x', yref='paper',
+                    name=f'VaR ({confidence_level * 100}%): {self.var:.2%}')
         fig.add_shape(type="line",
-                      x0=self.cvar, y0=0, x1=self.cvar, y1=1,
-                      line=dict(color="Green", dash="dash"),
-                      xref='x', yref='paper',
-                      name=f'CVaR ({confidence_level * 100}%): {self.cvar:.2%}')
+                    x0=self.cvar, y0=0, x1=self.cvar, y1=1,
+                    line=dict(color="Black", dash="dash"),
+                    xref='x', yref='paper',
+                    name=f'CVaR ({confidence_level * 100}%): {self.cvar:.2%}')
         fig.update_layout(
             title='Portfolio Returns with VaR and CVaR',
             xaxis_title='Returns',
             yaxis_title='Frequency',
-            showlegend=True,
+            showlegend=False,
             legend=dict(
                 orientation="h",
                 yanchor="top",
-                y=1.3,
+                y=1.2,
                 xanchor="center",
                 x=0.5
             ),
             annotations=[
                 dict(
-                    xref='paper', yref='paper', x=0.5, y=1.25,
+                    xref='paper', yref='paper', x=0.5, y=1,
                     xanchor='center', yanchor='bottom',
                     text=f'CAGR: {self.cagr:.2%}',
                     showarrow=False
                 ),
                 dict(
-                    xref='paper', yref='paper', x=0.5, y=1.2,
+                    xref='paper', yref='paper', x=0.25, y=1,
                     xanchor='center', yanchor='bottom',
                     text=f'Avg Annual Return: {self.avg_annual_return:.2%}',
                     showarrow=False
                 ),
                 dict(
-                    xref='paper', yref='paper', x=0.5, y=1.15,
+                    xref='paper', yref='paper', x=0.1, y=1,
                     xanchor='center', yanchor='bottom',
                     text=f'Max Drawdown: {self.max_drawdown:.2%}',
                     showarrow=False
                 ),
                 dict(
-                    xref='paper', yref='paper', x=0.5, y=1.1,
+                    xref='paper', yref='paper', x=0.75, y=1,
                     xanchor='center', yanchor='bottom',
                     text=f'VaR ({confidence_level * 100}%): {self.var:.2%}',
                     showarrow=False
                 ),
                 dict(
-                    xref='paper', yref='paper', x=0.5, y=1.05,
+                    xref='paper', yref='paper', x=0.9, y=1,
                     xanchor='center', yanchor='bottom',
                     text=f'CVaR ({confidence_level * 100}%): {self.cvar:.2%}',
                     showarrow=False
+                ),
+                # Add the watermark annotation here
+                dict(
+                    xref='paper', yref='paper', x=0.5, y=0.2,
+                    text="© Zephyr Analytics",
+                    showarrow=False,
+                    font=dict(size=80, color="#f8f9f9"),
+                    xanchor='center',
+                    yanchor='bottom',
+                    opacity=0.5
                 )
             ]
         )
         utilities.save_html(fig, filename, self.output_filename)
 
 
-    def plot_monte_carlo_simulation(self, simulation_results, simulation_horizon, output_filename, filename='monte_carlo_simulation'):
+    def plot_monte_carlo_simulation(
+            self,
+            simulation_results,
+            simulation_horizon,
+            output_filename,
+            filename='monte_carlo_simulation'
+        ):
         """
         Plots the results of the Monte Carlo simulation.
 
@@ -266,15 +299,29 @@ class ResultsProcessor:
             title='Monte Carlo Simulation of Portfolio Value',
             xaxis_title='Year',
             yaxis_title='Portfolio Value ($)',
-            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+            annotations=[
+                # Watermark annotation
+                dict(
+                    xref='paper', yref='paper', x=0.5, y=0.2,
+                    text="© Zephyr Analytics",
+                    showarrow=False,
+                    font=dict(size=80, color="#f8f9f9"),
+                    xanchor='center',
+                    yanchor='bottom',
+                    opacity=0.5
+                )
+            ]
         )
+
+        # Save the plot as an HTML file
         utilities.save_html(fig, filename, output_filename)
-        # fig.show()
 
 
     def plot_returns_heatmaps(self, filename='returns_heatmap'):
         """
-        Plots a combined heatmap of monthly and yearly returns with values shown as percentages on each cell.
+        Plots a combined heatmap of monthly and yearly
+        returns with values shown as percentages on each cell.
 
         Parameters
         ----------
@@ -317,7 +364,20 @@ class ResultsProcessor:
                     monthly_annotations.append(
                         dict(
                             text=f"{value:.2f}%",
-                            x=['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][j],
+                            x=[
+                                'Jan',
+                                'Feb',
+                                'Mar',
+                                'Apr',
+                                'May',
+                                'Jun',
+                                'Jul',
+                                'Aug',
+                                'Sep',
+                                'Oct',
+                                'Nov',
+                                'Dec'
+                                ][j],
                             y=monthly_heatmap_data.index[i],
                             xref='x1',
                             yref='y1',
@@ -347,7 +407,18 @@ class ResultsProcessor:
                 )
             )
         fig.update_layout(
-            # title="Monthly and Yearly Returns Heatmaps",
-            annotations=monthly_annotations + yearly_annotations
+            annotations=monthly_annotations + yearly_annotations + [
+                dict(
+                    xref='paper', yref='paper', x=0.5, y=0.5,
+                    text="© Zephyr Analytics",
+                    showarrow=False,
+                    font=dict(size=80, color="#f8f9f9"),
+                    xanchor='center',
+                    yanchor='bottom',
+                    opacity=0.5
+                )
+            ]
         )
+
+        # Save the plot as an HTML file
         utilities.save_html(fig, filename, self.output_filename)

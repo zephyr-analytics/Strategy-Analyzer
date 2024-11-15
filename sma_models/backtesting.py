@@ -120,6 +120,7 @@ class BacktestStaticPortfolio:
         total_weight = sum(adjusted_weights.values())
         for ticker in adjusted_weights:
             adjusted_weights[ticker] /= total_weight
+        print(f'{current_date}: Weights: {adjusted_weights}')
         return adjusted_weights
 
 
@@ -127,7 +128,7 @@ class BacktestStaticPortfolio:
         """
         Runs the backtest by calculating portfolio values and returns over time.
         """
-        print(self.sma_period, self.cash_ticker, self.bond_ticker)
+        # print(self.sma_period, self.cash_ticker, self.bond_ticker)
         monthly_dates = pd.date_range(start=self.start_date, end=self.end_date, freq='M')
         portfolio_values = [self.initial_portfolio_value]
         portfolio_returns = []

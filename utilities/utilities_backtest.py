@@ -20,7 +20,6 @@ def calculate_cagr(portfolio_value, trading_frequency):
     float
         CAGR value.
     """
-
     if trading_frequency == 'Monthly':
         periods_per_year = 12
     elif trading_frequency == 'Bi-Monthly':
@@ -163,4 +162,6 @@ def calculate_standard_deviation(returns):
     float
         Standard deviation of returns.
     """
+    # TODO current standard deviation is based on monthly returns.
+    # TODO annulized standard deviation needs to be created as well along side monthly.
     return returns.std()
