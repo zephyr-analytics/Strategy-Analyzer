@@ -35,7 +35,7 @@ class ResultsProcessor:
         self.var = data_models.var
         self.cvar = data_models.cvar
         self.avg_annual_return = data_models.average_annual_return
-        self.standard_deviation = data_models.standard_deviation
+        self.standard_deviation = data_models.annual_volatility
         self.buy_and_hold_values = data_models.buy_and_hold_values
 
 
