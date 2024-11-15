@@ -2,10 +2,13 @@
 Module for backtesting momentum assets.
 """
 
+import datetime
+
 import pandas as pd
 
 import utilities as utilities
 from results.results_processor import ResultsProcessor
+from models_data import ModelsData
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -40,7 +43,7 @@ class BacktestMomentumPortfolio:
         DataFrame to store the returns data for calculating momentum.
     """
 
-    def __init__(self, data_models):
+    def __init__(self, data_models: ModelsData):
         """
         Initializes the BacktestMomentumPortfolio class with data from ModelsData.
 
@@ -74,25 +77,43 @@ class BacktestMomentumPortfolio:
         """
         Processes the backtest by fetching data, running the backtest, and generating the plots.
         """
-        # print(f"Threshold Asset: {self.threshold_asset}")
-        # print(f"Bond Asset: {self.bond_ticker}")
         if self.threshold_asset == str(""):
-            self._data = utilities.fetch_data_wo_threshold(self.assets_weights, self.start_date, self.end_date, self.bond_ticker, self.cash_ticker)
+            self._data = utilities.fetch_data_wo_threshold(
+                self.assets_weights,
+                self.start_date,
+                self.end_date,
+                self.bond_ticker,
+                self.cash_ticker
+            )
         else:
-            self._data = utilities.fetch_data_w_threshold(self.assets_weights, self.start_date, self.end_date, self.bond_ticker, self.cash_ticker, self.threshold_asset)
+            self._data = utilities.fetch_data_w_threshold(
+                self.assets_weights,
+                self.start_date,
+                self.end_date,
+                self.bond_ticker,
+                self.cash_ticker,
+                self.threshold_asset
+            )
 
         self._momentum_data = self._data.copy().pct_change().dropna()
         self._run_backtest()
         self._get_portfolio_statistics()
-        buy_and_hold_values, buy_and_hold_returns = self._calculate_buy_and_hold()
+        self._calculate_buy_and_hold()
         results_processor = ResultsProcessor(self.data_models)
-        results_processor.plot_portfolio_value(buy_and_hold_values)
+        results_processor.plot_portfolio_value()
         results_processor.plot_var_cvar()
         results_processor.plot_returns_heatmaps()
 
 
-    def calculate_momentum(self, current_date):
-        """Calculate average momentum based on 3, 6, 9, and 12-month cumulative returns."""
+    def calculate_momentum(self, current_date: datetime) -> float:
+        """
+        Calculate average momentum based on 3, 6, 9, and 12-month cumulative returns.
+        
+        Parameters
+        ----------
+        current_date : datetime
+            The current date for which the weights are being adjusted.
+        """
         momentum_3m = (self._momentum_data.loc[:current_date].iloc[-63:] + 1).prod() - 1
         momentum_6m = (self._momentum_data.loc[:current_date].iloc[-126:] + 1).prod() - 1
         momentum_9m = (self._momentum_data.loc[:current_date].iloc[-189:] + 1).prod() - 1
@@ -100,7 +121,7 @@ class BacktestMomentumPortfolio:
         return (momentum_3m + momentum_6m + momentum_9m + momentum_12m) / 4
 
 
-    def _adjust_weights(self, current_date, selected_assets):
+    def _adjust_weights(self, current_date: datetime, selected_assets: list) -> dict:
         """
         Adjusts the weights of the selected assets based on their SMA and the selected weighting strategy.
 
@@ -207,6 +228,7 @@ class BacktestMomentumPortfolio:
             new_portfolio_value = previous_value * (1 + month_return)
             portfolio_values.append(new_portfolio_value)
             portfolio_returns.append(month_return)
+
         self.data_models.adjusted_weights = adjusted_weights
         self.data_models.portfolio_values = pd.Series(portfolio_values, index=pd.date_range(start=self.start_date, periods=len(portfolio_values), freq='M'))
         self.data_models.portfolio_returns = pd.Series(portfolio_returns, index=pd.date_range(start=self.start_date, periods=len(portfolio_returns), freq='M'))
@@ -262,7 +284,5 @@ class BacktestMomentumPortfolio:
             portfolio_values.append(new_portfolio_value)
             portfolio_returns.append(month_return)
 
-        buy_and_hold_values = pd.Series(portfolio_values, index=monthly_dates[:len(portfolio_values)])
-        buy_and_hold_returns = pd.Series(portfolio_returns, index=monthly_dates[1:len(portfolio_returns)+1])
-    
-        return buy_and_hold_values, buy_and_hold_returns
+        self.data_models.buy_and_hold_values = pd.Series(portfolio_values, index=monthly_dates[:len(portfolio_values)])
+        self.data_models.buy_and_hold_returns = pd.Series(portfolio_returns, index=monthly_dates[1:len(portfolio_returns)+1])

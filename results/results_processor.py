@@ -6,7 +6,9 @@ import numpy as np
 import pandas as pd
 import plotly.subplots as sp
 import plotly.graph_objects as go
+
 import utilities as utilities
+
 
 class ResultsProcessor:
     """
@@ -34,9 +36,10 @@ class ResultsProcessor:
         self.cvar = data_models.cvar
         self.avg_annual_return = data_models.average_annual_return
         self.standard_deviation = data_models.standard_deviation
+        self.buy_and_hold_values = data_models.buy_and_hold_values
 
 
-    def plot_portfolio_value(self, buy_and_hold_values=None, filename='portfolio_value'):
+    def plot_portfolio_value(self, filename='portfolio_value'):
         """
         Plots the portfolio value over time, including an optional buy-and-hold strategy line,
         and saves the plot as an HTML file.
@@ -66,11 +69,11 @@ class ResultsProcessor:
         ))
 
         # If buy_and_hold_values is provided, add it to the plot
-        if buy_and_hold_values is not None:
-            final_bnh_value = buy_and_hold_values.iloc[-1]
+        if self.buy_and_hold_values is not None:
+            final_bnh_value = self.buy_and_hold_values.iloc[-1]
             fig.add_trace(go.Scatter(
-                x=buy_and_hold_values.index,
-                y=buy_and_hold_values,
+                x=self.buy_and_hold_values.index,
+                y=self.buy_and_hold_values,
                 mode='lines',
                 name='Buy & Hold Value',
                 line=dict(color="#ce93d8")

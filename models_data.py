@@ -12,6 +12,8 @@ class ModelsData:
         self._assets_weights = {}
         self._adjusted_weights = {}
         self._bond_ticker = "BND"
+        self._buy_and_hold_values = pd.Series
+        self._buy_and_hold_returns = pd.Series
         self._cash_ticker = "SGOV"
         self._end_date = "2024-01-01"
         self._initial_portfolio_value = 10000
@@ -37,7 +39,7 @@ class ModelsData:
         self._standard_deviation = None
         self._out_of_market_tickers = {}
 
-    # Getter and Setter for assets_weights
+
     @property
     def assets_weights(self):
         """
@@ -57,6 +59,7 @@ class ModelsData:
             value (dict): A dictionary containing the asset weights.
         """
         self._assets_weights = value
+
 
     @property
     def adjusted_weights(self):
@@ -78,7 +81,7 @@ class ModelsData:
         """
         self._adjusted_weights = value
 
-    # Getter and Setter for bond_ticker
+
     @property
     def bond_ticker(self):
         """
@@ -99,7 +102,53 @@ class ModelsData:
         """
         self._bond_ticker = value
 
-    # Getter and Setter for cash_ticker
+
+    @property
+    def buy_and_hold_values(self):
+        # TODO correct docstrings.
+        """
+        Gets the buy and hold values.
+
+        Returns:
+            str: The bond ticker symbol.
+        """
+        return self._buy_and_hold_values
+
+    @buy_and_hold_values.setter
+    def buy_and_hold_values(self, value):
+        # TODO correct docstrings.
+        """
+        Sets the buy and hold values.
+
+        Args:
+            value (str): The bond ticker symbol.
+        """
+        self._buy_and_hold_values = value
+
+
+    @property
+    def buy_and_hold_returns(self):
+        # TODO correct docstrings.
+        """
+        Gets the buy and hold portfolio returns.
+
+        Returns:
+            str: The bond ticker symbol.
+        """
+        return self._buy_and_hold_returns
+
+    @buy_and_hold_returns.setter
+    def buy_and_hold_returns(self, value):
+        # TODO correct docstrings.
+        """
+        Sets the buy and hold portfolio returns.
+
+        Args:
+            value (str): The bond ticker symbol.
+        """
+        self._buy_and_hold_returns = value
+
+
     @property
     def cash_ticker(self):
         """
