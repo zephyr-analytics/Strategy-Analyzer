@@ -497,21 +497,29 @@ class ModelsData:
             The CVaR value to be set.
         """
         self._cvar = value
-    
+
     @property
     def annual_volatility(self):
+        """
+        """
         return self._annual_volatility
-    
+
     @annual_volatility.setter
     def annual_volatility(self, value):
+        """
+        """
         self._annual_volatility = value
 
     @property
     def max_distance(self):
+        """
+        """
         return self._max_distance
-    
+
     @max_distance.setter
     def max_distance(self, value):
+        """
+        """
         self._max_distance = value
 
     @property
