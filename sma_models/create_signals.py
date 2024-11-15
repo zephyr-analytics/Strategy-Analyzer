@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 import utilities as utilities
-from models.backtesting import BacktestStaticPortfolio
+from sma_models.backtesting import BacktestStaticPortfolio
 
 class CreateSignals:
     """

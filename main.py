@@ -5,9 +5,9 @@ Main module for encapsulating calling processors.
 import utilities as utilities
 from models_data import ModelsData
 
-from models.backtesting import BacktestStaticPortfolio
-from models.monte_carlo_sim import MonteCarloSimulation
-from models.create_signals import CreateSignals
+from sma_models.backtesting import BacktestStaticPortfolio
+from sma_models.monte_carlo_sim import MonteCarloSimulation
+from sma_models.create_signals import CreateSignals
 
 from momentum_models.momentum_backtest import BacktestMomentumPortfolio
 from in_and_out_momentum.iao_momentum_backtest import BacktestInAndOutMomentumPortfolio
