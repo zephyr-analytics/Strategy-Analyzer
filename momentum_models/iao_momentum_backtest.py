@@ -83,7 +83,8 @@ class BacktestInAndOutMomentumPortfolio(MomentumProcessor):
         self._momentum_data = None  # In-market momentum data
         self._momentum_data_out_of_market = None  # Out-of-market momentum data
 
-    def process(self):
+
+    def _process(self):
         """
         Processes the backtest by fetching data, running the backtest, and generating the plots.
         """
@@ -92,12 +93,18 @@ class BacktestInAndOutMomentumPortfolio(MomentumProcessor):
         print(f"Out-of-Market Asset: {self.out_of_market_tickers}")
         
         # Fetch in-market and out-of-market data
-        if self.threshold_asset == "":
-            self._data = utilities.fetch_data_wo_threshold(self.assets_weights, self.start_date, self.end_date, self.bond_ticker, self.cash_ticker)
-            self._out_of_market_data = utilities.fetch_out_of_market_data(self.out_of_market_tickers, self.start_date, self.end_date)
-        else:
-            self._data = utilities.fetch_data_w_threshold(self.assets_weights, self.start_date, self.end_date, self.bond_ticker, self.cash_ticker, self.threshold_asset)
-            self._out_of_market_data = utilities.fetch_out_of_market_data(self.out_of_market_tickers, self.start_date, self.end_date)
+        all_tickers = list(self.assets_weights.keys()) + [self.cash_ticker]
+
+        if self.threshold_asset != "":
+            all_tickers.append(self.threshold_asset)
+
+        if self.bond_ticker != "":
+            all_tickers.append(self.bond_ticker)
+
+        self._data = utilities.fetch_data(all_tickers, self.start_date, self.end_date)
+        
+        
+        self._out_of_market_data = utilities.fetch_out_of_market_data(self.out_of_market_tickers, self.start_date, self.end_date)
 
         # Calculate momentum for both in-market and out-of-market assets
         self._momentum_data = self._data.copy().pct_change().dropna()
@@ -105,13 +112,14 @@ class BacktestInAndOutMomentumPortfolio(MomentumProcessor):
 
         self._run_backtest()
         self._get_portfolio_statistics()
-        buy_and_hold_values, buy_and_hold_returns = self._calculate_buy_and_hold()
+        self._calculate_buy_and_hold()
         results_processor = ResultsProcessor(self.data_models)
-        results_processor.plot_portfolio_value(buy_and_hold_values)
+        results_processor.plot_portfolio_value()
         results_processor.plot_var_cvar()
         results_processor.plot_returns_heatmaps()
 
-    def calculate_momentum(self, current_date):
+
+    def _calculate_momentum(self, current_date):
         """Calculate average momentum based on 1, 3, 6, 9, and 12-month cumulative returns for both in-market and out-of-market assets."""
         # In-market asset momentum
         momentum_3m = (self._momentum_data.loc[:current_date].iloc[-63:] + 1).prod() - 1
@@ -128,6 +136,7 @@ class BacktestInAndOutMomentumPortfolio(MomentumProcessor):
         out_of_market_momentum = (momentum_3m_out + momentum_6m_out + momentum_9m_out + momentum_12m_out) / 4
 
         return in_market_momentum, out_of_market_momentum
+
 
     def _adjust_weights(self, current_date, selected_assets, selected_out_of_market_assets):
         """
@@ -211,7 +220,7 @@ class BacktestInAndOutMomentumPortfolio(MomentumProcessor):
             last_date_current_month = self._data.index[self._data.index.get_loc(current_date, method='pad')]
 
             # Calculate momentum for both in-market and out-of-market assets
-            in_market_momentum, out_of_market_momentum = self.calculate_momentum(last_date_current_month)
+            in_market_momentum, out_of_market_momentum = self._calculate_momentum(last_date_current_month)
 
             # Select top assets based on momentum
             selected_assets = pd.DataFrame({'Asset': in_market_momentum.nlargest(self.num_assets_to_select).index,

@@ -54,29 +54,13 @@ class MomentumProcessor(ABC):
         self._data = None
         self._momentum_data = None
 
+
+    @abstractmethod
     def process(self):
         """
         Processes the backtest by fetching data, running the backtest, and generating the plots.
         """
-        # TODO implement type runs here for extra logic layer for data fetching.
-        all_tickers = list(self.assets_weights.keys()) + [self.cash_ticker]
-
-        if self.threshold_asset != "":
-            all_tickers.append(self.threshold_asset)
-
-        if self.bond_ticker != "":
-            all_tickers.append(self.bond_ticker)
-
-        utilities.fetch_data(all_tickers, self.start_date, self.end_date)
-
-        self._momentum_data = self._data.copy().pct_change().dropna()
-        self._run_backtest()
-        self._get_portfolio_statistics()
-        self._calculate_buy_and_hold()
-        results_processor = ResultsProcessor(self.data_models)
-        results_processor.plot_portfolio_value()
-        results_processor.plot_var_cvar()
-        results_processor.plot_returns_heatmaps()
+        pass
 
 
     @abstractmethod
@@ -98,7 +82,7 @@ class MomentumProcessor(ABC):
 
 
     @abstractmethod
-    def _adjust_weights(self, current_date: datetime.date, selected_assets: pd.DataFrame) -> Dict[str, float]:
+    def adjust_weights(self, current_date: datetime.date, selected_assets: pd.DataFrame) -> Dict[str, float]:
         """
         Adjusts portfolio weights based on asset performance and strategy.
 
@@ -118,7 +102,7 @@ class MomentumProcessor(ABC):
 
 
     @abstractmethod
-    def _run_backtest(self):
+    def run_backtest(self):
         """
         Executes the backtest by iterating over the time period and rebalancing portfolio as per the strategy.
         """
