@@ -7,11 +7,11 @@ from models_data import ModelsData
 
 from sma_models.backtesting import BacktestStaticPortfolio
 from sma_models.monte_carlo_sim import MonteCarloSimulation
-from sma_models.create_signals import CreateSignals
+from create_signals.create_sma_signals import CreateSmaSignals
 
 from momentum_models.momentum_backtest import BacktestMomentumPortfolio
-from in_and_out_momentum.iao_momentum_backtest import BacktestInAndOutMomentumPortfolio
-from momentum_models.create_signals_momentum import CreateSignalsMomentum
+from momentum_models.iao_momentum_backtest import BacktestInAndOutMomentumPortfolio
+from create_signals.create_momentum_signals import CreateMomentumSignals
 
 from machine_learning_models.hierarchical_clustering import BacktestClusteringPortfolio
 from machine_learning_models.create_ml_signals import CreateMLSignals
@@ -104,7 +104,7 @@ def run_signals(data_models: ModelsData):
     if not data_models.assets_weights:
         return "Please load asset weights file."
 
-    create_signals = CreateSignals(data_models)
+    create_signals = CreateSmaSignals(data_models)
     create_signals.process()
 
     return f"Signals generated for {data_models.end_date}."
@@ -117,7 +117,7 @@ def run_momentum_signals(data_models: ModelsData):
     if not data_models.assets_weights:
         return "Please load asset weights file."
 
-    create_signals = CreateSignalsMomentum(data_models)
+    create_signals = CreateMomentumSignals(data_models)
     create_signals.process()
 
     return f"Signals generated for {data_models.end_date}."

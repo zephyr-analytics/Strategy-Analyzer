@@ -202,8 +202,10 @@ class BacktestMomentumPortfolio(MomentumProcessor):
         portfolio_returns = []
         if self.trading_frequency == 'Monthly':
             step = 1
+            freq = 'M'
         elif self.trading_frequency == 'Bi-Monthly':
             step = 2
+            freq = '2M'
         else:
             raise ValueError("Invalid trading frequency. Choose 'Monthly' or 'Bi-Monthly'.")
 
@@ -230,11 +232,6 @@ class BacktestMomentumPortfolio(MomentumProcessor):
             new_portfolio_value = previous_value * (1 + month_return)
             portfolio_values.append(new_portfolio_value)
             portfolio_returns.append(month_return)
-
-        if self.trading_frequency == 'Bi-Monthly':
-            freq = '2M'  # Two-month intervals
-        else:
-            freq = 'M'  # Monthly intervals
 
         # Update portfolio values and returns with the correct index
         self.data_models.portfolio_values = pd.Series(
@@ -276,7 +273,7 @@ class BacktestMomentumPortfolio(MomentumProcessor):
     def _calculate_buy_and_hold(self):
         """
         Calculates the buy-and-hold performance of the portfolio with the same assets and weights over the time frame.
-        
+
         Returns
         -------
         buy_and_hold_values : Series
@@ -285,8 +282,14 @@ class BacktestMomentumPortfolio(MomentumProcessor):
             Series representing the portfolio returns over time following a buy-and-hold strategy.
         """
         
-        self._data = utilities.fetch_data_wo_threshold(self.assets_weights, self.start_date, self.end_date, self.bond_ticker, self.cash_ticker)
-        
+        self._data = utilities.fetch_data_wo_threshold(
+            self.assets_weights,
+            self.start_date,
+            self.end_date,
+            self.bond_ticker,
+            self.cash_ticker
+        )
+
         portfolio_values = [self.initial_portfolio_value]
         portfolio_returns = []
         
