@@ -98,7 +98,12 @@ class BacktestMomentumPortfolio(MomentumProcessor):
         return (momentum_3m + momentum_6m + momentum_9m + momentum_12m) / 4
 
 
-    def adjust_weights(self, current_date: datetime, selected_assets: list) -> dict:
+    def adjust_weights(
+            self,
+            current_date: datetime,
+            selected_assets: pd.DataFrame,
+            selected_out_of_market_assets=None
+        ) -> dict:
         """
         Adjusts the weights of the selected assets based on their SMA and the selected weighting strategy.
 
@@ -114,25 +119,35 @@ class BacktestMomentumPortfolio(MomentumProcessor):
         dict
             Dictionary of adjusted asset weights.
         """
-        # Initialize equal weights for selected assets
         num_assets = len(selected_assets)
         equal_weight = 1 / num_assets
         adjusted_weights = {asset: equal_weight for asset in selected_assets['Asset']}
 
-        def is_below_sma(ticker):
+
+        def is_below_sma(ticker: str):
+            """
+            Checks if the asset's price is below its SMA.
+
+            Parameters
+            ----------
+            ticker : str
+                String representing ticker symbol.
+            """
             price = self._data.loc[:current_date, ticker].iloc[-1]
             sma = self._data.loc[:current_date, ticker].rolling(window=self.sma_period).mean().iloc[-1]
             return price < sma
 
+
         def allocate_to_safe_asset():
             """
-            Allocates weights to a safe asset (cash or bond). Defaults to cash if bond ticker is unavailable.
+            Allocates weights to a safe asset (cash or bond).
             """
             if self.bond_ticker and is_below_sma(self.bond_ticker):
                 return {self.cash_ticker: 1.0}
             if self.bond_ticker:
                 return {self.bond_ticker: 1.0}
             return {self.cash_ticker: 1.0}  # If no bond ticker, always allocate to cash.
+
 
         # Check threshold asset logic
         if self.threshold_asset and is_below_sma(self.threshold_asset):

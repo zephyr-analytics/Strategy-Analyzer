@@ -82,7 +82,12 @@ class MomentumProcessor(ABC):
 
 
     @abstractmethod
-    def adjust_weights(self, current_date: datetime.date, selected_assets: pd.DataFrame) -> Dict[str, float]:
+    def adjust_weights(
+        self,
+        current_date: datetime.date,
+        selected_assets: pd.DataFrame,
+        selected_out_of_market_assets: pd.DataFrame
+        ) -> Dict[str, float]:
         """
         Adjusts portfolio weights based on asset performance and strategy.
 
@@ -92,7 +97,8 @@ class MomentumProcessor(ABC):
             The current date for which the weights are being adjusted.
         selected_assets : DataFrame
             DataFrame containing selected assets and their weights.
-        
+        _out_of_market_assets : DataFrame
+            DataFrame containing selected assets for out of market and their weights.
         Returns
         -------
         dict

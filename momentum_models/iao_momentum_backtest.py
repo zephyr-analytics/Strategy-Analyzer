@@ -90,12 +90,6 @@ class BacktestInAndOutMomentumPortfolio(MomentumProcessor):
         """
         Processes the backtest by fetching data, running the backtest, and generating the plots.
         """
-        # TODO although data handling is present for a threshold asset, this module can not handle it at this time.
-        print(f"Threshold Asset: {self.threshold_asset}")
-        print(f"Bond Asset: {self.bond_ticker}")
-        print(f"Out-of-Market Asset: {self.out_of_market_tickers}")
-        
-        # Fetch in-market and out-of-market data
         all_tickers = list(self.assets_weights.keys()) + [self.cash_ticker]
 
         if self.threshold_asset != "":
@@ -151,9 +145,9 @@ class BacktestInAndOutMomentumPortfolio(MomentumProcessor):
 
 
     def adjust_weights(
-            self,
-            current_date: datetime,
-            selected_assets: pd.DataFrame,
+            self, 
+            current_date: datetime, 
+            selected_assets: pd.DataFrame, 
             selected_out_of_market_assets: pd.DataFrame
         ) -> dict:
         """
@@ -163,9 +157,9 @@ class BacktestInAndOutMomentumPortfolio(MomentumProcessor):
         ----------
         current_date : datetime
             The current date for which the weights are being adjusted.
-        selected_assets : DataFrame
+        selected_assets : DataFrame, optional
             DataFrame of selected in-market assets and their weights.
-        selected_out_of_market_assets : DataFrame
+        selected_out_of_market_assets : DataFrame, optional
             DataFrame of selected out-of-market assets and their weights.
 
         Returns
@@ -175,22 +169,20 @@ class BacktestInAndOutMomentumPortfolio(MomentumProcessor):
         """
         adjusted_weights = {}
 
-
-        def is_below_sma(ticker: str, data_source: pd.DataFrame) -> pd.Series:
+        def is_below_sma(ticker: str, data_source: pd.DataFrame):
             """
             Checks if the asset's price is below its SMA.
 
             Parameters
             ----------
             ticker : str
-                String representing ticker symbol.
+                String representing the ticker symbol.
             data_source : Dataframe
-                Dataframe of price data for all tickers.
+                Dataframe of price data for portfolio.
             """
             price = data_source.loc[:current_date, ticker].iloc[-1]
             sma = data_source.loc[:current_date, ticker].rolling(window=self.sma_period).mean().iloc[-1]
             return price < sma
-
 
         def allocate_to_safe_asset(asset_weight: float):
             """
@@ -199,7 +191,7 @@ class BacktestInAndOutMomentumPortfolio(MomentumProcessor):
             Parameters
             ----------
             asset_weight : float
-                Float value representing the asset_weight.
+                The weight of the asset to adjust.
             """
             if self.bond_ticker and not is_below_sma(self.bond_ticker, self._out_of_market_data):
                 safe_asset = self.bond_ticker
@@ -207,27 +199,33 @@ class BacktestInAndOutMomentumPortfolio(MomentumProcessor):
                 safe_asset = self.cash_ticker
             adjusted_weights[safe_asset] = adjusted_weights.get(safe_asset, 0) + asset_weight
 
+        # Handle threshold asset logic if applicable
+        if self.threshold_asset and is_below_sma(self.threshold_asset, self._data):
+            allocate_to_safe_asset(1.0)
+            return adjusted_weights
 
-        # In-Market assets weight adjustments based on SMA
-        for ticker in selected_assets['Asset']:
-            weight = 1 / len(selected_assets)  # Equal weight for selected assets
-            if not is_below_sma(ticker, self._data):
-                adjusted_weights[ticker] = weight
-            else:
-                # Check out-of-market assets when in-market asset is below SMA
-                highest_momentum_asset = None
-                highest_momentum_value = float('-inf')
-
-                for out_ticker, momentum in zip(selected_out_of_market_assets['Asset'], selected_out_of_market_assets['Momentum']):
-                    if not is_below_sma(out_ticker, self._out_of_market_data):
-                        if momentum > highest_momentum_value:
-                            highest_momentum_value = momentum
-                            highest_momentum_asset = out_ticker
-
-                if highest_momentum_asset:
-                    adjusted_weights[highest_momentum_asset] = adjusted_weights.get(highest_momentum_asset, 0) + weight
+        # Process in-market assets
+        if selected_assets is not None:
+            for ticker in selected_assets['Asset']:
+                weight = 1 / len(selected_assets)  # Equal weight for selected in-market assets
+                if not is_below_sma(ticker, self._data):
+                    adjusted_weights[ticker] = weight
                 else:
-                    allocate_to_safe_asset(weight)
+                    # Check out-of-market assets when in-market asset is below SMA
+                    highest_momentum_asset = None
+                    highest_momentum_value = float('-inf')
+
+                    if selected_out_of_market_assets is not None:
+                        for out_ticker, momentum in zip(selected_out_of_market_assets['Asset'], selected_out_of_market_assets['Momentum']):
+                            if not is_below_sma(out_ticker, self._out_of_market_data):
+                                if momentum > highest_momentum_value:
+                                    highest_momentum_value = momentum
+                                    highest_momentum_asset = out_ticker
+
+                    if highest_momentum_asset:
+                        adjusted_weights[highest_momentum_asset] = adjusted_weights.get(highest_momentum_asset, 0) + weight
+                    else:
+                        allocate_to_safe_asset(weight)
 
         # Normalize weights to ensure they sum to 1
         total_weight = sum(adjusted_weights.values())
