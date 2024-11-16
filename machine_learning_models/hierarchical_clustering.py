@@ -1,5 +1,8 @@
+"""
+Module for hierarchical clustering of assets.
+"""
+
 import pandas as pd
-import matplotlib.pyplot as plt
 from scipy.cluster.hierarchy import linkage, dendrogram, fcluster
 from scipy.spatial.distance import squareform
 

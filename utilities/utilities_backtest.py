@@ -4,6 +4,8 @@ Utilities module for calculating portfolio statistics.
 
 import numpy as np
 
+import pandas as pd
+
 def calculate_cagr(portfolio_value, trading_frequency):
     """
     Calculates the Compound Annual Growth Rate (CAGR) of the portfolio.
@@ -20,7 +22,6 @@ def calculate_cagr(portfolio_value, trading_frequency):
     float
         CAGR value.
     """
-
     if trading_frequency == 'Monthly':
         periods_per_year = 12
     elif trading_frequency == 'Bi-Monthly':
@@ -149,7 +150,7 @@ def calculate_annual_volatility(trading_frequency, portfolio_returns):
     return annual_volatility
 
 
-def calculate_standard_deviation(returns):
+def calculate_standard_deviation(returns: pd.Series) -> FloatingPointError:
     """
     Calculates the standard deviation of the portfolio returns.
 
@@ -163,4 +164,6 @@ def calculate_standard_deviation(returns):
     float
         Standard deviation of returns.
     """
+    # TODO current standard deviation is based on monthly returns.
+    # TODO annulized standard deviation needs to be created as well along side monthly.
     return returns.std()
