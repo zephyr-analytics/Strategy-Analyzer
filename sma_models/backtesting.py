@@ -73,9 +73,9 @@ class BacktestStaticPortfolio:
         self._data = utilities.fetch_data_wo_threshold(self.assets_weights, self.start_date, self.end_date, self.bond_ticker, self.cash_ticker)
         self._run_backtest()
         self._get_portfolio_statistics()
-        buy_and_hold_values, buy_and_hold_returns = self._calculate_buy_and_hold()
+        self._calculate_buy_and_hold()
         results_processor = ResultsProcessor(self.data_models)
-        results_processor.plot_portfolio_value(buy_and_hold_values)
+        results_processor.plot_portfolio_value()
         results_processor.plot_var_cvar()
         results_processor.plot_returns_heatmaps()
 
@@ -234,7 +234,5 @@ class BacktestStaticPortfolio:
             portfolio_values.append(new_portfolio_value)
             portfolio_returns.append(month_return)
 
-        buy_and_hold_values = pd.Series(portfolio_values, index=monthly_dates[:len(portfolio_values)])
-        buy_and_hold_returns = pd.Series(portfolio_returns, index=monthly_dates[1:len(portfolio_returns)+1])
-    
-        return buy_and_hold_values, buy_and_hold_returns
+        self.data_models.buy_and_hold_values = pd.Series(portfolio_values, index=monthly_dates[:len(portfolio_values)])
+        self.data_models.buy_and_hold_returns = pd.Series(portfolio_returns, index=monthly_dates[1:len(portfolio_returns)+1])

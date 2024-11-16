@@ -2,15 +2,19 @@
 Module for backtesting in and out of market momentum assets.
 """
 
+import warnings
+
 import pandas as pd
 
 import utilities as utilities
+from momentum_models.momentum_processor import MomentumProcessor
 from results.results_processor import ResultsProcessor
 
-import warnings
+
 warnings.filterwarnings("ignore")
 
-class BacktestInAndOutMomentumPortfolio:
+
+class BacktestInAndOutMomentumPortfolio(MomentumProcessor):
     """
     A class to backtest a static portfolio with adjustable weights based on Simple Moving Average (SMA),
     with momentum calculations for both in-market and out-of-market assets.
@@ -110,20 +114,18 @@ class BacktestInAndOutMomentumPortfolio:
     def calculate_momentum(self, current_date):
         """Calculate average momentum based on 1, 3, 6, 9, and 12-month cumulative returns for both in-market and out-of-market assets."""
         # In-market asset momentum
-        momentum_1m = (self._momentum_data.loc[:current_date].iloc[-21:] + 1).prod() - 1
         momentum_3m = (self._momentum_data.loc[:current_date].iloc[-63:] + 1).prod() - 1
         momentum_6m = (self._momentum_data.loc[:current_date].iloc[-126:] + 1).prod() - 1
         momentum_9m = (self._momentum_data.loc[:current_date].iloc[-189:] + 1).prod() - 1
         momentum_12m = (self._momentum_data.loc[:current_date].iloc[-252:] + 1).prod() - 1
-        in_market_momentum = (momentum_1m + momentum_3m + momentum_6m + momentum_9m + momentum_12m) / 5
+        in_market_momentum = (momentum_3m + momentum_6m + momentum_9m + momentum_12m) / 4
 
         # Out-of-market asset momentum
-        momentum_1m_out = (self._momentum_data_out_of_market.loc[:current_date].iloc[-21:] + 1).prod() - 1
         momentum_3m_out = (self._momentum_data_out_of_market.loc[:current_date].iloc[-63:] + 1).prod() - 1
         momentum_6m_out = (self._momentum_data_out_of_market.loc[:current_date].iloc[-126:] + 1).prod() - 1
         momentum_9m_out = (self._momentum_data_out_of_market.loc[:current_date].iloc[-189:] + 1).prod() - 1
         momentum_12m_out = (self._momentum_data_out_of_market.loc[:current_date].iloc[-252:] + 1).prod() - 1
-        out_of_market_momentum = (momentum_1m_out + momentum_3m_out + momentum_6m_out + momentum_9m_out + momentum_12m_out) / 5
+        out_of_market_momentum = (momentum_3m_out + momentum_6m_out + momentum_9m_out + momentum_12m_out) / 4
 
         return in_market_momentum, out_of_market_momentum
 
@@ -196,8 +198,10 @@ class BacktestInAndOutMomentumPortfolio:
         
         if self.trading_frequency == 'Monthly':
             step = 1
+            freq = 'M'
         elif self.trading_frequency == 'Bi-Monthly':
             step = 2
+            freq = '2M'
         else:
             raise ValueError("Invalid trading frequency. Choose 'Monthly' or 'Bi-Monthly'.")
 
@@ -229,8 +233,22 @@ class BacktestInAndOutMomentumPortfolio:
             portfolio_returns.append(month_return)
 
         self.data_models.adjusted_weights = adjusted_weights
-        self.data_models.portfolio_values = pd.Series(portfolio_values, index=pd.date_range(start=self.start_date, periods=len(portfolio_values), freq='M'))
-        self.data_models.portfolio_returns = pd.Series(portfolio_returns, index=pd.date_range(start=self.start_date, periods=len(portfolio_returns), freq='M'))
+        self.data_models.portfolio_values = pd.Series(
+            portfolio_values,
+            index=pd.date_range(
+                start=self.start_date,
+                periods=len(portfolio_values),
+                freq=freq
+            )
+        )
+        self.data_models.portfolio_returns = pd.Series(
+            portfolio_returns,
+            index=pd.date_range(
+                start=self.start_date,
+                periods=len(portfolio_returns),
+                freq=freq
+            )
+        )
 
 
     def _get_portfolio_statistics(self):
@@ -284,4 +302,3 @@ class BacktestInAndOutMomentumPortfolio:
         buy_and_hold_returns = pd.Series(portfolio_returns, index=monthly_dates[1:len(portfolio_returns)+1])
 
         return buy_and_hold_values, buy_and_hold_returns
-

@@ -3,17 +3,19 @@ Module for backtesting momentum assets.
 """
 
 import datetime
+import warnings
 
 import pandas as pd
 
 import utilities as utilities
-from results.results_processor import ResultsProcessor
-from models_data import ModelsData
 
-import warnings
+from models_data import ModelsData
+from momentum_models.momentum_processor import MomentumProcessor
+from results.results_processor import ResultsProcessor
+
 warnings.filterwarnings("ignore")
 
-class BacktestMomentumPortfolio:
+class BacktestMomentumPortfolio(MomentumProcessor):
     """
     A class to backtest a static portfolio with adjustable weights based on Simple Moving Average (SMA).
 
@@ -200,8 +202,10 @@ class BacktestMomentumPortfolio:
         portfolio_returns = []
         if self.trading_frequency == 'Monthly':
             step = 1
+            freq = 'M'
         elif self.trading_frequency == 'Bi-Monthly':
             step = 2
+            freq = '2M'
         else:
             raise ValueError("Invalid trading frequency. Choose 'Monthly' or 'Bi-Monthly'.")
 
@@ -230,8 +234,23 @@ class BacktestMomentumPortfolio:
             portfolio_returns.append(month_return)
 
         self.data_models.adjusted_weights = adjusted_weights
-        self.data_models.portfolio_values = pd.Series(portfolio_values, index=pd.date_range(start=self.start_date, periods=len(portfolio_values), freq='M'))
-        self.data_models.portfolio_returns = pd.Series(portfolio_returns, index=pd.date_range(start=self.start_date, periods=len(portfolio_returns), freq='M'))
+        # Update portfolio values and returns with the correct index
+        self.data_models.portfolio_values = pd.Series(
+            portfolio_values,
+            index=pd.date_range(
+                start=self.start_date,
+                periods=len(portfolio_values),
+                freq=freq
+            )
+        )
+        self.data_models.portfolio_returns = pd.Series(
+            portfolio_returns,
+            index=pd.date_range(
+                start=self.start_date,
+                periods=len(portfolio_returns),
+                freq=freq
+            )
+        )
 
     def _get_portfolio_statistics(self):
         """
@@ -255,7 +274,7 @@ class BacktestMomentumPortfolio:
     def _calculate_buy_and_hold(self):
         """
         Calculates the buy-and-hold performance of the portfolio with the same assets and weights over the time frame.
-        
+
         Returns
         -------
         buy_and_hold_values : Series
@@ -264,8 +283,14 @@ class BacktestMomentumPortfolio:
             Series representing the portfolio returns over time following a buy-and-hold strategy.
         """
         
-        self._data = utilities.fetch_data_wo_threshold(self.assets_weights, self.start_date, self.end_date, self.bond_ticker, self.cash_ticker)
-        
+        self._data = utilities.fetch_data_wo_threshold(
+            self.assets_weights,
+            self.start_date,
+            self.end_date,
+            self.bond_ticker,
+            self.cash_ticker
+        )
+
         portfolio_values = [self.initial_portfolio_value]
         portfolio_returns = []
         
