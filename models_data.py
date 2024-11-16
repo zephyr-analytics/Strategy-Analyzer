@@ -2,6 +2,8 @@
 Getter and Setter class for storing environment variables.
 """
 
+from datetime import datetime
+
 import pandas as pd
 
 class ModelsData:
@@ -15,7 +17,7 @@ class ModelsData:
         self._buy_and_hold_values = pd.Series
         self._buy_and_hold_returns = pd.Series
         self._cash_ticker = "SGOV"
-        self._end_date = "2024-01-01"
+        self._end_date = datetime.today().strftime('%Y-%m-%d')
         self._initial_portfolio_value = 10000
         self._num_simulations = 1000
         self._simulation_horizon = 10

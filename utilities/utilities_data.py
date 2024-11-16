@@ -65,6 +65,33 @@ def fetch_data_wo_threshold(assets_weights, start_date, end_date, bond_ticker, c
     return data
 
 
+def fetch_data_wo_threshold_and_bonds(assets_weights, start_date, end_date, cash_ticker):
+    """
+    Fetches the adjusted closing prices of the assets.
+
+    Parameters
+    ----------
+    assets_weights : dict
+        Dictionary of asset tickers and their corresponding weights in the portfolio.
+    start_date : str
+        The start date for fetching the data.
+    end_date : str
+        The end date for fetching the data.
+    bond_ticker : str, optional
+        The ticker symbol for the bond asset. Default is 'BND'.
+    cash_ticker : str, optional
+        The ticker symbol for the cash asset. Default is 'SHV'.
+
+    Returns
+    -------
+    DataFrame
+        DataFrame containing the adjusted closing prices of the assets.
+    """
+    all_tickers = list(assets_weights.keys()) + [cash_ticker]
+    data = yf.download(all_tickers, start=start_date, end=end_date)['Adj Close']
+    return data
+
+
 def fetch_out_of_market_data(assets_tickers, start_date, end_date):
     """
     Fetches the adjusted closing prices of the assets.
