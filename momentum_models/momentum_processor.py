@@ -28,6 +28,7 @@ class MomentumProcessor(ABC):
     _data : DataFrame or None
         DataFrame to store the adjusted closing prices of the assets.
     """
+    # TODO this is not properly abstracted.
     def __init__(self, data_models):
         self.data_models = data_models
         self.assets_weights = data_models.assets_weights
