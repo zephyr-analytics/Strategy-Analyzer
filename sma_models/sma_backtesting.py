@@ -13,7 +13,7 @@ from models_data import ModelsData
 
 warnings.filterwarnings("ignore")
 
-class BacktestStaticPortfolio:
+class SmaBacktest:
     """
     A class to backtest a static portfolio with adjustable weights based on Simple Moving Average (SMA).
 

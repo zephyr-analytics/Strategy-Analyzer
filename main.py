@@ -15,7 +15,7 @@ from create_signals.create_sma_signals import CreateSmaSignals
 from machine_learning_models.hierarchical_clustering import BacktestClusteringPortfolio
 from machine_learning_models.create_ml_signals import CreateMLSignals
 
-from sma_models.backtesting import BacktestStaticPortfolio
+from sma_models.sma_backtesting import SmaBacktest
 from sma_models.monte_carlo_sim import MonteCarloSimulation
 
 
@@ -26,7 +26,7 @@ def run_backtest(data_models: ModelsData):
     if not data_models.assets_weights:
         return "Please load asset weights file."
 
-    backtest = BacktestStaticPortfolio(data_models)
+    backtest = SmaBacktest(data_models)
     backtest.process()
 
     return "Backtest completed and plots saved."
