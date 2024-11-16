@@ -5,16 +5,19 @@ Main module for encapsulating calling processors.
 import utilities as utilities
 from models_data import ModelsData
 
-from sma_models.backtesting import BacktestStaticPortfolio
-from sma_models.monte_carlo_sim import MonteCarloSimulation
-from create_signals.create_sma_signals import CreateSmaSignals
-
 from momentum_models.momentum_backtest import BacktestMomentumPortfolio
 from momentum_models.iao_momentum_backtest import BacktestInAndOutMomentumPortfolio
+
 from create_signals.create_momentum_signals import CreateMomentumSignals
+from create_signals.create_momentumiao_signals import CreateMomentumInAndOutSignals
+from create_signals.create_sma_signals import CreateSmaSignals
 
 from machine_learning_models.hierarchical_clustering import BacktestClusteringPortfolio
 from machine_learning_models.create_ml_signals import CreateMLSignals
+
+from sma_models.backtesting import BacktestStaticPortfolio
+from sma_models.monte_carlo_sim import MonteCarloSimulation
+
 
 def run_backtest(data_models: ModelsData):
     """
@@ -121,6 +124,20 @@ def run_momentum_signals(data_models: ModelsData):
     create_signals.process()
 
     return f"Signals generated for {data_models.end_date}."
+
+
+def run_in_and_out_of_market_signals(data_models: ModelsData):
+    """
+    Method for passing models_data to Momentum Backtest Processor.
+    """
+    if not data_models.assets_weights:
+        return "Please load asset weights file."
+    if not data_models.out_of_market_tickers:
+        return "Please load out of market assets file."
+    out_of_market_momentum_signals = CreateMomentumInAndOutSignals(data_models)
+    out_of_market_momentum_signals.process()
+
+    return "In and Out of market momentum signals completed and plots saved"
 
 
 def run_machine_learning_signals(data_models: ModelsData):

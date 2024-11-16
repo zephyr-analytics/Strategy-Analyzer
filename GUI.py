@@ -481,12 +481,17 @@ class PortfolioAnalyzer(ctk.CTk):
                 target=self._run_signals_task,
                 args=(main.run_momentum_signals, current_date)
             ).start()
+        elif active_tab == "Momentum In & Out Strategies":
+            threading.Thread(
+                target=self._run_signals_task,
+                args=(main.run_in_and_out_of_market_signals, current_date)
+            ).start()
         elif active_tab == "Machine Learning Strategies":
             threading.Thread(
                 target=self._run_signals_task,
                 args=(main.run_machine_learning_signals,
                       current_date)
-                ).start()
+            ).start()
 
     def _run_signals_task(self, signals_func, current_date):
         """

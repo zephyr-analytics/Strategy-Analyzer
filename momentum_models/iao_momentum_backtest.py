@@ -8,10 +8,10 @@ import warnings
 import pandas as pd
 
 import utilities as utilities
-from momentum_models.momentum_processor import MomentumProcessor
-from models_data import ModelsData
-from results.results_processor import ResultsProcessor
 
+from models_data import ModelsData
+from momentum_models.momentum_processor import MomentumProcessor
+from results.results_processor import ResultsProcessor
 
 warnings.filterwarnings("ignore")
 

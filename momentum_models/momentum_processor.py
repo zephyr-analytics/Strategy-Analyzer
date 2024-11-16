@@ -2,10 +2,12 @@
 Abstract module for processing momentum trading models.
 """
 
-from abc import ABC, abstractmethod
-import pandas as pd
-from typing import List, Dict
 import datetime
+
+from abc import ABC, abstractmethod
+from typing import List, Dict
+
+import pandas as pd
 
 import utilities as utilities
 
