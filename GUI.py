@@ -3,6 +3,9 @@ GUI user interface for running application.
 """
 
 import threading
+
+from datetime import datetime
+
 import customtkinter as ctk
 from PIL import Image
 
@@ -98,10 +101,10 @@ class PortfolioAnalyzer(ctk.CTk):
         momentum_testing_tab = self.high_level_tab_control.add("Momentum Strategies")
         self.create_tab_content(momentum_testing_tab)
 
-        # in_and_out_momentum_testing_tab = self.high_level_tab_control.add(
-        #     "Momentum In & Out Strategies"
-        # )
-        # self.create_tab_content(in_and_out_momentum_testing_tab)
+        in_and_out_momentum_testing_tab = self.high_level_tab_control.add(
+            "Momentum In & Out Strategies"
+        )
+        self.create_tab_content(in_and_out_momentum_testing_tab)
 
         # machine_learning_testing_tab = self.high_level_tab_control.add(
         #     "Machine Learning Strategies"
@@ -257,7 +260,6 @@ class PortfolioAnalyzer(ctk.CTk):
             command=self.load_out_of_market_weights_and_update).pack(pady=(10, 10)
         )
 
-        # Entry box for threshold asset (always shown)
         ctk.CTkLabel(right_sidebar, text="Threshold Asset:", font=self.bold_font).pack(pady=(0, 0))
         ctk.CTkEntry(right_sidebar, textvariable=self.threshold_asset_entry_var).pack(pady=(0, 10))
         self.threshold_asset_entry_var.trace_add("write", self.update_threshold_asset)
@@ -311,7 +313,7 @@ class PortfolioAnalyzer(ctk.CTk):
             font=ctk.CTkFont(size=20, weight="bold")
         ).pack(pady=10)
         ctk.CTkLabel(signals_tab, text="Date for Signals:", font=bold_font).pack(pady=0)
-        signal_date = ctk.StringVar(value="2024-01-01")
+        signal_date = ctk.StringVar(value=datetime.today().strftime('%Y-%m-%d'))
         ctk.CTkEntry(signals_tab, textvariable=signal_date).pack(pady=(0, 10))
         ctk.CTkButton(
             signals_tab,
@@ -440,16 +442,16 @@ class PortfolioAnalyzer(ctk.CTk):
         active_tab = self.high_level_tab_control.get()
         if active_tab == "SMA Strategies":
             threading.Thread(target=self._run_simulation_task, args=(main.run_simulation,)).start()
-        elif active_tab == "Momentum Strategies":
-            threading.Thread(
-                target=self._run_simulation_task,
-                args=(main.run_momentum_simulation,)
-            ).start()
-        elif active_tab == "Machine Learning Strategies":
-            threading.Thread(
-                target=self._run_simulation_task,
-                args=(main.run_machine_learning_simulation,)
-            ).start()
+        # elif active_tab == "Momentum Strategies":
+        #     threading.Thread(
+        #         target=self._run_simulation_task,
+        #         args=(main.run_momentum_simulation,)
+        #     ).start()
+        # elif active_tab == "Machine Learning Strategies":
+        #     threading.Thread(
+        #         target=self._run_simulation_task,
+        #         args=(main.run_machine_learning_simulation,)
+        #     ).start()
 
     def _run_simulation_task(self, simulation_func):
         """
@@ -479,12 +481,17 @@ class PortfolioAnalyzer(ctk.CTk):
                 target=self._run_signals_task,
                 args=(main.run_momentum_signals, current_date)
             ).start()
+        elif active_tab == "Momentum In & Out Strategies":
+            threading.Thread(
+                target=self._run_signals_task,
+                args=(main.run_in_and_out_of_market_signals, current_date)
+            ).start()
         elif active_tab == "Machine Learning Strategies":
             threading.Thread(
                 target=self._run_signals_task,
                 args=(main.run_machine_learning_signals,
                       current_date)
-                ).start()
+            ).start()
 
     def _run_signals_task(self, signals_func, current_date):
         """

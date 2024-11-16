@@ -2,14 +2,16 @@
 Module for backtesting in and out of market momentum assets.
 """
 
+import datetime
 import warnings
 
 import pandas as pd
 
 import utilities as utilities
+
+from models_data import ModelsData
 from momentum_models.momentum_processor import MomentumProcessor
 from results.results_processor import ResultsProcessor
-
 
 warnings.filterwarnings("ignore")
 
@@ -51,7 +53,7 @@ class BacktestInAndOutMomentumPortfolio(MomentumProcessor):
         DataFrame to store the returns data for calculating momentum of out-of-market assets.
     """
 
-    def __init__(self, data_models):
+    def __init__(self, data_models: ModelsData):
         """
         Initializes the BacktestMomentumPortfolio class with data from ModelsData.
 
@@ -83,44 +85,56 @@ class BacktestInAndOutMomentumPortfolio(MomentumProcessor):
         self._momentum_data = None  # In-market momentum data
         self._momentum_data_out_of_market = None  # Out-of-market momentum data
 
+
     def process(self):
         """
         Processes the backtest by fetching data, running the backtest, and generating the plots.
         """
-        print(f"Threshold Asset: {self.threshold_asset}")
-        print(f"Bond Asset: {self.bond_ticker}")
-        print(f"Out-of-Market Asset: {self.out_of_market_tickers}")
-        
-        # Fetch in-market and out-of-market data
-        if self.threshold_asset == "":
-            self._data = utilities.fetch_data_wo_threshold(self.assets_weights, self.start_date, self.end_date, self.bond_ticker, self.cash_ticker)
-            self._out_of_market_data = utilities.fetch_out_of_market_data(self.out_of_market_tickers, self.start_date, self.end_date)
-        else:
-            self._data = utilities.fetch_data_w_threshold(self.assets_weights, self.start_date, self.end_date, self.bond_ticker, self.cash_ticker, self.threshold_asset)
-            self._out_of_market_data = utilities.fetch_out_of_market_data(self.out_of_market_tickers, self.start_date, self.end_date)
+        all_tickers = list(self.assets_weights.keys()) + [self.cash_ticker]
+
+        if self.threshold_asset != "":
+            all_tickers.append(self.threshold_asset)
+
+        if self.bond_ticker != "":
+            all_tickers.append(self.bond_ticker)
+
+        self._data = utilities.fetch_data(all_tickers, self.start_date, self.end_date)
+
+        self._out_of_market_data = utilities.fetch_out_of_market_data(self.out_of_market_tickers, self.start_date, self.end_date)
 
         # Calculate momentum for both in-market and out-of-market assets
         self._momentum_data = self._data.copy().pct_change().dropna()
         self._momentum_data_out_of_market = self._out_of_market_data.copy().pct_change().dropna()
 
-        self._run_backtest()
+        self.run_backtest()
         self._get_portfolio_statistics()
-        buy_and_hold_values, buy_and_hold_returns = self._calculate_buy_and_hold()
+        self._calculate_buy_and_hold()
         results_processor = ResultsProcessor(self.data_models)
-        results_processor.plot_portfolio_value(buy_and_hold_values)
+        results_processor.plot_portfolio_value()
         results_processor.plot_var_cvar()
         results_processor.plot_returns_heatmaps()
 
-    def calculate_momentum(self, current_date):
-        """Calculate average momentum based on 1, 3, 6, 9, and 12-month cumulative returns for both in-market and out-of-market assets."""
-        # In-market asset momentum
+
+    def calculate_momentum(self, current_date: datetime) -> tuple:
+        """
+        Calculate average momentum based on 1, 3, 6, 9, and 12-month.
+
+        Parameters
+        ----------
+        current_date : datetime
+            The current date for which the weights are being adjusted.
+
+        Returns
+        -------
+        tuple
+            in_market_momentum and out_of_market_momentum
+        """
         momentum_3m = (self._momentum_data.loc[:current_date].iloc[-63:] + 1).prod() - 1
         momentum_6m = (self._momentum_data.loc[:current_date].iloc[-126:] + 1).prod() - 1
         momentum_9m = (self._momentum_data.loc[:current_date].iloc[-189:] + 1).prod() - 1
         momentum_12m = (self._momentum_data.loc[:current_date].iloc[-252:] + 1).prod() - 1
         in_market_momentum = (momentum_3m + momentum_6m + momentum_9m + momentum_12m) / 4
 
-        # Out-of-market asset momentum
         momentum_3m_out = (self._momentum_data_out_of_market.loc[:current_date].iloc[-63:] + 1).prod() - 1
         momentum_6m_out = (self._momentum_data_out_of_market.loc[:current_date].iloc[-126:] + 1).prod() - 1
         momentum_9m_out = (self._momentum_data_out_of_market.loc[:current_date].iloc[-189:] + 1).prod() - 1
@@ -129,7 +143,13 @@ class BacktestInAndOutMomentumPortfolio(MomentumProcessor):
 
         return in_market_momentum, out_of_market_momentum
 
-    def _adjust_weights(self, current_date, selected_assets, selected_out_of_market_assets):
+
+    def adjust_weights(
+            self, 
+            current_date: datetime, 
+            selected_assets: pd.DataFrame, 
+            selected_out_of_market_assets: pd.DataFrame
+        ) -> dict:
         """
         Adjusts the weights of the selected assets based on their SMA and the selected weighting strategy.
 
@@ -137,9 +157,9 @@ class BacktestInAndOutMomentumPortfolio(MomentumProcessor):
         ----------
         current_date : datetime
             The current date for which the weights are being adjusted.
-        selected_assets : DataFrame
+        selected_assets : DataFrame, optional
             DataFrame of selected in-market assets and their weights.
-        selected_out_of_market_assets : DataFrame
+        selected_out_of_market_assets : DataFrame, optional
             DataFrame of selected out-of-market assets and their weights.
 
         Returns
@@ -149,53 +169,83 @@ class BacktestInAndOutMomentumPortfolio(MomentumProcessor):
         """
         adjusted_weights = {}
 
-        # In-Market assets weight adjustments based on SMA
-        for ticker in selected_assets['Asset']:
-            asset_price = self._data.loc[:current_date, ticker].iloc[-1]
-            asset_sma = self._data.loc[:current_date, ticker].rolling(window=self.sma_period).mean().iloc[-1]
+        def is_below_sma(ticker: str, data_source: pd.DataFrame):
+            """
+            Checks if the asset's price is below its SMA.
 
-            if asset_price >= asset_sma:
-                adjusted_weights[ticker] = 1 / len(selected_assets)  # Equal weight if above SMA
+            Parameters
+            ----------
+            ticker : str
+                String representing the ticker symbol.
+            data_source : Dataframe
+                Dataframe of price data for portfolio.
+            """
+            price = data_source.loc[:current_date, ticker].iloc[-1]
+            sma = data_source.loc[:current_date, ticker].rolling(window=self.sma_period).mean().iloc[-1]
+            return price < sma
+
+        def allocate_to_safe_asset(asset_weight: float):
+            """
+            Allocates weights to a safe asset (cash or bond).
+
+            Parameters
+            ----------
+            asset_weight : float
+                The weight of the asset to adjust.
+            """
+            if self.bond_ticker and not is_below_sma(self.bond_ticker, self._out_of_market_data):
+                safe_asset = self.bond_ticker
             else:
-                # Check out-of-market assets when in-market asset is below SMA
-                all_below_sma = True  # Assume all out-of-market assets are below their SMA
-                highest_momentum_asset = None
-                highest_momentum_value = float('-inf')
+                safe_asset = self.cash_ticker
+            adjusted_weights[safe_asset] = adjusted_weights.get(safe_asset, 0) + asset_weight
 
-                for out_ticker, momentum in zip(selected_out_of_market_assets['Asset'], selected_out_of_market_assets['Momentum']):
-                    out_asset_price = self._out_of_market_data.loc[:current_date, out_ticker].iloc[-1]
-                    out_asset_sma = self._out_of_market_data.loc[:current_date, out_ticker].rolling(window=self.sma_period).mean().iloc[-1]
+        # Handle threshold asset logic if applicable
+        if self.threshold_asset and is_below_sma(self.threshold_asset, self._data):
+            allocate_to_safe_asset(1.0)
+            return adjusted_weights
 
-                    if out_asset_price >= out_asset_sma:
-                        all_below_sma = False  # Found at least one out-of-market asset above SMA
-                        if momentum > highest_momentum_value:
-                            highest_momentum_value = momentum
-                            highest_momentum_asset = out_ticker
-
-                if all_below_sma:
-                    # Move to cash if all out-of-market assets are below their SMAs
-                    adjusted_weights[self.cash_ticker] = adjusted_weights.get(self.cash_ticker, 0) + (1 / len(selected_assets))
+        # Process in-market assets
+        if selected_assets is not None:
+            for ticker in selected_assets['Asset']:
+                weight = 1 / len(selected_assets)
+                if not is_below_sma(ticker, self._data):
+                    adjusted_weights[ticker] = weight
                 else:
-                    # Allocate to the out-of-market asset with the highest momentum
-                    adjusted_weights[highest_momentum_asset] = adjusted_weights.get(highest_momentum_asset, 0) + (1 / len(selected_assets))
+                    # Check out-of-market assets when in-market asset is below SMA
+                    highest_momentum_asset = None
+                    highest_momentum_value = float('-inf')
+
+                    if selected_out_of_market_assets is not None:
+                        for out_ticker, momentum in zip(selected_out_of_market_assets['Asset'], selected_out_of_market_assets['Momentum']):
+                            if not is_below_sma(out_ticker, self._out_of_market_data):
+                                if momentum > highest_momentum_value:
+                                    highest_momentum_value = momentum
+                                    highest_momentum_asset = out_ticker
+
+                    if highest_momentum_asset:
+                        adjusted_weights[highest_momentum_asset] = adjusted_weights.get(highest_momentum_asset, 0) + weight
+                    else:
+                        allocate_to_safe_asset(weight)
 
         # Normalize weights to ensure they sum to 1
         total_weight = sum(adjusted_weights.values())
-        for ticker in adjusted_weights:
-            adjusted_weights[ticker] /= total_weight
-
+        adjusted_weights = {ticker: weight / total_weight for ticker, weight in adjusted_weights.items()}
+        print("Running out of market momentum processor.")
         print(f'{current_date}: Adjusted Weights: {adjusted_weights}')
         return adjusted_weights
 
 
-    def _run_backtest(self):
+    def run_backtest(self):
         """
         Runs the backtest by calculating portfolio values and returns over time.
         """
+        # Merge in-market and out-of-market data
+        combined_data = pd.concat([self._data, self._out_of_market_data], axis=1).fillna(method='ffill')
+
         monthly_dates = pd.date_range(start=self.start_date, end=self.end_date, freq='M')
         portfolio_values = [self.initial_portfolio_value]
         portfolio_returns = []
-        
+
         if self.trading_frequency == 'Monthly':
             step = 1
             freq = 'M'
@@ -208,7 +258,7 @@ class BacktestInAndOutMomentumPortfolio(MomentumProcessor):
         for i in range(0, len(monthly_dates), step):
             current_date = monthly_dates[i]
             next_date = monthly_dates[min(i + step, len(monthly_dates) - 1)]
-            last_date_current_month = self._data.index[self._data.index.get_loc(current_date, method='pad')]
+            last_date_current_month = combined_data.index[combined_data.index.get_loc(current_date, method='pad')]
 
             # Calculate momentum for both in-market and out-of-market assets
             in_market_momentum, out_of_market_momentum = self.calculate_momentum(last_date_current_month)
@@ -217,17 +267,19 @@ class BacktestInAndOutMomentumPortfolio(MomentumProcessor):
             selected_assets = pd.DataFrame({'Asset': in_market_momentum.nlargest(self.num_assets_to_select).index,
                                             'Momentum': in_market_momentum.nlargest(self.num_assets_to_select).values})
             selected_out_of_market_assets = pd.DataFrame({'Asset': out_of_market_momentum.nlargest(self.num_assets_to_select).index,
-                                                          'Momentum': out_of_market_momentum.nlargest(self.num_assets_to_select).values})
+                                                        'Momentum': out_of_market_momentum.nlargest(self.num_assets_to_select).values})
 
             # Adjust weights based on selected assets and SMA
-            adjusted_weights = self._adjust_weights(last_date_current_month, selected_assets, selected_out_of_market_assets)
+            adjusted_weights = self.adjust_weights(last_date_current_month, selected_assets, selected_out_of_market_assets)
 
             previous_value = portfolio_values[-1]
-            month_end_data = self._data.loc[last_date_current_month]
-            last_date_next_month = self._data.index[self._data.index.get_loc(next_date, method='pad')]
-            next_month_end_data = self._data.loc[last_date_next_month]
+            month_end_data = combined_data.loc[last_date_current_month]
+            last_date_next_month = combined_data.index[combined_data.index.get_loc(next_date, method='pad')]
+            next_month_end_data = combined_data.loc[last_date_next_month]
             monthly_returns = (next_month_end_data / month_end_data) - 1
-            month_return = sum([monthly_returns[ticker] * weight for ticker, weight in adjusted_weights.items()])
+
+            # Calculate the weighted portfolio return for the month
+            month_return = sum([monthly_returns[ticker] * weight for ticker, weight in adjusted_weights.items() if ticker in monthly_returns])
             new_portfolio_value = previous_value * (1 + month_return)
             portfolio_values.append(new_portfolio_value)
             portfolio_returns.append(month_return)
@@ -249,56 +301,3 @@ class BacktestInAndOutMomentumPortfolio(MomentumProcessor):
                 freq=freq
             )
         )
-
-
-    def _get_portfolio_statistics(self):
-        """
-        Calculates and sets portfolio statistics such as CAGR, average annual return, max drawdown, VaR, and CVaR in models_data.
-        """
-        cagr = utilities.calculate_cagr(self.data_models.portfolio_values, self.trading_frequency)
-        average_annual_return = utilities.calculate_average_annual_return(self.data_models.portfolio_returns, self.trading_frequency)
-        max_drawdown = utilities.calculate_max_drawdown(self.data_models.portfolio_values)
-        var, cvar = utilities.calculate_var_cvar(self.data_models.portfolio_returns)
-        annual_volatility = utilities.calculate_annual_volatility(self.trading_frequency, self.data_models.portfolio_returns)
-        standard_deviation = utilities.calculate_standard_deviation(self.data_models.portfolio_returns)
-
-        self.data_models.cagr = cagr
-        self.data_models.average_annual_return = average_annual_return
-        self.data_models.max_drawdown = max_drawdown
-        self.data_models.var = var
-        self.data_models.cvar = cvar
-        self.data_models.annual_volatility = annual_volatility
-        self.data_models.standard_deviation = standard_deviation
-
-    def _calculate_buy_and_hold(self):
-        """
-        Calculates the buy-and-hold performance of the portfolio with the same assets and weights over the time frame.
-        
-        Returns
-        -------
-        buy_and_hold_values : Series
-            Series representing the portfolio value over time following a buy-and-hold strategy.
-        buy_and_hold_returns : Series
-            Series representing the portfolio returns over time following a buy-and-hold strategy.
-        """
-        portfolio_values = [self.initial_portfolio_value]
-        portfolio_returns = []
-        monthly_dates = pd.date_range(start=self.start_date, end=self.end_date, freq='M')
-
-        for i in range(1, len(monthly_dates)):
-            start_index = self._data.index.get_indexer([monthly_dates[i-1]], method='nearest')[0]
-            end_index = self._data.index.get_indexer([monthly_dates[i]], method='nearest')[0]
-            start_data = self._data.iloc[start_index]
-            end_data = self._data.iloc[end_index]
-
-            previous_value = portfolio_values[-1]
-            monthly_returns = (end_data / start_data) - 1
-            month_return = sum([monthly_returns[ticker] * weight for ticker, weight in self.assets_weights.items()])
-            new_portfolio_value = previous_value * (1 + month_return)
-            portfolio_values.append(new_portfolio_value)
-            portfolio_returns.append(month_return)
-
-        buy_and_hold_values = pd.Series(portfolio_values, index=monthly_dates[:len(portfolio_values)])
-        buy_and_hold_returns = pd.Series(portfolio_returns, index=monthly_dates[1:len(portfolio_returns)+1])
-
-        return buy_and_hold_values, buy_and_hold_returns

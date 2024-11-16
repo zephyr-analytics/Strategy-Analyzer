@@ -1,9 +1,9 @@
 """
-Processor for creating porfolio signals.
+Module for creating momentum trading signals.
 """
 
-from momentum_models.momentum_backtest import BacktestMomentumPortfolio
 from create_signals.signals_processor import SignalsProcessor
+from momentum_models.momentum_backtest import BacktestMomentumPortfolio
 
 
 class CreateMomentumSignals(SignalsProcessor):

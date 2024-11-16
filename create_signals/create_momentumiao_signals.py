@@ -1,12 +1,12 @@
 """
-Processor for creating sma based porfolio signals.
+Module for creating IAO momentum trading signals.
 """
 
-from sma_models.sma_backtesting import SmaBacktest
 from create_signals.signals_processor import SignalsProcessor
+from momentum_models.iao_momentum_backtest import BacktestInAndOutMomentumPortfolio
 
 
-class CreateSmaSignals(SignalsProcessor):
+class CreateMomentumInAndOutSignals(SignalsProcessor):
     """
     Processor for creating portfolio signals using the _run_backtest method.
     """
@@ -26,7 +26,7 @@ class CreateSmaSignals(SignalsProcessor):
         """
         Generates trading signals by running the backtest and pulling the latest weights.
         """
-        self.backtest_portfolio = SmaBacktest(self.data_models)
+        self.backtest_portfolio = BacktestInAndOutMomentumPortfolio(self.data_models)
         self.backtest_portfolio.process()
         latest_weights = self.data_models.adjusted_weights
         print(latest_weights)
