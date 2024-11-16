@@ -134,8 +134,10 @@ class BacktestStaticPortfolio:
         portfolio_returns = []
         if self.trading_frequency == 'Monthly':
             step = 1
+            freq = 'M'
         elif self.trading_frequency == 'Bi-Monthly':
             step = 2
+            freq = '2M'
         else:
             raise ValueError("Invalid trading frequency. Choose 'Monthly' or 'Bi-Monthly'.")
         for i in range(0, len(monthly_dates), step):
@@ -154,9 +156,24 @@ class BacktestStaticPortfolio:
             new_portfolio_value = previous_value * (1 + month_return)
             portfolio_values.append(new_portfolio_value)
             portfolio_returns.append(month_return)
+
         self.data_models.adjusted_weights = adjusted_weights
-        self.data_models.portfolio_values = pd.Series(portfolio_values, index=pd.date_range(start=self.start_date, periods=len(portfolio_values), freq='M'))
-        self.data_models.portfolio_returns = pd.Series(portfolio_returns, index=pd.date_range(start=self.start_date, periods=len(portfolio_returns), freq='M'))
+        self.data_models.portfolio_values = pd.Series(
+            portfolio_values,
+            index=pd.date_range(
+                start=self.start_date,
+                periods=len(portfolio_values),
+                freq=freq
+            )
+        )
+        self.data_models.portfolio_returns = pd.Series(
+            portfolio_returns,
+            index=pd.date_range(
+                start=self.start_date,
+                periods=len(portfolio_returns),
+                freq=freq
+            )
+        )
 
 
     def _get_portfolio_statistics(self):
