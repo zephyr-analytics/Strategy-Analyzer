@@ -59,6 +59,7 @@ class MomentumProcessor(ABC):
         """
         Processes the backtest by fetching data, running the backtest, and generating the plots.
         """
+        # TODO implement type runs here for extra logic layer for data fetching.
         all_tickers = list(self.assets_weights.keys()) + [self.cash_ticker]
 
         if self.threshold_asset != "":
@@ -96,6 +97,7 @@ class MomentumProcessor(ABC):
         """
         pass
 
+
     @abstractmethod
     def _adjust_weights(self, current_date: datetime.date, selected_assets: pd.DataFrame) -> Dict[str, float]:
         """
@@ -115,6 +117,7 @@ class MomentumProcessor(ABC):
         """
         pass
 
+
     @abstractmethod
     def _run_backtest(self):
         """
@@ -122,16 +125,55 @@ class MomentumProcessor(ABC):
         """
         pass
 
-    @abstractmethod
+
     def _get_portfolio_statistics(self):
         """
-        Computes portfolio statistics like CAGR, max drawdown, and volatility.
+        Calculates and sets portfolio statistics such as CAGR, average annual return, max drawdown, VaR, and CVaR in models_data.
         """
-        pass
+        cagr = utilities.calculate_cagr(self.data_models.portfolio_values, self.trading_frequency)
+        average_annual_return = utilities.calculate_average_annual_return(self.data_models.portfolio_returns, self.trading_frequency)
+        max_drawdown = utilities.calculate_max_drawdown(self.data_models.portfolio_values)
+        var, cvar = utilities.calculate_var_cvar(self.data_models.portfolio_returns)
+        annual_volatility = utilities.calculate_annual_volatility(self.trading_frequency, self.data_models.portfolio_returns)
+        standard_deviation = utilities.calculate_standard_deviation(self.data_models.portfolio_returns)
 
-    @abstractmethod
+        self.data_models.cagr = cagr
+        self.data_models.average_annual_return = average_annual_return
+        self.data_models.max_drawdown = max_drawdown
+        self.data_models.var = var
+        self.data_models.cvar = cvar
+        self.data_models.annual_volatility = annual_volatility
+        self.data_models.standard_deviation = standard_deviation
+
+
     def _calculate_buy_and_hold(self):
         """
-        Calculates the buy-and-hold performance for comparison with the strategy.
+        Calculates the buy-and-hold performance of the portfolio with the same assets and weights over the time frame.
         """
-        pass
+        all_tickers = list(self.assets_weights.keys())
+        self._data = utilities.fetch_data(
+            all_tickers=all_tickers,
+            start_date=self.start_date,
+            end_date=self.end_date
+        )
+
+        portfolio_values = [self.initial_portfolio_value]
+        portfolio_returns = []
+        
+        monthly_dates = pd.date_range(start=self.start_date, end=self.end_date, freq='M')
+        
+        for i in range(1, len(monthly_dates)):
+            start_index = self._data.index.get_indexer([monthly_dates[i-1]], method='nearest')[0]
+            end_index = self._data.index.get_indexer([monthly_dates[i]], method='nearest')[0]
+            start_data = self._data.iloc[start_index]
+            end_data = self._data.iloc[end_index]
+
+            previous_value = portfolio_values[-1]
+            monthly_returns = (end_data / start_data) - 1
+            month_return = sum([monthly_returns[ticker] * weight for ticker, weight in self.assets_weights.items()])
+            new_portfolio_value = previous_value * (1 + month_return)
+            portfolio_values.append(new_portfolio_value)
+            portfolio_returns.append(month_return)
+
+        self.data_models.buy_and_hold_values = pd.Series(portfolio_values, index=monthly_dates[:len(portfolio_values)])
+        self.data_models.buy_and_hold_returns = pd.Series(portfolio_returns, index=monthly_dates[1:len(portfolio_returns)+1])

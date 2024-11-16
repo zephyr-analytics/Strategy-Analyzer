@@ -10,7 +10,7 @@ from tkinter import filedialog
 import pandas as pd
 import yfinance as yf
 
-# TODO there needs to be easier logic for handling assets at the processor level than having all of these data methods.
+
 def fetch_data(all_tickers, start_date, end_date):
     """
     Fetches the adjusted closing prices of the assets.
