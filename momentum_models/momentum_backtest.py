@@ -3,17 +3,19 @@ Module for backtesting momentum assets.
 """
 
 import datetime
+import warnings
 
 import pandas as pd
 
 import utilities as utilities
-from results.results_processor import ResultsProcessor
-from models_data import ModelsData
 
-import warnings
+from models_data import ModelsData
+from momentum_models.momentum_processor import MomentumProcessor
+from results.results_processor import ResultsProcessor
+
 warnings.filterwarnings("ignore")
 
-class BacktestMomentumPortfolio:
+class BacktestMomentumPortfolio(MomentumProcessor):
     """
     A class to backtest a static portfolio with adjustable weights based on Simple Moving Average (SMA).
 
@@ -229,9 +231,28 @@ class BacktestMomentumPortfolio:
             portfolio_values.append(new_portfolio_value)
             portfolio_returns.append(month_return)
 
-        self.data_models.adjusted_weights = adjusted_weights
-        self.data_models.portfolio_values = pd.Series(portfolio_values, index=pd.date_range(start=self.start_date, periods=len(portfolio_values), freq='M'))
-        self.data_models.portfolio_returns = pd.Series(portfolio_returns, index=pd.date_range(start=self.start_date, periods=len(portfolio_returns), freq='M'))
+        if self.trading_frequency == 'Bi-Monthly':
+            freq = '2M'  # Two-month intervals
+        else:
+            freq = 'M'  # Monthly intervals
+
+        # Update portfolio values and returns with the correct index
+        self.data_models.portfolio_values = pd.Series(
+            portfolio_values,
+            index=pd.date_range(
+                start=self.start_date,
+                periods=len(portfolio_values),
+                freq=freq
+            )
+        )
+        self.data_models.portfolio_returns = pd.Series(
+            portfolio_returns,
+            index=pd.date_range(
+                start=self.start_date,
+                periods=len(portfolio_returns),
+                freq=freq
+            )
+        )
 
     def _get_portfolio_statistics(self):
         """
