@@ -2,7 +2,10 @@
 Getter and Setter class for storing environment variables.
 """
 
+from datetime import datetime
+
 import pandas as pd
+
 
 class ModelsData:
     def __init__(self):
@@ -15,7 +18,7 @@ class ModelsData:
         self._buy_and_hold_values = pd.Series
         self._buy_and_hold_returns = pd.Series
         self._cash_ticker = "SGOV"
-        self._end_date = "2024-01-01"
+        self._end_date = datetime.today().strftime('%Y-%m-%d')
         self._initial_portfolio_value = 10000
         self._num_simulations = 1000
         self._simulation_horizon = 10
@@ -105,7 +108,6 @@ class ModelsData:
 
     @property
     def buy_and_hold_values(self):
-        # TODO correct docstrings.
         """
         Gets the buy and hold values.
 
@@ -116,7 +118,6 @@ class ModelsData:
 
     @buy_and_hold_values.setter
     def buy_and_hold_values(self, value):
-        # TODO correct docstrings.
         """
         Sets the buy and hold values.
 
@@ -128,7 +129,6 @@ class ModelsData:
 
     @property
     def buy_and_hold_returns(self):
-        # TODO correct docstrings.
         """
         Gets the buy and hold portfolio returns.
 
@@ -139,7 +139,6 @@ class ModelsData:
 
     @buy_and_hold_returns.setter
     def buy_and_hold_returns(self, value):
-        # TODO correct docstrings.
         """
         Sets the buy and hold portfolio returns.
 
@@ -169,7 +168,7 @@ class ModelsData:
         """
         self._cash_ticker = value
 
-    # Getter and Setter for end_date
+
     @property
     def end_date(self):
         """
@@ -190,7 +189,7 @@ class ModelsData:
         """
         self._end_date = value
 
-    # Getter and Setter for initial_portfolio_value
+
     @property
     def initial_portfolio_value(self):
         """
@@ -211,7 +210,7 @@ class ModelsData:
         """
         self._initial_portfolio_value = value
 
-    # Getter and Setter for num_simulations
+
     @property
     def num_simulations(self):
         """
@@ -232,7 +231,7 @@ class ModelsData:
         """
         self._num_simulations = value
 
-    # Getter and Setter for simulation_horizon
+
     @property
     def simulation_horizon(self):
         """
@@ -253,7 +252,7 @@ class ModelsData:
         """
         self._simulation_horizon = value
 
-    # Getter and Setter for sma_window
+
     @property
     def sma_window(self):
         """
@@ -274,7 +273,7 @@ class ModelsData:
         """
         self._sma_window = value
 
-    # Getter and Setter for start_date
+
     @property
     def start_date(self):
         """
@@ -295,7 +294,7 @@ class ModelsData:
         """
         self._start_date = value
 
-    # Getter and Setter for theme_mode
+
     @property
     def theme_mode(self):
         """
@@ -316,7 +315,7 @@ class ModelsData:
         """
         self._theme_mode = value
 
-    # Getter and Setter for trading_frequency
+
     @property
     def trading_frequency(self):
         """
@@ -337,7 +336,7 @@ class ModelsData:
         """
         self._trading_frequency = value
 
-    # Getter and Setter for weighting_strategy
+
     @property
     def weighting_strategy(self):
         """
@@ -358,7 +357,7 @@ class ModelsData:
         """
         self._weighting_strategy = value
 
-    # Getter and Setter for weights_filename
+
     @property
     def weights_filename(self):
         """
@@ -378,6 +377,7 @@ class ModelsData:
             value (str): The filename of the weights file.
         """
         self._weights_filename = value
+
 
     @property
     def portfolio_values(self):
@@ -403,6 +403,7 @@ class ModelsData:
         """
         self._portfolio_values = value
 
+
     @property
     def portfolio_returns(self):
         """
@@ -426,6 +427,7 @@ class ModelsData:
             The series of portfolio returns to be set.
         """
         self._portfolio_returns = value
+
 
     @property
     def cagr(self):
@@ -451,6 +453,7 @@ class ModelsData:
         """
         self._cagr = value
 
+
     @property
     def average_annual_return(self):
         """
@@ -474,6 +477,7 @@ class ModelsData:
             The average annual return value to be set.
         """
         self._average_annual_return = value
+
 
     @property
     def max_drawdown(self):
@@ -499,6 +503,7 @@ class ModelsData:
         """
         self._max_drawdown = value
 
+
     @property
     def var(self):
         """
@@ -522,6 +527,7 @@ class ModelsData:
             The VaR value to be set.
         """
         self._var = value
+
 
     @property
     def cvar(self):
@@ -547,29 +553,36 @@ class ModelsData:
         """
         self._cvar = value
 
+
     @property
     def annual_volatility(self):
         """
+        # TODO write the docstrings.
         """
         return self._annual_volatility
 
     @annual_volatility.setter
     def annual_volatility(self, value):
         """
+        # TODO write the docstrings.
         """
         self._annual_volatility = value
+
 
     @property
     def max_distance(self):
         """
+        # TODO write the docstrings.
         """
         return self._max_distance
 
     @max_distance.setter
     def max_distance(self, value):
         """
+        # TODO write the docstrings.
         """
         self._max_distance = value
+
 
     @property
     def threshold_asset(self):
@@ -591,6 +604,7 @@ class ModelsData:
         """
         self._threshold_asset = value
 
+
     @property
     def num_assets_to_select(self):
         """
@@ -611,6 +625,7 @@ class ModelsData:
         """
         self._num_assets_to_select = value
 
+
     @property
     def standard_deviation(self):
         """
@@ -630,6 +645,7 @@ class ModelsData:
             value (str): The asset ticker symbol to be set as the threshold asset.
         """
         self._standard_deviation = value
+
 
     @property
     def out_of_market_tickers(self):

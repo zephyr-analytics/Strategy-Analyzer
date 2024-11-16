@@ -130,7 +130,7 @@ class ResultsProcessor:
 
         fig.update_layout(
             title=dict(
-                text='Portfolio Value Over Time',
+                text=f'Portfolio Value for {self.output_filename}',
                 x=0.5,
                 y=1,
                 xanchor='center',

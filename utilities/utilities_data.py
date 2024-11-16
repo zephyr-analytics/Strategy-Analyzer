@@ -11,56 +11,24 @@ import pandas as pd
 import yfinance as yf
 
 
-def fetch_data_w_threshold(assets_weights, start_date, end_date, bond_ticker, cash_ticker, threshold_asset):
+def fetch_data(all_tickers, start_date, end_date):
     """
     Fetches the adjusted closing prices of the assets.
 
     Parameters
     ----------
-    assets_weights : dict
-        Dictionary of asset tickers and their corresponding weights in the portfolio.
+    all_assets : list
+        List of asset tickers.
     start_date : str
         The start date for fetching the data.
     end_date : str
         The end date for fetching the data.
-    bond_ticker : str, optional
-        The ticker symbol for the bond asset. Default is 'BND'.
-    cash_ticker : str, optional
-        The ticker symbol for the cash asset. Default is 'SHV'.
 
     Returns
     -------
     DataFrame
         DataFrame containing the adjusted closing prices of the assets.
     """
-    all_tickers = list(assets_weights.keys()) + [bond_ticker, cash_ticker, threshold_asset]
-    data = yf.download(all_tickers, start=start_date, end=end_date)['Adj Close']
-    return data
-
-
-def fetch_data_wo_threshold(assets_weights, start_date, end_date, bond_ticker, cash_ticker):
-    """
-    Fetches the adjusted closing prices of the assets.
-
-    Parameters
-    ----------
-    assets_weights : dict
-        Dictionary of asset tickers and their corresponding weights in the portfolio.
-    start_date : str
-        The start date for fetching the data.
-    end_date : str
-        The end date for fetching the data.
-    bond_ticker : str, optional
-        The ticker symbol for the bond asset. Default is 'BND'.
-    cash_ticker : str, optional
-        The ticker symbol for the cash asset. Default is 'SHV'.
-
-    Returns
-    -------
-    DataFrame
-        DataFrame containing the adjusted closing prices of the assets.
-    """
-    all_tickers = list(assets_weights.keys()) + [bond_ticker, cash_ticker]
     data = yf.download(all_tickers, start=start_date, end=end_date)['Adj Close']
     return data
 
