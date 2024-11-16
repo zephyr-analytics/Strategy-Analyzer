@@ -32,13 +32,14 @@ class SignalsProcessor(ABC):
         self.current_date = models_data.end_date
         self.output_filename = models_data.weights_filename
 
-    @abstractmethod
+
     def process(self):
         """
         Abstract method to process data and generate trading signals.
         Must be implemented in subclasses.
         """
-        pass
+        self.generate_signals()
+
 
     @abstractmethod
     def generate_signals(self):
@@ -47,6 +48,7 @@ class SignalsProcessor(ABC):
         Must be implemented in subclasses.
         """
         pass
+
 
     def plot_signals(self, latest_weights, filename='signals.html'):
         """

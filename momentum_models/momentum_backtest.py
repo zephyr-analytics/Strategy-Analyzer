@@ -233,6 +233,7 @@ class BacktestMomentumPortfolio(MomentumProcessor):
             portfolio_values.append(new_portfolio_value)
             portfolio_returns.append(month_return)
 
+        self.data_models.adjusted_weights = adjusted_weights
         # Update portfolio values and returns with the correct index
         self.data_models.portfolio_values = pd.Series(
             portfolio_values,

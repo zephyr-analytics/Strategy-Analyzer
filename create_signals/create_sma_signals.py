@@ -22,13 +22,6 @@ class CreateSmaSignals(SignalsProcessor):
         super().__init__(models_data)
 
 
-    def process(self):
-        """
-        Processes the data to generate trading signals.
-        """
-        self.generate_signals()
-
-
     def generate_signals(self):
         """
         Generates trading signals by running the backtest and pulling the latest weights.
