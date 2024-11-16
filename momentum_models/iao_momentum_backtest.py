@@ -207,7 +207,7 @@ class BacktestInAndOutMomentumPortfolio(MomentumProcessor):
         # Process in-market assets
         if selected_assets is not None:
             for ticker in selected_assets['Asset']:
-                weight = 1 / len(selected_assets)  # Equal weight for selected in-market assets
+                weight = 1 / len(selected_assets)
                 if not is_below_sma(ticker, self._data):
                     adjusted_weights[ticker] = weight
                 else:
@@ -239,11 +239,13 @@ class BacktestInAndOutMomentumPortfolio(MomentumProcessor):
         """
         Runs the backtest by calculating portfolio values and returns over time.
         """
-        # TODO there needs to be a merged dataframe only for this method to handle calculating returns.
+        # Merge in-market and out-of-market data
+        combined_data = pd.concat([self._data, self._out_of_market_data], axis=1).fillna(method='ffill')
+
         monthly_dates = pd.date_range(start=self.start_date, end=self.end_date, freq='M')
         portfolio_values = [self.initial_portfolio_value]
         portfolio_returns = []
-        
+
         if self.trading_frequency == 'Monthly':
             step = 1
             freq = 'M'
@@ -256,7 +258,7 @@ class BacktestInAndOutMomentumPortfolio(MomentumProcessor):
         for i in range(0, len(monthly_dates), step):
             current_date = monthly_dates[i]
             next_date = monthly_dates[min(i + step, len(monthly_dates) - 1)]
-            last_date_current_month = self._data.index[self._data.index.get_loc(current_date, method='pad')]
+            last_date_current_month = combined_data.index[combined_data.index.get_loc(current_date, method='pad')]
 
             # Calculate momentum for both in-market and out-of-market assets
             in_market_momentum, out_of_market_momentum = self.calculate_momentum(last_date_current_month)
@@ -265,17 +267,19 @@ class BacktestInAndOutMomentumPortfolio(MomentumProcessor):
             selected_assets = pd.DataFrame({'Asset': in_market_momentum.nlargest(self.num_assets_to_select).index,
                                             'Momentum': in_market_momentum.nlargest(self.num_assets_to_select).values})
             selected_out_of_market_assets = pd.DataFrame({'Asset': out_of_market_momentum.nlargest(self.num_assets_to_select).index,
-                                                          'Momentum': out_of_market_momentum.nlargest(self.num_assets_to_select).values})
+                                                        'Momentum': out_of_market_momentum.nlargest(self.num_assets_to_select).values})
 
             # Adjust weights based on selected assets and SMA
             adjusted_weights = self.adjust_weights(last_date_current_month, selected_assets, selected_out_of_market_assets)
 
             previous_value = portfolio_values[-1]
-            month_end_data = self._data.loc[last_date_current_month]
-            last_date_next_month = self._data.index[self._data.index.get_loc(next_date, method='pad')]
-            next_month_end_data = self._data.loc[last_date_next_month]
+            month_end_data = combined_data.loc[last_date_current_month]
+            last_date_next_month = combined_data.index[combined_data.index.get_loc(next_date, method='pad')]
+            next_month_end_data = combined_data.loc[last_date_next_month]
             monthly_returns = (next_month_end_data / month_end_data) - 1
-            month_return = sum([monthly_returns[ticker] * weight for ticker, weight in adjusted_weights.items()])
+
+            # Calculate the weighted portfolio return for the month
+            month_return = sum([monthly_returns[ticker] * weight for ticker, weight in adjusted_weights.items() if ticker in monthly_returns])
             new_portfolio_value = previous_value * (1 + month_return)
             portfolio_values.append(new_portfolio_value)
             portfolio_returns.append(month_return)
