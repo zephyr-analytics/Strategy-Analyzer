@@ -9,6 +9,8 @@ import utilities as utilities
 from results.results_processor import ResultsProcessor
 import warnings
 
+from models_data import ModelsData
+
 warnings.filterwarnings("ignore")
 
 class BacktestStaticPortfolio:
@@ -39,7 +41,7 @@ class BacktestStaticPortfolio:
         Series to store the portfolio returns over time.
     """
 
-    def __init__(self, data_models):
+    def __init__(self, data_models: ModelsData):
         """
         Initializes the BacktestStaticPortfolio class with data from ModelsData.
 
@@ -56,10 +58,11 @@ class BacktestStaticPortfolio:
         self.trading_frequency = data_models.trading_frequency
         self.output_filename = data_models.weights_filename
         self.rebalance_threshold = 0.02
+        self.threshold_asset = str(data_models.threshold_asset)
         self.weighting_strategy = data_models.weighting_strategy
         self.sma_period = int(data_models.sma_window)
-        self.bond_ticker = data_models.bond_ticker
-        self.cash_ticker = data_models.cash_ticker
+        self.bond_ticker = str(data_models.bond_ticker)
+        self.cash_ticker = str(data_models.cash_ticker)
         self.initial_portfolio_value = int(data_models.initial_portfolio_value)
 
         # Class-defined attributes
@@ -70,10 +73,15 @@ class BacktestStaticPortfolio:
         """
         Processes the backtest by fetching data, running the backtest, and generating the plots.
         """
-        if self.bond_ticker is "":
-            self._data = utilities.fetch_data_wo_threshold_and_bonds(self.assets_weights, self.start_date, self.end_date, self.cash_ticker)
-        else:
-            self._data = utilities.fetch_data_wo_threshold(self.assets_weights, self.start_date, self.end_date, self.bond_ticker, self.cash_ticker)
+        all_tickers = list(self.assets_weights.keys()) + [self.cash_ticker]
+
+        if self.threshold_asset != "":
+            all_tickers.append(self.threshold_asset)
+
+        if self.bond_ticker != "":
+            all_tickers.append(self.bond_ticker)
+
+        utilities.fetch_data(all_tickers, self.start_date, self.end_date)
         self._run_backtest()
         self._get_portfolio_statistics()
         self._calculate_buy_and_hold()
