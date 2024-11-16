@@ -230,7 +230,7 @@ class BacktestInAndOutMomentumPortfolio(MomentumProcessor):
         # Normalize weights to ensure they sum to 1
         total_weight = sum(adjusted_weights.values())
         adjusted_weights = {ticker: weight / total_weight for ticker, weight in adjusted_weights.items()}
-
+        print("Running out of market momentum processor.")
         print(f'{current_date}: Adjusted Weights: {adjusted_weights}')
         return adjusted_weights
 
@@ -239,6 +239,7 @@ class BacktestInAndOutMomentumPortfolio(MomentumProcessor):
         """
         Runs the backtest by calculating portfolio values and returns over time.
         """
+        # TODO there needs to be a merged dataframe only for this method to handle calculating returns.
         monthly_dates = pd.date_range(start=self.start_date, end=self.end_date, freq='M')
         portfolio_values = [self.initial_portfolio_value]
         portfolio_returns = []

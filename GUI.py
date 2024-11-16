@@ -101,10 +101,10 @@ class PortfolioAnalyzer(ctk.CTk):
         momentum_testing_tab = self.high_level_tab_control.add("Momentum Strategies")
         self.create_tab_content(momentum_testing_tab)
 
-        # in_and_out_momentum_testing_tab = self.high_level_tab_control.add(
-        #     "Momentum In & Out Strategies"
-        # )
-        # self.create_tab_content(in_and_out_momentum_testing_tab)
+        in_and_out_momentum_testing_tab = self.high_level_tab_control.add(
+            "Momentum In & Out Strategies"
+        )
+        self.create_tab_content(in_and_out_momentum_testing_tab)
 
         # machine_learning_testing_tab = self.high_level_tab_control.add(
         #     "Machine Learning Strategies"
