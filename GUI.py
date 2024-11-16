@@ -442,16 +442,16 @@ class PortfolioAnalyzer(ctk.CTk):
         active_tab = self.high_level_tab_control.get()
         if active_tab == "SMA Strategies":
             threading.Thread(target=self._run_simulation_task, args=(main.run_simulation,)).start()
-        elif active_tab == "Momentum Strategies":
-            threading.Thread(
-                target=self._run_simulation_task,
-                args=(main.run_momentum_simulation,)
-            ).start()
-        elif active_tab == "Machine Learning Strategies":
-            threading.Thread(
-                target=self._run_simulation_task,
-                args=(main.run_machine_learning_simulation,)
-            ).start()
+        # elif active_tab == "Momentum Strategies":
+        #     threading.Thread(
+        #         target=self._run_simulation_task,
+        #         args=(main.run_momentum_simulation,)
+        #     ).start()
+        # elif active_tab == "Machine Learning Strategies":
+        #     threading.Thread(
+        #         target=self._run_simulation_task,
+        #         args=(main.run_machine_learning_simulation,)
+        #     ).start()
 
     def _run_simulation_task(self, simulation_func):
         """

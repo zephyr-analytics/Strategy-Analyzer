@@ -10,7 +10,6 @@ import datetime
 import utilities as utilities
 
 from models_data import ModelsData
-from momentum_models.momentum_processor import MomentumProcessor
 from results.results_processor import ResultsProcessor
 
 class MomentumProcessor(ABC):
@@ -35,7 +34,7 @@ class MomentumProcessor(ABC):
         DataFrame to store the adjusted closing prices of the assets.
     """
     # TODO this is not properly abstracted.
-    def __init__(self, data_models):
+    def __init__(self, data_models: ModelsData):
         self.data_models = data_models
 
         self.assets_weights = data_models.assets_weights

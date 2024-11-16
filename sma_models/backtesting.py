@@ -126,7 +126,7 @@ class BacktestStaticPortfolio:
             # Check if the current ticker is below its SMA
             if self._data.loc[:current_date, ticker].iloc[-1] < self._data.loc[:current_date, ticker].rolling(window=self.sma_period).mean().iloc[-1]:
                 # Handle the case where bond_ticker is not available
-                if self.bond_ticker is "":
+                if self.bond_ticker == "":
                     adjusted_weights[ticker] = 0
                     adjusted_weights[self.cash_ticker] = adjusted_weights.get(self.cash_ticker, 0) + self.assets_weights[ticker]
                 else:
@@ -245,19 +245,13 @@ class BacktestStaticPortfolio:
     def _calculate_buy_and_hold(self):
         """
         Calculates the buy-and-hold performance of the portfolio with the same assets and weights over the time frame.
-        
-        Returns
-        -------
-        buy_and_hold_values : Series
-            Series representing the portfolio value over time following a buy-and-hold strategy.
-        buy_and_hold_returns : Series
-            Series representing the portfolio returns over time following a buy-and-hold strategy.
         """
-
-        if self.bond_ticker is "":
-            self._data = utilities.fetch_data_wo_threshold_and_bonds(self.assets_weights, self.start_date, self.end_date, self.cash_ticker)
-        else:
-            self._data = utilities.fetch_data_wo_threshold(self.assets_weights, self.start_date, self.end_date, self.bond_ticker, self.cash_ticker)
+        all_tickers = list(self.assets_weights.keys())
+        self._data = utilities.fetch_data(
+            all_tickers=all_tickers,
+            start_date=self.start_date,
+            end_date=self.end_date
+        )
 
         portfolio_values = [self.initial_portfolio_value]
         portfolio_returns = []
