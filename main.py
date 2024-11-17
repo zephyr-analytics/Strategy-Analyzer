@@ -5,18 +5,9 @@ Main module for encapsulating calling processors.
 import utilities as utilities
 from models_data import ModelsData
 
-from backtest_models.momentum_backtest import BacktestMomentumPortfolio
-from backtest_models.iao_momentum_backtest import BacktestInAndOutMomentumPortfolio
-
-from create_signals.create_momentum_signals import CreateMomentumSignals
-from create_signals.create_momentumiao_signals import CreateMomentumInAndOutSignals
-from create_signals.create_sma_signals import CreateSmaSignals
-
-from backtest_models.hierarchical_clustering import BacktestClusteringPortfolio
-from create_signals.create_ml_signals import CreateMLSignals
-
-from backtest_models.sma_backtesting import SmaBacktest
-from monte_carlo_simulation.monte_carlo_sim import MonteCarloSimulation
+from backtest_models import *
+from create_signals import *
+from monte_carlo_simulation import *
 
 
 def run_backtest(data_models: ModelsData):
@@ -26,7 +17,7 @@ def run_backtest(data_models: ModelsData):
     if not data_models.assets_weights:
         return "Please load asset weights file."
 
-    backtest = SmaBacktest(data_models)
+    backtest = SmaBacktestPortfolio(data_models)
     backtest.process()
 
     return "Backtest completed and plots saved."
@@ -77,7 +68,7 @@ def run_simulation(data_models: ModelsData):
     if not data_models.assets_weights:
         return "Please load asset weights file."
 
-    backtest = BacktestStaticPortfolio(data_models)
+    backtest = SmaBacktestPortfolio(data_models)
     backtest.process()
 
     monte_carlo = MonteCarloSimulation(data_models)

@@ -2,7 +2,7 @@
 Processor for creating sma based porfolio signals.
 """
 
-from backtest_models.sma_backtesting import SmaBacktest
+from backtest_models.sma_backtesting import SmaBacktestPortfolio
 from create_signals.signals_processor import SignalsProcessor
 
 
@@ -26,7 +26,7 @@ class CreateSmaSignals(SignalsProcessor):
         """
         Generates trading signals by running the backtest and pulling the latest weights.
         """
-        self.backtest_portfolio = SmaBacktest(self.data_models)
+        self.backtest_portfolio = SmaBacktestPortfolio(self.data_models)
         self.backtest_portfolio.process()
         latest_weights = self.data_models.adjusted_weights
         print(latest_weights)

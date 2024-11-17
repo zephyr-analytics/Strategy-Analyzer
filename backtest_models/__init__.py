@@ -3,6 +3,8 @@ Module to initialize momentum_models.
 """
 
 from backtest_models.backtesting_processor import BacktestingProcessor
+
+from backtest_models.hierarchical_clustering import BacktestClusteringPortfolio
 from backtest_models.iao_momentum_backtest import BacktestInAndOutMomentumPortfolio
 from backtest_models.momentum_backtest import BacktestMomentumPortfolio
 from backtest_models.sma_backtesting import SmaBacktestPortfolio
