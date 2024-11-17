@@ -65,10 +65,6 @@ class PortfolioAnalyzer(ctk.CTk):
     def create_widgets(self):
         """
         Creates the widgets and layouts for the application.
-
-        Parameters
-        ----------
-        None
         """
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=3)
@@ -85,8 +81,10 @@ class PortfolioAnalyzer(ctk.CTk):
         center_frame = ctk.CTkFrame(self, fg_color="#edeaea")
         center_frame.grid(row=0, column=1, rowspan=1, sticky="nsew")
 
+        # Create top-level tab control
         self.high_level_tab_control = ctk.CTkTabview(
-            center_frame, fg_color="#edeaea",
+            center_frame,
+            fg_color="#edeaea",
             segmented_button_fg_color="#edeaea",
             segmented_button_unselected_color="#bb8fce",
             segmented_button_selected_color="#8e44ad",
@@ -95,23 +93,15 @@ class PortfolioAnalyzer(ctk.CTk):
         )
         self.high_level_tab_control.pack(expand=1, fill="both")
 
-        sma_testing_tab = self.high_level_tab_control.add("SMA Strategies")
-        self.create_tab_content(sma_testing_tab)
+        # Add Initial Testing Setup Tab
+        initial_testing_tab = self.high_level_tab_control.add("Initial Testing Setup")
+        self.create_initial_testing_tab(initial_testing_tab)
 
-        momentum_testing_tab = self.high_level_tab_control.add("Momentum Strategies")
-        self.create_tab_content(momentum_testing_tab)
+        # Add Testing Tab
+        testing_tab = self.high_level_tab_control.add("Testing")
+        self.create_testing_tabs(testing_tab)
 
-        in_and_out_momentum_testing_tab = self.high_level_tab_control.add(
-            "Momentum In & Out Strategies"
-        )
-        self.create_tab_content(in_and_out_momentum_testing_tab)
-
-        # machine_learning_testing_tab = self.high_level_tab_control.add(
-        #     "Machine Learning Strategies"
-        # )
-        # self.create_tab_content(machine_learning_testing_tab)
-
-        self.high_level_tab_control.set("SMA Strategies")
+        self.high_level_tab_control.set("Initial Testing Setup")
 
         # Add copyright information
         copyright_frame = ctk.CTkFrame(self, fg_color="#edeaea")
@@ -123,6 +113,80 @@ class PortfolioAnalyzer(ctk.CTk):
             font=ctk.CTkFont(size=12)
         )
         copyright_label.pack(pady=(0, 0))
+
+    def create_initial_testing_tab(self, tab):
+        """
+        Creates the Initial Testing Setup tab with introductory information or setup fields.
+
+        Parameters
+        ----------
+        tab : ctk.CTkFrame
+            The frame for the Initial Testing Setup tab.
+        """
+        ctk.CTkLabel(
+            tab,
+            text="Welcome to Portfolio Analyzer by Zephr Analytics.",
+            font=ctk.CTkFont(size=20, weight="bold")
+        ).pack(pady=10)
+
+        ctk.CTkLabel(
+            tab,
+            text="This application allows you to analyze investment strategies, run backtests, and simulate portfolio performance.",
+            wraplength=800,
+            font=ctk.CTkFont(size=14)
+        ).pack(pady=(10, 20))
+
+        ctk.CTkButton(
+            tab,
+            text="Proceed to Testing Tab",
+            fg_color="#bb8fce",
+            text_color="#000000",
+            hover_color="#8e44ad",
+            command=lambda: self.high_level_tab_control.set("Testing")
+        ).pack(pady=10)
+
+    def create_testing_tabs(self, tab):
+        """
+        Creates the Testing tab with sub-tabs for SMA, Momentum, Monte Carlo, etc.
+
+        Parameters
+        ----------
+        tab : ctk.CTkFrame
+            The frame for the Testing tab.
+        """
+        testing_tab_control = ctk.CTkTabview(
+            tab,
+            border_color="#edeaea",
+            fg_color="#edeaea",
+            segmented_button_fg_color="#edeaea",
+            segmented_button_unselected_color="#bb8fce",
+            segmented_button_selected_color="#8e44ad",
+            text_color="#000000",
+            segmented_button_selected_hover_color="#8e44ad"
+        )
+        testing_tab_control.pack(expand=1, fill="both")
+
+        # Existing sub-tabs
+        sma_testing_tab = testing_tab_control.add("SMA Strategies")
+        self.create_tab_content(sma_testing_tab)
+
+        momentum_testing_tab = testing_tab_control.add("Momentum Strategies")
+        self.create_tab_content(momentum_testing_tab)
+
+        in_and_out_momentum_testing_tab = testing_tab_control.add(
+            "Momentum In & Out Strategies"
+        )
+        self.create_tab_content(in_and_out_momentum_testing_tab)
+
+        # Uncomment the below for Machine Learning Strategies if needed
+        # machine_learning_testing_tab = testing_tab_control.add(
+        #     "Machine Learning Strategies"
+        # )
+        # self.create_tab_content(machine_learning_testing_tab)
+
+        monte_carlo_tab = testing_tab_control.add("Monte Carlo Simulation")
+        self.create_tab_content(monte_carlo_tab)
+
 
     def create_sidebars(self):
         """
@@ -292,7 +356,7 @@ class PortfolioAnalyzer(ctk.CTk):
         tab_control.pack(expand=1, fill="both")
 
         self.create_signals_tab(tab_control, self.bold_font)
-        self.create_backtesting_tab(tab_control)
+        self.create_backtesting_tab(tab_control, self.bold_font)
         self.create_monte_carlo_tab(tab_control, self.bold_font)
 
     def create_signals_tab(self, tab_control, bold_font):
@@ -324,7 +388,7 @@ class PortfolioAnalyzer(ctk.CTk):
             command=lambda: self.run_signals_and_display(signal_date.get())
         ).pack(pady=10)
 
-    def create_backtesting_tab(self, tab_control):
+    def create_backtesting_tab(self, tab_control, bold_font):
         """
         Creates the backtesting tab with input fields and buttons for running a backtest.
 
