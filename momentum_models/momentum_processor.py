@@ -143,7 +143,7 @@ class MomentumProcessor(ABC):
         Calculates the buy-and-hold performance of the portfolio with the same assets and weights over the time frame.
         """
         all_tickers = list(self.assets_weights.keys())
-        self._data = utilities.fetch_data(
+        self._bnh_data, message = utilities.fetch_data(
             all_tickers=all_tickers,
             start_date=self.start_date,
             end_date=self.end_date
@@ -155,10 +155,10 @@ class MomentumProcessor(ABC):
         monthly_dates = pd.date_range(start=self.start_date, end=self.end_date, freq='M')
         
         for i in range(1, len(monthly_dates)):
-            start_index = self._data.index.get_indexer([monthly_dates[i-1]], method='nearest')[0]
-            end_index = self._data.index.get_indexer([monthly_dates[i]], method='nearest')[0]
-            start_data = self._data.iloc[start_index]
-            end_data = self._data.iloc[end_index]
+            start_index = self._bnh_data.index.get_indexer([monthly_dates[i-1]], method='nearest')[0]
+            end_index = self._bnh_data.index.get_indexer([monthly_dates[i]], method='nearest')[0]
+            start_data = self._bnh_data.iloc[start_index]
+            end_data = self._bnh_data.iloc[end_index]
 
             previous_value = portfolio_values[-1]
             monthly_returns = (end_data / start_data) - 1
