@@ -2,7 +2,7 @@
 Processor for creating sma based porfolio signals.
 """
 
-from sma_models.sma_backtesting import SmaBacktest
+from backtest_models.sma_backtesting import SmaBacktest
 from create_signals.signals_processor import SignalsProcessor
 
 

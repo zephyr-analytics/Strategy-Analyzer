@@ -15,7 +15,7 @@ from models_data import ModelsData
 from results.results_processor import ResultsProcessor
 
 
-class MomentumProcessor(ABC):
+class BacktestingProcessor(ABC):
     """
     Abstract base class for backtesting portfolios with configurable strategies.
 

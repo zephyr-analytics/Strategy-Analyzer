@@ -10,11 +10,12 @@ from results.results_processor import ResultsProcessor
 import warnings
 
 from models_data import ModelsData
+from backtest_models.backtesting_processor import BacktestingProcessor
 
 warnings.filterwarnings("ignore")
 
 
-class SmaBacktest:
+class SmaBacktestPortfolio(BacktestingProcessor):
     """
     A class to backtest a static portfolio with adjustable weights based on Simple Moving Average (SMA).
 
@@ -41,7 +42,7 @@ class SmaBacktest:
     _returns : Series
         Series to store the portfolio returns over time.
     """
-
+# TODO this needs to be properly abstracted.
     def __init__(self, data_models: ModelsData):
         """
         Initializes the BacktestStaticPortfolio class with data from ModelsData.

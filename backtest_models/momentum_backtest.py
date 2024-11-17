@@ -10,13 +10,13 @@ import pandas as pd
 import utilities as utilities
 
 from models_data import ModelsData
-from momentum_models.momentum_processor import MomentumProcessor
+from backtest_models.backtesting_processor import BacktestingProcessor
 from results.results_processor import ResultsProcessor
 
 warnings.filterwarnings("ignore")
 
 
-class BacktestMomentumPortfolio(MomentumProcessor):
+class BacktestMomentumPortfolio(BacktestingProcessor):
     """
     A class to backtest a static portfolio with adjustable weights based on Simple Moving Average (SMA).
 

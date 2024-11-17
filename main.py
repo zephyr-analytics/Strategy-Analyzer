@@ -5,18 +5,18 @@ Main module for encapsulating calling processors.
 import utilities as utilities
 from models_data import ModelsData
 
-from momentum_models.momentum_backtest import BacktestMomentumPortfolio
-from momentum_models.iao_momentum_backtest import BacktestInAndOutMomentumPortfolio
+from backtest_models.momentum_backtest import BacktestMomentumPortfolio
+from backtest_models.iao_momentum_backtest import BacktestInAndOutMomentumPortfolio
 
 from create_signals.create_momentum_signals import CreateMomentumSignals
 from create_signals.create_momentumiao_signals import CreateMomentumInAndOutSignals
 from create_signals.create_sma_signals import CreateSmaSignals
 
-from machine_learning_models.hierarchical_clustering import BacktestClusteringPortfolio
-from machine_learning_models.create_ml_signals import CreateMLSignals
+from backtest_models.hierarchical_clustering import BacktestClusteringPortfolio
+from create_signals.create_ml_signals import CreateMLSignals
 
-from sma_models.sma_backtesting import SmaBacktest
-from sma_models.monte_carlo_sim import MonteCarloSimulation
+from backtest_models.sma_backtesting import SmaBacktest
+from monte_carlo_simulation.monte_carlo_sim import MonteCarloSimulation
 
 
 def run_backtest(data_models: ModelsData):

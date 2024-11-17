@@ -3,7 +3,7 @@ Module for creating IAO momentum trading signals.
 """
 
 from create_signals.signals_processor import SignalsProcessor
-from momentum_models.iao_momentum_backtest import BacktestInAndOutMomentumPortfolio
+from backtest_models.iao_momentum_backtest import BacktestInAndOutMomentumPortfolio
 
 
 class CreateMomentumInAndOutSignals(SignalsProcessor):
