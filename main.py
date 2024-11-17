@@ -91,7 +91,7 @@ def run_simulation(data_models: ModelsData):
 #     pass
 
 
-def run_signals(data_models: ModelsData):
+def run_sma_signals(data_models: ModelsData):
     """
     Method for passing models_data to Create Signals Processor.
     """

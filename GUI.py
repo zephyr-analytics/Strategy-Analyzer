@@ -62,6 +62,7 @@ class PortfolioAnalyzer(ctk.CTk):
         self.bottom_text = None
         self.create_widgets()
 
+
     def create_widgets(self):
         """
         Creates the widgets and layouts for the application.
@@ -73,7 +74,7 @@ class PortfolioAnalyzer(ctk.CTk):
         self.grid_rowconfigure(1, weight=10)
 
         # Create sidebars
-        self.create_sidebars()
+        # self.create_sidebars()
 
         self.bottom_text_frame = ctk.CTkFrame(self, fg_color="#edeaea")
         self.bottom_text_frame.grid(row=1, column=1, columnspan=1, sticky="ew")
@@ -114,36 +115,155 @@ class PortfolioAnalyzer(ctk.CTk):
         )
         copyright_label.pack(pady=(0, 0))
 
+
     def create_initial_testing_tab(self, tab):
         """
-        Creates the Initial Testing Setup tab with introductory information or setup fields.
-
+        Creates the Initial Testing Setup tab with categorized inputs for data, SMA, and momentum settings,
+        arranged using grid layout within frames and pack for frame placement.
+        
         Parameters
         ----------
         tab : ctk.CTkFrame
             The frame for the Initial Testing Setup tab.
         """
+        header_frame = ctk.CTkFrame(tab, fg_color="transparent")
+        header_frame.pack(fill="x", pady=(10, 20), padx=10)
+
+        header_frame.grid_columnconfigure(0, weight=1)
         ctk.CTkLabel(
-            tab,
-            text="Welcome to Portfolio Analyzer by Zephr Analytics.",
-            font=ctk.CTkFont(size=20, weight="bold")
-        ).pack(pady=10)
+            header_frame,
+            text="Welcome to Portfolio Analyzer by Zephyr Analytics.",
+            font=ctk.CTkFont(size=20, weight="bold"),
+            anchor="center"
+        ).grid(row=0, column=0, pady=10, sticky="ew")
 
         ctk.CTkLabel(
-            tab,
-            text="This application allows you to analyze investment strategies, run backtests, and simulate portfolio performance.",
+            header_frame,
+            text="Configure your portfolio settings below.",
             wraplength=800,
-            font=ctk.CTkFont(size=14)
-        ).pack(pady=(10, 20))
+            font=ctk.CTkFont(size=14),
+            anchor="center"
+        ).grid(row=1, column=0, pady=10, sticky="ew")
 
+        # Data Settings Section
+        data_frame = ctk.CTkFrame(tab, fg_color="#f5f5f5")
+        data_frame.pack(fill="x", pady=10, padx=10)
+
+        data_frame.grid_columnconfigure(0, weight=1)
+        data_frame.grid_columnconfigure(1, weight=1)
+        data_frame.grid_columnconfigure(2, weight=1)
+        data_frame.grid_columnconfigure(3, weight=1)
+        ctk.CTkLabel(data_frame, text="Data Settings", font=self.bold_font).grid(row=0, column=0, columnspan=4, sticky="ew", pady=5)
+
+        ctk.CTkLabel(data_frame, text="Start Date:", font=self.bold_font).grid(row=1, column=0, padx=5, sticky="e")
+        ctk.CTkEntry(data_frame, textvariable=self.start_date_var).grid(row=1, column=1, padx=5, sticky="w")
+        self.start_date_var.trace_add("write", self.update_start_date)
+
+        ctk.CTkLabel(data_frame, text="End Date:", font=self.bold_font).grid(row=1, column=2, padx=5, sticky="e")
+        ctk.CTkEntry(data_frame, textvariable=self.end_date_var).grid(row=1, column=3, padx=5, sticky="w")
+        self.end_date_var.trace_add("write", self.update_end_date)
+
+        ctk.CTkLabel(data_frame, text="Cash Ticker:", font=self.bold_font).grid(row=2, column=0, sticky="e", padx=5)
+        ctk.CTkEntry(data_frame, textvariable=self.cash_ticker_var).grid(row=2, column=1, sticky="ew", padx=5)
+        self.cash_ticker_var.trace_add("write", self.update_cash_ticker)
+
+        ctk.CTkLabel(data_frame, text="Bond Ticker:", font=self.bold_font).grid(row=3, column=0, sticky="e", padx=5)
+        ctk.CTkEntry(data_frame, textvariable=self.bond_ticker_var).grid(row=3, column=1, sticky="ew", padx=5)
+        self.bond_ticker_var.trace_add("write", self.update_bond_ticker)
+
+        ctk.CTkLabel(data_frame, text="Trading Frequency:", font=self.bold_font).grid(row=4, column=0, sticky="e", padx=5)
+
+        trading_options = ["Monthly", "Bi-Monthly"]
+        ctk.CTkOptionMenu(
+            data_frame,
+            values=trading_options,
+            fg_color="#bb8fce",
+            text_color="#000000",
+            button_color="#8e44ad",
+            button_hover_color="#8e44ad",
+            variable=self.trading_frequency_var
+        ).grid(row=4, column=1, sticky="ew", padx=5)
+        self.trading_frequency_var.trace_add("write", self.update_trading_frequency)
+
+        ctk.CTkLabel(
+            data_frame,
+            text="Select portfolio assets:",
+            font=self.bold_font).grid(row=5, column=0, sticky="e", padx=5
+        )
         ctk.CTkButton(
-            tab,
+            data_frame,
+            text="Select Asset Weights File",
+            fg_color="#bb8fce",
+            text_color="#000000",
+            hover_color="#8e44ad",
+            command=self.load_weights_and_update).grid(row=5, column=1, sticky="e", padx=5
+        )
+
+        # SMA Settings Section
+        sma_frame = ctk.CTkFrame(tab, fg_color="#f5f5f5")
+        sma_frame.pack(fill="x", pady=10, padx=10)
+
+        sma_frame.grid_columnconfigure(1, weight=1)
+        ctk.CTkLabel(sma_frame, text="SMA Settings", font=self.bold_font).grid(row=0, column=0, columnspan=2, pady=5)
+
+        ctk.CTkLabel(sma_frame, text="SMA Window (days):", font=self.bold_font).grid(row=1, column=0, sticky="e", padx=5)
+        sma_windows = ["21", "42", "63", "84", "105", "126", "147", "168", "210"]
+        ctk.CTkOptionMenu(
+            sma_frame,
+            values=sma_windows,
+            fg_color="#bb8fce",
+            text_color="#000000",
+            button_color="#8e44ad",
+            button_hover_color="#8e44ad",
+            variable=self.sma_window_var
+        ).grid(row=1, column=1, sticky="ew", padx=5)
+        self.sma_window_var.trace_add("write", self.update_sma_window)
+
+
+        # Momentum Settings Section
+        momentum_frame = ctk.CTkFrame(tab, fg_color="#f5f5f5")
+        momentum_frame.pack(fill="x", pady=10, padx=10)
+
+        momentum_frame.grid_columnconfigure(1, weight=1)
+        ctk.CTkLabel(momentum_frame, text="Momentum Settings", font=self.bold_font).grid(row=0, column=0, columnspan=2, pady=5)
+
+        ctk.CTkLabel(momentum_frame, text="Threshold Asset:", font=self.bold_font).grid(row=1, column=0, sticky="e", padx=5)
+        ctk.CTkEntry(momentum_frame, textvariable=self.threshold_asset_entry_var).grid(row=1, column=1, sticky="ew", padx=5)
+        self.threshold_asset_entry_var.trace_add("write", self.update_threshold_asset)
+
+        ctk.CTkLabel(momentum_frame, text="Number of assets to select:", font=self.bold_font).grid(row=2, column=0, sticky="e", padx=5)
+        ctk.CTkEntry(momentum_frame, textvariable=self.num_assets_to_select_entry_var).grid(row=2, column=1, sticky="ew", padx=5)
+        self.num_assets_to_select_entry_var.trace_add("write", self.update_num_assets_to_select)
+
+        ctk.CTkLabel(
+            momentum_frame,
+            text="Select out of market assets:",
+            font=self.bold_font).grid(row=3, column=0, sticky="ew", padx=5
+        )
+        ctk.CTkButton(
+            momentum_frame,
+            text="Select Asset Weights File",
+            fg_color="#bb8fce",
+            text_color="#000000",
+            hover_color="#8e44ad",
+            command=self.load_out_of_market_weights_and_update).grid(row=3, column=1, sticky="ew", padx=5
+        )
+
+
+        # Footer Section
+        footer_frame = ctk.CTkFrame(tab, fg_color="transparent")
+        footer_frame.pack(fill="x", pady=20)
+
+        proceed_button = ctk.CTkButton(
+            footer_frame,
             text="Proceed to Testing Tab",
             fg_color="#bb8fce",
             text_color="#000000",
             hover_color="#8e44ad",
             command=lambda: self.high_level_tab_control.set("Testing")
-        ).pack(pady=10)
+        )
+        proceed_button.pack(pady=20)
+
 
     def create_testing_tabs(self, tab):
         """
@@ -154,7 +274,7 @@ class PortfolioAnalyzer(ctk.CTk):
         tab : ctk.CTkFrame
             The frame for the Testing tab.
         """
-        testing_tab_control = ctk.CTkTabview(
+        self.testing_tab_control = ctk.CTkTabview(
             tab,
             border_color="#edeaea",
             fg_color="#edeaea",
@@ -164,180 +284,20 @@ class PortfolioAnalyzer(ctk.CTk):
             text_color="#000000",
             segmented_button_selected_hover_color="#8e44ad"
         )
-        testing_tab_control.pack(expand=1, fill="both")
+        self.testing_tab_control.pack(expand=1, fill="both")
 
         # Existing sub-tabs
-        sma_testing_tab = testing_tab_control.add("SMA Strategies")
+        sma_testing_tab = self.testing_tab_control.add("SMA Strategies")
         self.create_tab_content(sma_testing_tab)
 
-        momentum_testing_tab = testing_tab_control.add("Momentum Strategies")
+        momentum_testing_tab = self.testing_tab_control.add("Momentum Strategies")
         self.create_tab_content(momentum_testing_tab)
 
-        in_and_out_momentum_testing_tab = testing_tab_control.add(
+        in_and_out_momentum_testing_tab = self.testing_tab_control.add(
             "Momentum In & Out Strategies"
         )
         self.create_tab_content(in_and_out_momentum_testing_tab)
 
-        # Uncomment the below for Machine Learning Strategies if needed
-        # machine_learning_testing_tab = testing_tab_control.add(
-        #     "Machine Learning Strategies"
-        # )
-        # self.create_tab_content(machine_learning_testing_tab)
-
-        monte_carlo_tab = testing_tab_control.add("Monte Carlo Simulation")
-        self.create_tab_content(monte_carlo_tab)
-
-
-    def create_sidebars(self):
-        """
-        Creates shared sidebars that apply to all tabs.
-        """
-        # Left sidebar
-        sidebar = ctk.CTkFrame(self, width=200)
-        sidebar.grid(row=0, column=0, rowspan=4, sticky="ns", pady=(20, 0))
-
-        ctk.CTkLabel(
-            sidebar,
-            text="Strategy Settings",
-            font=ctk.CTkFont(
-                size=20,
-                weight="bold"
-            )).pack(pady=(10, 5))
-
-        ctk.CTkLabel(
-            sidebar,
-            text="Initial Portfolio Value:",
-            font=self.bold_font).pack(pady=(0, 0)
-        )
-
-        ctk.CTkEntry(
-            sidebar,
-            textvariable=self.initial_portfolio_value_var).pack(pady=(0, 5)
-        )
-        self.initial_portfolio_value_var.trace_add("write", self.update_initial_portfolio_value)
-
-        ctk.CTkLabel(sidebar, text="Start Date:", font=self.bold_font).pack(pady=(0, 0))
-        ctk.CTkEntry(sidebar, textvariable=self.start_date_var).pack(pady=(0, 5))
-        self.start_date_var.trace_add("write", self.update_start_date)
-
-        ctk.CTkLabel(sidebar, text="End Date:", font=self.bold_font).pack(pady=(0, 0))
-        ctk.CTkEntry(sidebar, textvariable=self.end_date_var).pack(pady=(0, 10))
-        self.end_date_var.trace_add("write", self.update_end_date)
-
-        ctk.CTkLabel(sidebar, text="Cash Ticker:", font=self.bold_font).pack(pady=(0, 0))
-        ctk.CTkEntry(sidebar, textvariable=self.cash_ticker_var).pack(pady=(0, 5))
-        self.cash_ticker_var.trace_add("write", self.update_cash_ticker)
-
-        ctk.CTkLabel(sidebar, text="Bond Ticker:", font=self.bold_font).pack(pady=(0, 0))
-        ctk.CTkEntry(sidebar, textvariable=self.bond_ticker_var).pack(pady=(0, 10))
-        self.bond_ticker_var.trace_add("write", self.update_bond_ticker)
-
-        ctk.CTkLabel(sidebar, text="Trading Frequency:", font=self.bold_font).pack(pady=(0, 0))
-        trading_options = ["Monthly", "Bi-Monthly"]
-        ctk.CTkOptionMenu(
-            sidebar,
-            values=trading_options,
-            fg_color="#bb8fce",
-            text_color="#000000",
-            button_color="#8e44ad",
-            button_hover_color="#8e44ad",
-            variable=self.trading_frequency_var).pack(pady=(0, 10)
-        )
-        self.trading_frequency_var.trace_add("write", self.update_trading_frequency)
-
-        ctk.CTkLabel(sidebar, text="Weighting Strategy:", font=self.bold_font).pack(pady=(0, 0))
-        weighting_options = [
-            "Use File Weights",
-            "Equal Weight",
-            "Risk Contribution",
-            "Min Volatility",
-            "Max Sharpe"
-        ]
-        ctk.CTkOptionMenu(
-            sidebar,
-            values=weighting_options,
-            fg_color="#bb8fce",
-            text_color="#000000",
-            button_color="#8e44ad",
-            button_hover_color="#8e44ad",
-            variable=self.weighting_strategy_var).pack(pady=(0, 10)
-        )
-        self.weighting_strategy_var.trace_add("write", self.update_weighting_strategy)
-
-        ctk.CTkLabel(sidebar, text="SMA Window (days):", font=self.bold_font).pack(pady=(0, 0))
-        sma_windows = ["21", "42", "63", "84", "105", "126", "147", "168", "210"]
-
-        ctk.CTkOptionMenu(
-            sidebar,
-            values=sma_windows,
-            fg_color="#bb8fce",
-            text_color="#000000",
-            button_color="#8e44ad",
-            button_hover_color="#8e44ad",
-            variable=self.sma_window_var).pack(pady=(0, 10)
-        )
-        self.sma_window_var.trace_add("write", self.update_sma_window)
-
-        ctk.CTkLabel(
-            sidebar,
-            text="Select portfolio assets:",
-            font=self.bold_font).pack(pady=(0, 0)
-        )
-        ctk.CTkButton(
-            sidebar,
-            text="Select Asset Weights File",
-            fg_color="#bb8fce",
-            text_color="#000000",
-            hover_color="#8e44ad",
-            command=self.load_weights_and_update).pack(pady=(10, 10)
-        )
-
-        # Right sidebar
-        right_sidebar = ctk.CTkFrame(self, width=200)
-        right_sidebar.grid(row=0, column=2, rowspan=4, sticky="ns", pady=(20, 0))
-
-        ctk.CTkLabel(right_sidebar, text="Theme Mode:", font=self.bold_font).pack(pady=(20, 0))
-        theme_options = ["Light", "Dark"]
-        ctk.CTkOptionMenu(
-            right_sidebar,
-            values=theme_options,
-            fg_color="#bb8fce",
-            text_color="#000000",
-            button_color="#8e44ad",
-            button_hover_color="#8e44ad",
-            variable=self.theme_mode_var,
-            command=self.change_theme).pack(pady=(0, 20), padx=(10, 10)
-        )
-        self.theme_mode_var.trace_add("write", self.update_theme_mode)
-
-        ctk.CTkLabel(
-            right_sidebar,
-            text="Select out of market assets:",
-            font=self.bold_font).pack(pady=(0, 0)
-        )
-        ctk.CTkButton(
-            right_sidebar,
-            text="Select Asset Weights File",
-            fg_color="#bb8fce",
-            text_color="#000000",
-            hover_color="#8e44ad",
-            command=self.load_out_of_market_weights_and_update).pack(pady=(10, 10)
-        )
-
-        ctk.CTkLabel(right_sidebar, text="Threshold Asset:", font=self.bold_font).pack(pady=(0, 0))
-        ctk.CTkEntry(right_sidebar, textvariable=self.threshold_asset_entry_var).pack(pady=(0, 10))
-        self.threshold_asset_entry_var.trace_add("write", self.update_threshold_asset)
-
-        ctk.CTkLabel(
-            right_sidebar,
-            text="Number of assets to select:",
-            font=self.bold_font).pack(pady=(0, 0)
-        )
-        ctk.CTkEntry(
-            right_sidebar,
-            textvariable=self.num_assets_to_select_entry_var
-        ).pack(pady=(0, 10))
-        self.num_assets_to_select_entry_var.trace_add("write", self.update_num_assets_to_select)
 
     def create_tab_content(self, tab):
         """
@@ -358,6 +318,7 @@ class PortfolioAnalyzer(ctk.CTk):
         self.create_signals_tab(tab_control, self.bold_font)
         self.create_backtesting_tab(tab_control, self.bold_font)
         self.create_monte_carlo_tab(tab_control, self.bold_font)
+
 
     def create_signals_tab(self, tab_control, bold_font):
         """
@@ -388,6 +349,7 @@ class PortfolioAnalyzer(ctk.CTk):
             command=lambda: self.run_signals_and_display(signal_date.get())
         ).pack(pady=10)
 
+
     def create_backtesting_tab(self, tab_control, bold_font):
         """
         Creates the backtesting tab with input fields and buttons for running a backtest.
@@ -411,6 +373,7 @@ class PortfolioAnalyzer(ctk.CTk):
             hover_color="#8e44ad",
             command=self.run_backtest
         ).pack(pady=10)
+
 
     def create_monte_carlo_tab(self, tab_control, bold_font):
         """
@@ -451,6 +414,7 @@ class PortfolioAnalyzer(ctk.CTk):
             command=self.run_simulation
         ).pack(pady=10)
 
+
     def change_theme(self, selected_theme):
         """
         Changes the theme of the application based on user selection.
@@ -462,12 +426,13 @@ class PortfolioAnalyzer(ctk.CTk):
         """
         ctk.set_appearance_mode(selected_theme)
 
+
     def run_backtest(self):
         """
         Task runner for backtesting, selects the correct function based on the active tab.
         """
         self.clear_bottom_text()
-        active_tab = self.high_level_tab_control.get()
+        active_tab = self.testing_tab_control.get()
         if active_tab == "SMA Strategies":
             threading.Thread(target=self._run_backtest_task, args=(main.run_backtest,)).start()
         elif active_tab == "Momentum Strategies":
@@ -498,12 +463,13 @@ class PortfolioAnalyzer(ctk.CTk):
         result = backtest_func(self.data_models)
         self.after(0, lambda: self.display_result(result))
 
+
     def run_simulation(self):
         """
         Task runner for simulations, selects the correct function based on the active tab.
         """
         self.clear_bottom_text()
-        active_tab = self.high_level_tab_control.get()
+        active_tab = self.testing_tab_control.get()
         if active_tab == "SMA Strategies":
             threading.Thread(target=self._run_simulation_task, args=(main.run_simulation,)).start()
         # elif active_tab == "Momentum Strategies":
@@ -529,16 +495,17 @@ class PortfolioAnalyzer(ctk.CTk):
         result = simulation_func(self.data_models)
         self.after(0, lambda: self.display_result(result))
 
+
     def run_signals_and_display(self, current_date):
         """
         Task runner for signal generation, selects the correct function based on the active tab.
         """
         self.clear_bottom_text()
-        active_tab = self.high_level_tab_control.get()
+        active_tab = self.testing_tab_control.get()
         if active_tab == "SMA Strategies":
             threading.Thread(
                 target=self._run_signals_task,
-                args=(main.run_signals, current_date)
+                args=(main.run_sma_signals, current_date)
             ).start()
         elif active_tab == "Momentum Strategies":
             threading.Thread(
@@ -571,6 +538,7 @@ class PortfolioAnalyzer(ctk.CTk):
         self.data_models.end_date = current_date
         result = signals_func(self.data_models)
         self.after(0, lambda: self.display_result(result))
+
 
     def clear_bottom_text(self):
         """
