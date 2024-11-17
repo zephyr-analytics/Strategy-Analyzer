@@ -13,11 +13,12 @@ import yfinance as yf
 
 def fetch_data(all_tickers, start_date, end_date):
     """
-    Fetches the adjusted closing prices of the assets.
+    Fetches and trims the adjusted closing prices of the assets to the common earliest date,
+    while providing information about the earliest common start date and trimmed assets.
 
     Parameters
     ----------
-    all_assets : list
+    all_tickers : list
         List of asset tickers.
     start_date : str
         The start date for fetching the data.
@@ -26,11 +27,27 @@ def fetch_data(all_tickers, start_date, end_date):
 
     Returns
     -------
-    DataFrame
-        DataFrame containing the adjusted closing prices of the assets.
+    tuple
+        A tuple containing:
+        - DataFrame: Trimmed adjusted closing prices of the assets.
+        - str: Message indicating the earliest common start date and the assets causing trimming.
     """
     data = yf.download(all_tickers, start=start_date, end=end_date)['Adj Close']
-    return data
+
+    original_start_dates = data.apply(lambda col: col.first_valid_index())
+
+    common_start_date = original_start_dates.max()
+
+    trimmed_assets = original_start_dates[original_start_dates < common_start_date].index.tolist()
+
+    trimmed_data = data.loc[common_start_date:].dropna(how='any', axis=0)
+
+    message = (
+        f"The earliest common start date is {common_start_date.date()}. "
+        f"Data reduction was caused by these assets: {', '.join(trimmed_assets) if trimmed_assets else 'None'}."
+    )
+    
+    return trimmed_data, message
 
 
 def fetch_out_of_market_data(assets_tickers, start_date, end_date):

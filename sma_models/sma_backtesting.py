@@ -13,6 +13,7 @@ from models_data import ModelsData
 
 warnings.filterwarnings("ignore")
 
+
 class SmaBacktest:
     """
     A class to backtest a static portfolio with adjustable weights based on Simple Moving Average (SMA).
@@ -81,7 +82,10 @@ class SmaBacktest:
         if self.bond_ticker != "":
             all_tickers.append(self.bond_ticker)
 
-        utilities.fetch_data(all_tickers, self.start_date, self.end_date)
+        self._data, message = utilities.fetch_data(all_tickers, self.start_date, self.end_date)
+
+        print(f"Data was updated for common start dates:\n\n {message}")
+
         self._run_backtest()
         self._get_portfolio_statistics()
         self._calculate_buy_and_hold()
@@ -215,31 +219,6 @@ class SmaBacktest:
         self.data_models.var = var
         self.data_models.cvar = cvar
         self.data_models.annual_volatility = annual_volatility
-
-
-    # def _rebalance_portfolio(self, current_weights):
-    #     """
-    #     Rebalances the portfolio if the weights are outside their target range.
-
-    #     Parameters
-    #     ----------
-    #     current_weights : dict
-    #         Dictionary of current asset weights.
-
-    #     Returns
-    #     -------
-    #     dict
-    #         Dictionary of rebalanced asset weights.
-    #     """
-    #     rebalanced_weights = current_weights.copy()
-    #     for ticker, target_weight in self.assets_weights.items():
-    #         if abs(current_weights[ticker] - target_weight) > self.rebalance_threshold:
-    #             rebalanced_weights[ticker] = target_weight
-    #     total_weight = sum(rebalanced_weights.values())
-    #     for ticker in rebalanced_weights:
-    #         rebalanced_weights[ticker] /= total_weight
-
-    #     return rebalanced_weights
 
 
     def _calculate_buy_and_hold(self):

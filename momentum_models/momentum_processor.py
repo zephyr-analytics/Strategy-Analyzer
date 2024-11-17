@@ -14,6 +14,7 @@ import utilities as utilities
 from models_data import ModelsData
 from results.results_processor import ResultsProcessor
 
+
 class MomentumProcessor(ABC):
     """
     Abstract base class for backtesting portfolios with configurable strategies.
@@ -35,7 +36,7 @@ class MomentumProcessor(ABC):
     _data : DataFrame or None
         DataFrame to store the adjusted closing prices of the assets.
     """
-    # TODO this is not properly abstracted.
+    # TODO this needs to become backtesting processor, and sma backtesting needs to be become apart of it.
     def __init__(self, data_models: ModelsData):
         self.data_models = data_models
 

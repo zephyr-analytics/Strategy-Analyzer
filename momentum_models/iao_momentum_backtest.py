@@ -98,9 +98,11 @@ class BacktestInAndOutMomentumPortfolio(MomentumProcessor):
         if self.bond_ticker != "":
             all_tickers.append(self.bond_ticker)
 
-        self._data = utilities.fetch_data(all_tickers, self.start_date, self.end_date)
+        self._data, message = utilities.fetch_data(all_tickers, self.start_date, self.end_date)
+        print(f"Data was updated for common start dates:\n\n {message}")
 
-        self._out_of_market_data = utilities.fetch_out_of_market_data(self.out_of_market_tickers, self.start_date, self.end_date)
+        self._out_of_market_data, message = utilities.fetch_out_of_market_data(self.out_of_market_tickers, self.start_date, self.end_date)
+        print(f"Data was updated for common start dates:\n\n {message}")
 
         # Calculate momentum for both in-market and out-of-market assets
         self._momentum_data = self._data.copy().pct_change().dropna()
