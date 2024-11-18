@@ -31,6 +31,7 @@ class SignalsProcessor(ABC):
         self.sma_period = int(models_data.sma_window)
         self.current_date = models_data.end_date
         self.output_filename = models_data.weights_filename
+        self.weights_filename = models_data.weights_filename
 
 
     def process(self):
@@ -112,6 +113,5 @@ class SignalsProcessor(ABC):
                 )
             ]
         )
-        
-        # Save the plot as an HTML file
-        utilities.save_html(fig, filename, self.output_filename)
+
+        utilities.save_html(fig, filename, self.weights_filename, self.output_filename)

@@ -13,10 +13,11 @@ from tkinterhtml import HtmlFrame
 import customtkinter as ctk
 from PIL import Image
 
-import main
+
 import utilities as utilities
 from models_data import ModelsData
-
+from models_factory import ModelsFactory
+from processing_types import *
 
 class PortfolioAnalyzer(ctk.CTk):
     """
@@ -332,13 +333,22 @@ class PortfolioAnalyzer(ctk.CTk):
         self.plot_var = StringVar(value=plot_files[0] if plot_files else "No plots available")
         self.plot_dropdown = ctk.CTkOptionMenu(
             tab,
+            fg_color="#bb8fce",
+            text_color="#000000",
+            button_color="#8e44ad",
+            button_hover_color="#8e44ad",
             values=plot_files if plot_files else ["No plots available"],
             variable=self.plot_var,
         )
         self.plot_dropdown.pack(pady=5)
 
         display_button = ctk.CTkButton(
-            tab, text="Display Plot", command=self.update_plot_display
+            tab,
+            fg_color="#bb8fce",
+            text_color="#000000",
+            hover_color="#8e44ad",
+            text="Display Plot", 
+            command=self.update_plot_display
         )
         display_button.pack(pady=10)
 
@@ -400,7 +410,7 @@ class PortfolioAnalyzer(ctk.CTk):
             fg_color="#bb8fce",
             text_color="#000000",
             hover_color="#8e44ad",
-            command=lambda: self.run_signals_and_display(signal_date.get())
+            command=self.run_signals
         ).pack(pady=10)
 
 
@@ -479,117 +489,105 @@ class PortfolioAnalyzer(ctk.CTk):
         ctk.set_appearance_mode(selected_theme)
 
 
-    def run_backtest(self):
+    def _run_task(self, model, run_type):
         """
-        Task runner for backtesting, selects the correct function based on the active tab.
-        """
-        self.clear_bottom_text()
-        active_tab = self.testing_tab_control.get()
-        if active_tab == "SMA Strategies":
-            threading.Thread(target=self._run_backtest_task, args=(main.run_backtest,)).start()
-        elif active_tab == "Momentum Strategies":
-            threading.Thread(
-                target=self._run_backtest_task,
-                args=(main.run_momentum_backtest,)
-            ).start()
-        elif active_tab == "Machine Learning Strategies":
-            threading.Thread(
-                target=self._run_backtest_task,
-                args=(main.run_machine_learning_backtest,)
-            ).start()
-        elif active_tab == "Momentum In & Out Strategies":
-            threading.Thread(
-                target=self._run_backtest_task,
-                args=(main.run_in_and_out_of_market_backtest,)
-            ).start()
-
-    def _run_backtest_task(self, backtest_func):
-        """
-        Runs the backtest task in a separate thread.
+        Generic task runner for executing a specific model and run type in a separate thread.
 
         Parameters
         ----------
-        backtest_func : function
-            The backtest function to be called.
+        model : Models
+            The model to run (e.g., Models.SMA).
+        run_type : Runs
+            The run type (e.g., Runs.BACKTEST, Runs.SIMULATION, Runs.SIGNALS).
         """
-        result = backtest_func(self.data_models)
-        self.after(0, lambda: self.display_result(result))
+        try:
+            factory = ModelsFactory(self.data_models)
+            result = factory.run(model, run_type)
+            self.after(0, lambda: self.append_to_bottom_text(result))
+        finally:
+            # TODO this is not updating plots as expected.
+            self.get_all_plot_files()
+
+
+    def run_backtest(self):
+        """
+        Task runner for backtesting, dynamically selects the correct model
+        based on the active tab and uses ModelsFactory.
+        """
+        self.clear_bottom_text()
+        active_tab = self.testing_tab_control.get()
+
+        tab_to_model_map = {
+            "SMA Strategies": Models.SMA,
+            "Momentum Strategies": Models.MOMENTUM,
+            "Machine Learning Strategies": Models.MACHINE_LEARNING,
+            "Momentum In & Out Strategies": Models.IN_AND_OUT_OF_MARKET,
+        }
+
+        selected_model = tab_to_model_map.get(active_tab)
+        if selected_model:
+            threading.Thread(
+                target=self._run_task,
+                args=(selected_model, Runs.BACKTEST)
+            ).start()
+        else:
+            self.append_to_bottom_text(f"Invalid tab selected: {active_tab}")
 
 
     def run_simulation(self):
         """
-        Task runner for simulations, selects the correct function based on the active tab.
+        Task runner for simulations, dynamically selects the correct model
+        based on the active tab and uses ModelsFactory.
         """
         self.clear_bottom_text()
         active_tab = self.testing_tab_control.get()
-        if active_tab == "SMA Strategies":
-            threading.Thread(target=self._run_simulation_task, args=(main.run_simulation,)).start()
-        # elif active_tab == "Momentum Strategies":
-        #     threading.Thread(
-        #         target=self._run_simulation_task,
-        #         args=(main.run_momentum_simulation,)
-        #     ).start()
-        # elif active_tab == "Machine Learning Strategies":
-        #     threading.Thread(
-        #         target=self._run_simulation_task,
-        #         args=(main.run_machine_learning_simulation,)
-        #     ).start()
 
-    def _run_simulation_task(self, simulation_func):
+        tab_to_model_map = {
+            "SMA Strategies": Models.SMA,
+        }
+
+        selected_model = tab_to_model_map.get(active_tab)
+        if selected_model:
+            threading.Thread(
+                target=self._run_task,
+                args=(selected_model, Runs.SIMULATION)
+            ).start()
+        else:
+            self.append_to_bottom_text(f"Invalid tab selected: {active_tab}")
+
+
+    def run_signals(self):
         """
-        Runs the simulation task in a separate thread.
-
-        Parameters
-        ----------
-        simulation_func : function
-            The simulation function to be called.
-        """
-        result = simulation_func(self.data_models)
-        self.after(0, lambda: self.display_result(result))
-
-
-    def run_signals_and_display(self, current_date):
-        """
-        Task runner for signal generation, selects the correct function based on the active tab.
+        Task runner for signal generation, dynamically selects the correct model
+        based on the active tab and uses ModelsFactory.
         """
         self.clear_bottom_text()
         active_tab = self.testing_tab_control.get()
-        if active_tab == "SMA Strategies":
-            threading.Thread(
-                target=self._run_signals_task,
-                args=(main.run_sma_signals, current_date)
-            ).start()
-        elif active_tab == "Momentum Strategies":
-            threading.Thread(
-                target=self._run_signals_task,
-                args=(main.run_momentum_signals, current_date)
-            ).start()
-        elif active_tab == "Momentum In & Out Strategies":
-            threading.Thread(
-                target=self._run_signals_task,
-                args=(main.run_in_and_out_of_market_signals, current_date)
-            ).start()
-        elif active_tab == "Machine Learning Strategies":
-            threading.Thread(
-                target=self._run_signals_task,
-                args=(main.run_machine_learning_signals,
-                      current_date)
-            ).start()
 
-    def _run_signals_task(self, signals_func, current_date):
-        """
-        Runs the signal generation task in a separate thread.
+        tab_to_model_map = {
+            "SMA Strategies": Models.SMA,
+            "Momentum Strategies": Models.MOMENTUM,
+            "Machine Learning Strategies": Models.MACHINE_LEARNING,
+            "Momentum In & Out Strategies": Models.IN_AND_OUT_OF_MARKET,
+        }
 
-        Parameters
-        ----------
-        signals_func : function
-            The signal generation function to be called.
-        current_date : str
-            The date for which to generate signals.
+        selected_model = tab_to_model_map.get(active_tab)
+        if selected_model:
+            threading.Thread(
+                target=self._run_task,
+                args=(selected_model, Runs.SIGNALS)
+            ).start()
+        else:
+            self.append_to_bottom_text(f"Invalid tab selected: {active_tab}")
+
+
+    def append_to_bottom_text(self, message):
         """
-        self.data_models.end_date = current_date
-        result = signals_func(self.data_models)
-        self.after(0, lambda: self.display_result(result))
+        Appends a message to the bottom text area.
+        """
+        if hasattr(self, "bottom_text_area"):
+            self.bottom_text_area.insert("end", message + "\n")
+            self.bottom_text_area.see("end")
 
 
     def clear_bottom_text(self):
