@@ -108,7 +108,7 @@ def strip_csv_extension(filename):
     return os.path.splitext(filename)[0]
 
 
-def save_html(fig, filename, weights_filename, output_filename):
+def save_html(fig, filename, weights_filename, output_filename, num_assets):
     """
     Save the HTML file to the 'artifacts' directory within the current working directory.
 
@@ -124,6 +124,9 @@ def save_html(fig, filename, weights_filename, output_filename):
     current_date = datetime.now().strftime("%Y-%m-%d")
     artifacts_directory = os.path.join(current_directory, 'artifacts', f"{weights_filename}")
     os.makedirs(artifacts_directory, exist_ok=True)
-
-    file_path = os.path.join(artifacts_directory, f"{output_filename}_{current_date}_{filename}.html")
-    fig.write_html(file_path)
+    if num_assets != None:
+        file_path = os.path.join(artifacts_directory, f"{output_filename}_{current_date}_{num_assets}_{filename}.html")
+        fig.write_html(file_path)
+    else:
+        file_path = os.path.join(artifacts_directory, f"{output_filename}_{current_date}_{filename}.html")
+        fig.write_html(file_path)

@@ -258,6 +258,7 @@ class PortfolioAnalyzer(ctk.CTk):
 
         monte_carlo_frame = ctk.CTkFrame(tab, fg_color="#f5f5f5")
         monte_carlo_frame.pack(fill="x", pady=10, padx=10)
+        monte_carlo_frame.grid_columnconfigure(1, weight=1)
         ctk.CTkLabel(monte_carlo_frame, text="Monte Carlo Settings", font=self.bold_font).grid(row=0, column=0, columnspan=2, pady=5)
 
         ctk.CTkLabel(monte_carlo_frame, text="Simulation Horizon:", font=self.bold_font).grid(row=1, column=0, sticky="e", padx=5)
