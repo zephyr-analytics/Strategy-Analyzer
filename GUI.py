@@ -294,7 +294,6 @@ class PortfolioAnalyzer(ctk.CTk):
         )
         self.testing_tab_control.pack(expand=1, fill="both")
 
-        # Existing sub-tabs
         sma_testing_tab = self.testing_tab_control.add("SMA Strategies")
         self.create_tab_content(sma_testing_tab)
 
@@ -326,11 +325,9 @@ class PortfolioAnalyzer(ctk.CTk):
         self.create_backtesting_tab(tab_control, self.bold_font)
         self.create_monte_carlo_tab(tab_control, self.bold_font)
 
-        # Dropdown for Portfolio Type
         plot_label = ctk.CTkLabel(tab, text="Select Plot:")
         plot_label.pack(pady=5)
 
-        # Dynamically fetch all plot files
         plot_files = self.get_all_plot_files()
         self.plot_var = StringVar(value=plot_files[0] if plot_files else "No plots available")
         self.plot_dropdown = ctk.CTkOptionMenu(
@@ -340,7 +337,6 @@ class PortfolioAnalyzer(ctk.CTk):
         )
         self.plot_dropdown.pack(pady=5)
 
-        # Display Button
         display_button = ctk.CTkButton(
             tab, text="Display Plot", command=self.update_plot_display
         )
@@ -359,7 +355,6 @@ class PortfolioAnalyzer(ctk.CTk):
         for root, _, files in os.walk(self.artifacts_directory):
             for file in files:
                 if file.endswith(".html"):
-                    # Create a relative path for dropdown display
                     rel_path = os.path.relpath(os.path.join(root, file), self.artifacts_directory)
                     plot_files.append(rel_path)
         return plot_files
@@ -376,18 +371,7 @@ class PortfolioAnalyzer(ctk.CTk):
             self.display_error(f"File not found: {file_path}")
             return
 
-        try:
-            # Open the HTML file in the default web browser
-            webbrowser.open(f"file://{file_path}")
-        except Exception as e:
-            self.display_error(f"Error opening plot: {e}")
-
-
-    def display_error(self, message):
-        """
-        Display an error message in the HTML frame.
-        """
-        self.html_frame.set_content(f"<h2 style='color: red;'>{message}</h2>")
+        webbrowser.open(f"file://{file_path}")
 
 
     def create_signals_tab(self, tab_control, bold_font):
