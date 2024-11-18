@@ -2,9 +2,13 @@
 GUI user interface for running application.
 """
 
+import os
 import threading
+import webbrowser
 
 from datetime import datetime
+from tkinter import StringVar
+from tkinterhtml import HtmlFrame
 
 import customtkinter as ctk
 from PIL import Image
@@ -39,6 +43,7 @@ class PortfolioAnalyzer(ctk.CTk):
         # self.iconbitmap(icon_path)
 
         # Variables for binding to GUI
+        self.artifacts_directory = os.path.join(os.getcwd(), "artifacts")
         self.start_date_var = ctk.StringVar(value=self.data_models.start_date)
         self.end_date_var = ctk.StringVar(value=self.data_models.end_date)
         self.cash_ticker_var = ctk.StringVar(value=self.data_models.cash_ticker)
@@ -47,7 +52,9 @@ class PortfolioAnalyzer(ctk.CTk):
         self.weighting_strategy_var = ctk.StringVar(value=self.data_models.weighting_strategy)
         self.sma_window_var = ctk.StringVar(value=self.data_models.sma_window)
         self.num_simulations_var = ctk.StringVar(value=self.data_models.num_simulations)
-        self.simulation_horizon_var = ctk.StringVar(value=self.data_models.simulation_horizon)
+        self.simulation_horizon_entry_var = ctk.StringVar(value=self.data_models.simulation_horizon)
+        # TODO add benchmark asset
+        # TODO add addition portfolio contributions
         self.theme_mode_var = ctk.StringVar(value=self.data_models.theme_mode)
         self.initial_portfolio_value_var = ctk.StringVar(
             value=self.data_models._initial_portfolio_value
@@ -223,7 +230,6 @@ class PortfolioAnalyzer(ctk.CTk):
         # Momentum Settings Section
         momentum_frame = ctk.CTkFrame(tab, fg_color="#f5f5f5")
         momentum_frame.pack(fill="x", pady=10, padx=10)
-
         momentum_frame.grid_columnconfigure(1, weight=1)
         ctk.CTkLabel(momentum_frame, text="Momentum Settings", font=self.bold_font).grid(row=0, column=0, columnspan=2, pady=5)
 
@@ -249,6 +255,13 @@ class PortfolioAnalyzer(ctk.CTk):
             command=self.load_out_of_market_weights_and_update).grid(row=3, column=1, sticky="ew", padx=5
         )
 
+        monte_carlo_frame = ctk.CTkFrame(tab, fg_color="#f5f5f5")
+        monte_carlo_frame.pack(fill="x", pady=10, padx=10)
+        ctk.CTkLabel(monte_carlo_frame, text="Monte Carlo Settings", font=self.bold_font).grid(row=0, column=0, columnspan=2, pady=5)
+
+        ctk.CTkLabel(monte_carlo_frame, text="Simulation Horizon:", font=self.bold_font).grid(row=1, column=0, sticky="e", padx=5)
+        ctk.CTkEntry(monte_carlo_frame, textvariable=self.simulation_horizon_entry_var).grid(row=1, column=1, sticky="ew", padx=5)
+        self.simulation_horizon_entry_var.trace_add("write", self.update_simulation_horizon)
 
         # Footer Section
         footer_frame = ctk.CTkFrame(tab, fg_color="transparent")
@@ -267,12 +280,7 @@ class PortfolioAnalyzer(ctk.CTk):
 
     def create_testing_tabs(self, tab):
         """
-        Creates the Testing tab with sub-tabs for SMA, Momentum, Monte Carlo, etc.
-
-        Parameters
-        ----------
-        tab : ctk.CTkFrame
-            The frame for the Testing tab.
+        Creates the Testing tab with sub-tabs for SMA, Momentum, etc.
         """
         self.testing_tab_control = ctk.CTkTabview(
             tab,
@@ -282,7 +290,7 @@ class PortfolioAnalyzer(ctk.CTk):
             segmented_button_unselected_color="#bb8fce",
             segmented_button_selected_color="#8e44ad",
             text_color="#000000",
-            segmented_button_selected_hover_color="#8e44ad"
+            segmented_button_selected_hover_color="#8e44ad",
         )
         self.testing_tab_control.pack(expand=1, fill="both")
 
@@ -301,7 +309,7 @@ class PortfolioAnalyzer(ctk.CTk):
 
     def create_tab_content(self, tab):
         """
-        Creates the content for the tabs.
+        Adds dropdowns and plot display area to the tab.
         """
         tab_control = ctk.CTkTabview(
             tab,
@@ -314,10 +322,72 @@ class PortfolioAnalyzer(ctk.CTk):
             segmented_button_selected_hover_color="#8e44ad"
         )
         tab_control.pack(expand=1, fill="both")
-
         self.create_signals_tab(tab_control, self.bold_font)
         self.create_backtesting_tab(tab_control, self.bold_font)
         self.create_monte_carlo_tab(tab_control, self.bold_font)
+
+        # Dropdown for Portfolio Type
+        plot_label = ctk.CTkLabel(tab, text="Select Plot:")
+        plot_label.pack(pady=5)
+
+        # Dynamically fetch all plot files
+        plot_files = self.get_all_plot_files()
+        self.plot_var = StringVar(value=plot_files[0] if plot_files else "No plots available")
+        self.plot_dropdown = ctk.CTkOptionMenu(
+            tab,
+            values=plot_files if plot_files else ["No plots available"],
+            variable=self.plot_var,
+        )
+        self.plot_dropdown.pack(pady=5)
+
+        # Display Button
+        display_button = ctk.CTkButton(
+            tab, text="Display Plot", command=self.update_plot_display
+        )
+        display_button.pack(pady=10)
+
+
+    def get_all_plot_files(self):
+        """
+        Fetch all .html plot files from all subdirectories in the artifacts folder.
+        Returns a list of paths relative to the artifacts directory.
+        """
+        if not os.path.exists(self.artifacts_directory):
+            os.makedirs(self.artifacts_directory)
+
+        plot_files = []
+        for root, _, files in os.walk(self.artifacts_directory):
+            for file in files:
+                if file.endswith(".html"):
+                    # Create a relative path for dropdown display
+                    rel_path = os.path.relpath(os.path.join(root, file), self.artifacts_directory)
+                    plot_files.append(rel_path)
+        return plot_files
+
+
+    def update_plot_display(self):
+        """
+        Open the plot in the default web browser.
+        """
+        selected_plot = self.plot_var.get()
+        file_path = os.path.join(self.artifacts_directory, selected_plot)
+
+        if not os.path.exists(file_path):
+            self.display_error(f"File not found: {file_path}")
+            return
+
+        try:
+            # Open the HTML file in the default web browser
+            webbrowser.open(f"file://{file_path}")
+        except Exception as e:
+            self.display_error(f"Error opening plot: {e}")
+
+
+    def display_error(self, message):
+        """
+        Display an error message in the HTML frame.
+        """
+        self.html_frame.set_content(f"<h2 style='color: red;'>{message}</h2>")
 
 
     def create_signals_tab(self, tab_control, bold_font):
@@ -402,8 +472,6 @@ class PortfolioAnalyzer(ctk.CTk):
             text="Simulation Horizon (years):",
             font=bold_font
         ).pack(pady=0)
-        ctk.CTkEntry(monte_carlo_tab, textvariable=self.simulation_horizon_var).pack(pady=(0, 10))
-        self.simulation_horizon_var.trace_add("write", self.update_simulation_horizon)
 
         ctk.CTkButton(
             monte_carlo_tab,
@@ -624,7 +692,7 @@ class PortfolioAnalyzer(ctk.CTk):
         *args : tuple
             Additional arguments passed by the trace method.
         """
-        # _ = args
+        _ = args
         self.data_models.start_date = self.start_date_var.get()
 
     def update_end_date(self, *args):
@@ -721,7 +789,7 @@ class PortfolioAnalyzer(ctk.CTk):
             Additional arguments passed by the trace method.
         """
         _ = args
-        self.data_models.simulation_horizon = int(self.simulation_horizon_var.get())
+        self.data_models.simulation_horizon = int(self.simulation_horizon_entry_var.get())
 
     def update_initial_portfolio_value(self, *args):
         """
