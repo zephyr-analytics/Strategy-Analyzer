@@ -264,6 +264,10 @@ class PortfolioAnalyzer(ctk.CTk):
         ctk.CTkEntry(monte_carlo_frame, textvariable=self.simulation_horizon_entry_var).grid(row=1, column=1, sticky="ew", padx=5)
         self.simulation_horizon_entry_var.trace_add("write", self.update_simulation_horizon)
 
+        ctk.CTkLabel(monte_carlo_frame, text="Number Simulations To Run:", font=self.bold_font).grid(row=2, column=0, sticky="e", padx=5)
+        ctk.CTkEntry(monte_carlo_frame, textvariable=self.num_simulations_var).grid(row=2, column=1, sticky="ew", padx=5)
+        self.num_simulations_var.trace_add("write", self.update_num_simulations)
+
         # Footer Section
         footer_frame = ctk.CTkFrame(tab, fg_color="transparent")
         footer_frame.pack(fill="x", pady=20)
@@ -282,6 +286,7 @@ class PortfolioAnalyzer(ctk.CTk):
     def create_testing_tabs(self, tab):
         """
         Creates the Testing tab with sub-tabs for SMA, Momentum, etc.
+        Each sub-tab contains dropdowns for selecting Runs enum values and a plot display section.
         """
         self.testing_tab_control = ctk.CTkTabview(
             tab,
@@ -295,43 +300,72 @@ class PortfolioAnalyzer(ctk.CTk):
         )
         self.testing_tab_control.pack(expand=1, fill="both")
 
-        sma_testing_tab = self.testing_tab_control.add("SMA Strategies")
-        self.create_tab_content(sma_testing_tab)
-
-        momentum_testing_tab = self.testing_tab_control.add("Momentum Strategies")
-        self.create_tab_content(momentum_testing_tab)
-
-        in_and_out_momentum_testing_tab = self.testing_tab_control.add(
-            "Momentum In & Out Strategies"
-        )
-        self.create_tab_content(in_and_out_momentum_testing_tab)
+        self.create_testing_tab("SMA Strategies")
+        self.create_testing_tab("Momentum Strategies")
+        self.create_testing_tab("Momentum In & Out Strategies")
 
 
-    def create_tab_content(self, tab):
+    def create_testing_tab(self, tab_name):
         """
-        Adds dropdowns and plot display area to the tab.
+        Creates a single tab with a dropdown menu for selecting Runs enum values
+        and integrates plot display functionality.
+
+        Parameters
+        ----------
+        tab_name : str
+            The name of the tab to create.
         """
-        tab_control = ctk.CTkTabview(
+        tab = self.testing_tab_control.add(tab_name)
+
+        ctk.CTkLabel(
             tab,
-            border_color="#edeaea",
-            fg_color="#edeaea",
-            segmented_button_fg_color="#edeaea",
-            segmented_button_unselected_color="#bb8fce",
-            segmented_button_selected_color="#8e44ad",
-            text_color="#000000",
-            segmented_button_selected_hover_color="#8e44ad"
-        )
-        tab_control.pack(expand=1, fill="both")
-        self.create_signals_tab(tab_control, self.bold_font)
-        self.create_backtesting_tab(tab_control, self.bold_font)
-        self.create_monte_carlo_tab(tab_control, self.bold_font)
+            text=f"{tab_name} Testing",
+            font=ctk.CTkFont(size=16, weight="bold"),
+        ).pack(pady=10)
 
-        plot_label = ctk.CTkLabel(tab, text="Select Plot:")
-        plot_label.pack(pady=5)
+        if not hasattr(self, 'tab_run_vars'):
+            self.tab_run_vars = {}
+        self.tab_run_vars[tab_name] = ctk.StringVar(value="Select Run")
+
+        ctk.CTkLabel(
+            tab,
+            text="Select Run Type:",
+            font=ctk.CTkFont(size=14),
+        ).pack(pady=5)
+
+        run_options = [run_type.name for run_type in Runs]
+        run_dropdown = ctk.CTkOptionMenu(
+            tab,
+            fg_color="#bb8fce",
+            text_color="#000000",
+            button_color="#8e44ad",
+            button_hover_color="#8e44ad",
+            values=run_options,
+            variable=self.tab_run_vars[tab_name],
+        )
+        run_dropdown.pack(pady=10)
+
+        ctk.CTkButton(
+            tab,
+            text="Run",
+            fg_color="#bb8fce",
+            text_color="#000000",
+            hover_color="#8e44ad",
+            command=lambda: self.execute_task_for_tab(tab_name),
+        ).pack(pady=10)
+
+        ctk.CTkLabel(
+            tab,
+            text="Select Plot:",
+            font=ctk.CTkFont(size=14),
+        ).pack(pady=10)
+
+# TODO this is still broken plots do not up nor when changing selection does button 
+# function change what plot is populated within the webbroswer.
 
         plot_files = self.get_all_plot_files()
         self.plot_var = StringVar(value=plot_files[0] if plot_files else "No plots available")
-        self.plot_dropdown = ctk.CTkOptionMenu(
+        plot_dropdown = ctk.CTkOptionMenu(
             tab,
             fg_color="#bb8fce",
             text_color="#000000",
@@ -340,17 +374,16 @@ class PortfolioAnalyzer(ctk.CTk):
             values=plot_files if plot_files else ["No plots available"],
             variable=self.plot_var,
         )
-        self.plot_dropdown.pack(pady=5)
+        plot_dropdown.pack(pady=10)
 
-        display_button = ctk.CTkButton(
+        ctk.CTkButton(
             tab,
+            text="Display Plot",
             fg_color="#bb8fce",
             text_color="#000000",
             hover_color="#8e44ad",
-            text="Display Plot", 
-            command=self.update_plot_display
-        )
-        display_button.pack(pady=10)
+            command=self.update_plot_display,
+        ).pack(pady=10)
 
 
     def get_all_plot_files(self):
@@ -372,121 +405,46 @@ class PortfolioAnalyzer(ctk.CTk):
 
     def update_plot_display(self):
         """
-        Open the plot in the default web browser.
+        Opens the selected plot in the default web browser.
         """
         selected_plot = self.plot_var.get()
         file_path = os.path.join(self.artifacts_directory, selected_plot)
 
         if not os.path.exists(file_path):
-            self.display_error(f"File not found: {file_path}")
+            self.append_to_bottom_text(f"File not found: {file_path}")
             return
 
         webbrowser.open(f"file://{file_path}")
 
 
-    def create_signals_tab(self, tab_control, bold_font):
+    def execute_task_for_tab(self, tab_name):
         """
-        Creates the signals tab with input fields and buttons for generating signals.
+        Executes the task based on the selected tab and run type.
 
         Parameters
         ----------
-        tab_control : ctk.CTkTabview
-            The tab control widget where the signals tab will be added.
-        bold_font : ctk.CTkFont
-            The font style to be applied to labels within the tab.
+        tab_name : str
+            The name of the tab selected (e.g., "SMA Strategies").
         """
-        signals_tab = tab_control.add("Portfolio Signals")
-        ctk.CTkLabel(
-            signals_tab,
-            text="Generate Portfolio Signals",
-            font=ctk.CTkFont(size=20, weight="bold")
-        ).pack(pady=10)
-        ctk.CTkLabel(signals_tab, text="Date for Signals:", font=bold_font).pack(pady=0)
-        signal_date = ctk.StringVar(value=datetime.today().strftime('%Y-%m-%d'))
-        ctk.CTkEntry(signals_tab, textvariable=signal_date).pack(pady=(0, 10))
-        ctk.CTkButton(
-            signals_tab,
-            text="Generate Signals",
-            fg_color="#bb8fce",
-            text_color="#000000",
-            hover_color="#8e44ad",
-            command=self.run_signals
-        ).pack(pady=10)
+        selected_run = self.tab_run_vars[tab_name].get()
 
+        tab_to_model_map = {
+            "SMA Strategies": Models.SMA,
+            "Momentum Strategies": Models.MOMENTUM,
+            "Momentum In & Out Strategies": Models.IN_AND_OUT_OF_MARKET,
+        }
 
-    def create_backtesting_tab(self, tab_control, bold_font):
-        """
-        Creates the backtesting tab with input fields and buttons for running a backtest.
+        model_enum = tab_to_model_map.get(tab_name)
+        run_enum = Runs[selected_run] if selected_run in Runs.__members__ else None
 
-        Parameters
-        ----------
-        tab_control : ctk.CTkTabview
-            The tab control widget where the backtesting tab will be added.
-        """
-        backtesting_tab = tab_control.add("Portfolio Backtesting")
-        ctk.CTkLabel(
-            backtesting_tab,
-            text="Portfolio Backtesting",
-            font=ctk.CTkFont(size=20, weight="bold")
-        ).pack(pady=10)
-        ctk.CTkButton(
-            backtesting_tab,
-            text="Run Backtest",
-            fg_color="#bb8fce",
-            text_color="#000000",
-            hover_color="#8e44ad",
-            command=self.run_backtest
-        ).pack(pady=10)
+        if not model_enum or not run_enum:
+            self.append_to_bottom_text("Invalid model or run type selection.")
+            return
 
-
-    def create_monte_carlo_tab(self, tab_control, bold_font):
-        """
-        Creates the Monte Carlo simulation tab with 
-        input fields and buttons for running a simulation.
-
-        Parameters
-        ----------
-        tab_control : ctk.CTkTabview
-            The tab control widget where the Monte Carlo simulation tab will be added.
-        bold_font : ctk.CTkFont
-            The font style to be applied to labels within the tab.
-        """
-        monte_carlo_tab = tab_control.add("Monte Carlo Simulation")
-        ctk.CTkLabel(
-            monte_carlo_tab,
-            text="Monte Carlo Simulation",
-            font=ctk.CTkFont(size=20, weight="bold")
-        ).pack(pady=10)
-        ctk.CTkLabel(monte_carlo_tab, text="Number of Simulations:", font=bold_font).pack(pady=0)
-        ctk.CTkEntry(monte_carlo_tab, textvariable=self.num_simulations_var).pack(pady=(0, 10))
-        self.num_simulations_var.trace_add("write", self.update_num_simulations)
-
-        ctk.CTkLabel(
-            monte_carlo_tab,
-            text="Simulation Horizon (years):",
-            font=bold_font
-        ).pack(pady=0)
-
-        ctk.CTkButton(
-            monte_carlo_tab,
-            text="Run Simulation",
-            fg_color="#bb8fce",
-            text_color="#000000",
-            hover_color="#8e44ad",
-            command=self.run_simulation
-        ).pack(pady=10)
-
-
-    def change_theme(self, selected_theme):
-        """
-        Changes the theme of the application based on user selection.
-
-        Parameters
-        ----------
-        selected_theme : str
-            The selected theme mode, either "Light" or "Dark".
-        """
-        ctk.set_appearance_mode(selected_theme)
+        threading.Thread(
+            target=self._run_task,
+            args=(model_enum, run_enum),
+        ).start()
 
 
     def _run_task(self, model, run_type):
@@ -505,80 +463,19 @@ class PortfolioAnalyzer(ctk.CTk):
             result = factory.run(model, run_type)
             self.after(0, lambda: self.append_to_bottom_text(result))
         finally:
-            # TODO this is not updating plots as expected.
             self.get_all_plot_files()
 
 
-    def run_backtest(self):
+    def change_theme(self, selected_theme):
         """
-        Task runner for backtesting, dynamically selects the correct model
-        based on the active tab and uses ModelsFactory.
+        Changes the theme of the application based on user selection.
+
+        Parameters
+        ----------
+        selected_theme : str
+            The selected theme mode, either "Light" or "Dark".
         """
-        self.clear_bottom_text()
-        active_tab = self.testing_tab_control.get()
-
-        tab_to_model_map = {
-            "SMA Strategies": Models.SMA,
-            "Momentum Strategies": Models.MOMENTUM,
-            "Machine Learning Strategies": Models.MACHINE_LEARNING,
-            "Momentum In & Out Strategies": Models.IN_AND_OUT_OF_MARKET,
-        }
-
-        selected_model = tab_to_model_map.get(active_tab)
-        if selected_model:
-            threading.Thread(
-                target=self._run_task,
-                args=(selected_model, Runs.BACKTEST)
-            ).start()
-        else:
-            self.append_to_bottom_text(f"Invalid tab selected: {active_tab}")
-
-
-    def run_simulation(self):
-        """
-        Task runner for simulations, dynamically selects the correct model
-        based on the active tab and uses ModelsFactory.
-        """
-        self.clear_bottom_text()
-        active_tab = self.testing_tab_control.get()
-
-        tab_to_model_map = {
-            "SMA Strategies": Models.SMA,
-        }
-
-        selected_model = tab_to_model_map.get(active_tab)
-        if selected_model:
-            threading.Thread(
-                target=self._run_task,
-                args=(selected_model, Runs.SIMULATION)
-            ).start()
-        else:
-            self.append_to_bottom_text(f"Invalid tab selected: {active_tab}")
-
-
-    def run_signals(self):
-        """
-        Task runner for signal generation, dynamically selects the correct model
-        based on the active tab and uses ModelsFactory.
-        """
-        self.clear_bottom_text()
-        active_tab = self.testing_tab_control.get()
-
-        tab_to_model_map = {
-            "SMA Strategies": Models.SMA,
-            "Momentum Strategies": Models.MOMENTUM,
-            "Machine Learning Strategies": Models.MACHINE_LEARNING,
-            "Momentum In & Out Strategies": Models.IN_AND_OUT_OF_MARKET,
-        }
-
-        selected_model = tab_to_model_map.get(active_tab)
-        if selected_model:
-            threading.Thread(
-                target=self._run_task,
-                args=(selected_model, Runs.SIGNALS)
-            ).start()
-        else:
-            self.append_to_bottom_text(f"Invalid tab selected: {active_tab}")
+        ctk.set_appearance_mode(selected_theme)
 
 
     def append_to_bottom_text(self, message):
