@@ -1,0 +1,369 @@
+import customtkinter as ctk
+
+
+class TestingTab:
+    """
+    Handles the layout and functionality of the Testing tab.
+    """
+    def __init__(self, parent):
+        self.parent = parent
+        self.bold_font = ctk.CTkFont(size=12, weight="bold", family="Arial")
+        self.create_layout()
+        self.artifacts_directory = os.path.join(os.getcwd(), "artifacts")
+        self.start_date_var = ctk.StringVar(value=self.data_models.start_date)
+        self.end_date_var = ctk.StringVar(value=self.data_models.end_date)
+        self.cash_ticker_var = ctk.StringVar(value=self.data_models.cash_ticker)
+        self.bond_ticker_var = ctk.StringVar(value=self.data_models.bond_ticker)
+        self.trading_frequency_var = ctk.StringVar(value=self.data_models.trading_frequency)
+        self.weighting_strategy_var = ctk.StringVar(value=self.data_models.weighting_strategy)
+        self.sma_window_var = ctk.StringVar(value=self.data_models.sma_window)
+        self.num_simulations_var = ctk.StringVar(value=self.data_models.num_simulations)
+        self.simulation_horizon_entry_var = ctk.StringVar(value=self.data_models.simulation_horizon)
+        # TODO add benchmark asset
+        # TODO add addition portfolio contributions
+        self.theme_mode_var = ctk.StringVar(value=self.data_models.theme_mode)
+        self.initial_portfolio_value_var = ctk.StringVar(
+            value=self.data_models._initial_portfolio_value
+        )
+        self.threshold_asset_entry_var = ctk.StringVar(value=self.data_models._threshold_asset)
+        self.num_assets_to_select_entry_var = ctk.StringVar(
+            value=self.data_models._num_assets_to_select
+        )
+
+        self.bold_font = ctk.CTkFont(size=12, weight="bold", family="Arial")
+
+        self.bottom_text = None
+        self.create_widgets()
+
+
+    def create_widgets(self):
+        """
+        Creates the widgets and layouts for the application.
+        """
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_columnconfigure(1, weight=3)
+        self.grid_columnconfigure(2, weight=1)
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=10)
+
+        # Create sidebars
+        # self.create_sidebars()
+
+        self.bottom_text_frame = ctk.CTkFrame(self, fg_color="#edeaea")
+        self.bottom_text_frame.grid(row=1, column=1, columnspan=1, sticky="ew")
+
+        center_frame = ctk.CTkFrame(self, fg_color="#edeaea")
+        center_frame.grid(row=0, column=1, rowspan=1, sticky="nsew")
+
+        # Create top-level tab control
+        self.high_level_tab_control = ctk.CTkTabview(
+            center_frame,
+            fg_color="#edeaea",
+            segmented_button_fg_color="#edeaea",
+            segmented_button_unselected_color="#bb8fce",
+            segmented_button_selected_color="#8e44ad",
+            text_color="#000000",
+            segmented_button_selected_hover_color="#8e44ad"
+        )
+        self.high_level_tab_control.pack(expand=1, fill="both")
+
+        # Add Initial Testing Setup Tab
+        initial_testing_tab = self.high_level_tab_control.add("Initial Testing Setup")
+        self.create_initial_testing_tab(initial_testing_tab)
+
+        # Add Testing Tab
+        testing_tab = self.high_level_tab_control.add("Testing")
+        self.create_testing_tabs(testing_tab)
+
+        self.high_level_tab_control.set("Initial Testing Setup")
+
+        # Add copyright information
+        copyright_frame = ctk.CTkFrame(self, fg_color="#edeaea")
+        copyright_frame.grid(row=4, column=1, columnspan=1, sticky="ew", pady=(5, 5))
+
+        copyright_label = ctk.CTkLabel(
+            copyright_frame,
+            text="© Zephyr Analytics 2024",
+            font=ctk.CTkFont(size=12)
+        )
+        copyright_label.pack(pady=(0, 0))
+
+
+    def create_testing_tabs(self, tab):
+        """
+        Creates the Testing tab with sub-tabs for SMA, Momentum, etc.
+        Each sub-tab contains dropdowns for selecting Runs enum values and a plot display section.
+        """
+        self.testing_tab_control = ctk.CTkTabview(
+            tab,
+            border_color="#edeaea",
+            fg_color="#edeaea",
+            segmented_button_fg_color="#edeaea",
+            segmented_button_unselected_color="#bb8fce",
+            segmented_button_selected_color="#8e44ad",
+            text_color="#000000",
+            segmented_button_selected_hover_color="#8e44ad",
+        )
+        self.testing_tab_control.pack(expand=1, fill="both")
+
+        self.create_testing_tab("SMA Strategies")
+        self.create_testing_tab("Momentum Strategies")
+        self.create_testing_tab("Momentum In & Out Strategies")
+
+
+    def create_testing_tab(self, tab_name):
+        """
+        Creates a single tab with a dropdown menu for selecting Runs enum values
+        and integrates plot display functionality.
+
+        Parameters
+        ----------
+        tab_name : str
+            The name of the tab to create.
+        """
+        tab = self.testing_tab_control.add(tab_name)
+
+        ctk.CTkLabel(
+            tab,
+            text=f"{tab_name} Testing",
+            font=ctk.CTkFont(size=16, weight="bold"),
+        ).pack(pady=10)
+
+        if not hasattr(self, 'tab_run_vars'):
+            self.tab_run_vars = {}
+        self.tab_run_vars[tab_name] = ctk.StringVar(value="Select Run")
+
+        ctk.CTkLabel(
+            tab,
+            text="Select Run Type:",
+            font=ctk.CTkFont(size=14),
+        ).pack(pady=5)
+
+        run_options = [run_type.name for run_type in Runs]
+        run_dropdown = ctk.CTkOptionMenu(
+            tab,
+            fg_color="#bb8fce",
+            text_color="#000000",
+            button_color="#8e44ad",
+            button_hover_color="#8e44ad",
+            values=run_options,
+            variable=self.tab_run_vars[tab_name],
+        )
+        run_dropdown.pack(pady=10)
+
+        ctk.CTkButton(
+            tab,
+            text="Run",
+            fg_color="#bb8fce",
+            text_color="#000000",
+            hover_color="#8e44ad",
+            command=lambda: self.execute_task_for_tab(tab_name),
+        ).pack(pady=10)
+
+        ctk.CTkLabel(
+            tab,
+            text="Select Plot:",
+            font=ctk.CTkFont(size=14),
+        ).pack(pady=10)
+
+# TODO this is still broken plots do not up nor when changing selection does button 
+# function change what plot is populated within the webbroswer.
+
+        plot_files = self.get_all_plot_files()
+        self.plot_var = StringVar(value=plot_files[0] if plot_files else "No plots available")
+        plot_dropdown = ctk.CTkOptionMenu(
+            tab,
+            fg_color="#bb8fce",
+            text_color="#000000",
+            button_color="#8e44ad",
+            button_hover_color="#8e44ad",
+            values=plot_files if plot_files else ["No plots available"],
+            variable=self.plot_var,
+        )
+        plot_dropdown.pack(pady=10)
+
+        ctk.CTkButton(
+            tab,
+            text="Display Plot",
+            fg_color="#bb8fce",
+            text_color="#000000",
+            hover_color="#8e44ad",
+            command=self.update_plot_display,
+        ).pack(pady=10)
+
+
+    def get_all_plot_files(self):
+        """
+        Fetch all .html plot files from all subdirectories in the artifacts folder.
+        Returns a list of paths relative to the artifacts directory.
+        """
+        if not os.path.exists(self.artifacts_directory):
+            os.makedirs(self.artifacts_directory)
+
+        plot_files = []
+        for root, _, files in os.walk(self.artifacts_directory):
+            for file in files:
+                if file.endswith(".html"):
+                    rel_path = os.path.relpath(os.path.join(root, file), self.artifacts_directory)
+                    plot_files.append(rel_path)
+        return plot_files
+
+
+    def update_plot_display(self):
+        """
+        Opens the selected plot in the default web browser.
+        """
+        selected_plot = self.plot_var.get()
+        file_path = os.path.join(self.artifacts_directory, selected_plot)
+
+        if not os.path.exists(file_path):
+            self.append_to_bottom_text(f"File not found: {file_path}")
+            return
+
+        webbrowser.open(f"file://{file_path}")
+
+
+    def execute_task_for_tab(self, tab_name):
+        """
+        Executes the task based on the selected tab and run type.
+
+        Parameters
+        ----------
+        tab_name : str
+            The name of the tab selected (e.g., "SMA Strategies").
+        """
+        selected_run = self.tab_run_vars[tab_name].get()
+
+        tab_to_model_map = {
+            "SMA Strategies": Models.SMA,
+            "Momentum Strategies": Models.MOMENTUM,
+            "Momentum In & Out Strategies": Models.IN_AND_OUT_OF_MARKET,
+        }
+
+        model_enum = tab_to_model_map.get(tab_name)
+        run_enum = Runs[selected_run] if selected_run in Runs.__members__ else None
+
+        if not model_enum or not run_enum:
+            self.append_to_bottom_text("Invalid model or run type selection.")
+            return
+
+        threading.Thread(
+            target=self._run_task,
+            args=(model_enum, run_enum),
+        ).start()
+
+
+    def _run_task(self, model, run_type):
+        """
+        Generic task runner for executing a specific model and run type in a separate thread.
+
+        Parameters
+        ----------
+        model : Models
+            The model to run (e.g., Models.SMA).
+        run_type : Runs
+            The run type (e.g., Runs.BACKTEST, Runs.SIMULATION, Runs.SIGNALS).
+        """
+        try:
+            factory = ModelsFactory(self.data_models)
+            result = factory.run(model, run_type)
+            self.after(0, lambda: self.append_to_bottom_text(result))
+        finally:
+            self.get_all_plot_files()
+
+
+    def change_theme(self, selected_theme):
+        """
+        Changes the theme of the application based on user selection.
+
+        Parameters
+        ----------
+        selected_theme : str
+            The selected theme mode, either "Light" or "Dark".
+        """
+        ctk.set_appearance_mode(selected_theme)
+
+
+    def append_to_bottom_text(self, message):
+        """
+        Appends a message to the bottom text area.
+        """
+        if hasattr(self, "bottom_text_area"):
+            self.bottom_text_area.insert("end", message + "\n")
+            self.bottom_text_area.see("end")
+
+
+    def clear_bottom_text(self):
+        """
+        Clears the text at the bottom of the GUI.
+
+        Parameters
+        ----------
+        None
+        """
+        for widget in self.bottom_text_frame.winfo_children():
+            widget.destroy()
+
+    def load_weights_and_update(self):
+        """
+        Loads the asset weights from a file and updates the assets_weights attribute.
+
+        Parameters
+        ----------
+        None
+        """
+        self.clear_bottom_text()
+        self.data_models.assets_weights, self.data_models.weights_filename = utilities.load_weights()
+        if self.data_models.assets_weights:
+            self.data_models.weights_filename = utilities.strip_csv_extension(
+                self.data_models.weights_filename
+            )
+            self.display_asset_weights()
+
+    def load_out_of_market_weights_and_update(self):
+        """
+        Loads the asset weights from a file and updates the assets_weights attribute.
+
+        Parameters
+        ----------
+        None
+        """
+        self.clear_bottom_text()
+        self.data_models.out_of_market_tickers, self.file_name = utilities.load_weights()
+
+    def display_asset_weights(self):
+        """
+        Displays the loaded asset weights in the GUI, capped at 10.
+
+        Parameters
+        ----------
+        None
+        """
+        assets_text = "\n".join(
+            [f"{asset}: {weight}" for asset, weight in list(self.data_models.assets_weights.items())[:10]]
+        )
+        if len(self.data_models.assets_weights) > 10:
+            assets_text += f"\n... (and {(len(self.data_models.assets_weights)-10)} more)"
+
+        self.bottom_text = ctk.CTkLabel(
+            self.bottom_text_frame,
+            text=f"Loaded Assets and Weights from: \n\n{self.data_models.weights_filename}:\n{assets_text}",
+            text_color="blue",
+            fg_color="#edeaea"
+        )
+        self.bottom_text.pack(pady=5)
+
+    def display_result(self, result):
+        """
+        Displays the result of a task in the GUI.
+
+        Parameters
+        ----------
+        result : str
+            The result text to be displayed in the GUI.
+        """
+        self.bottom_text = ctk.CTkLabel(
+            self.bottom_text_frame,
+            text=result, text_color="green" if "completed" in result else "red"
+        )
+        self.bottom_text.pack(pady=5)
