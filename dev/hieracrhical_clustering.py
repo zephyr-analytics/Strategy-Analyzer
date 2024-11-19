@@ -3,7 +3,6 @@ import pandas as pd
 import numpy as np
 from scipy.cluster.hierarchy import linkage, fcluster, dendrogram
 from scipy.spatial.distance import pdist, squareform
-import matplotlib.pyplot as plt
 
 class ClusteringPortfolio:
     """
@@ -31,12 +30,11 @@ class ClusteringPortfolio:
 
     def calculate_momentum(self):
         """Calculate average momentum based on 1, 3, 6, 9, and 12-month returns."""
-        momentum_1m = self.returns.rolling(window=21).mean().iloc[-1]
         momentum_3m = self.returns.rolling(window=63).mean().iloc[-1]
         momentum_6m = self.returns.rolling(window=126).mean().iloc[-1]
         momentum_9m = self.returns.rolling(window=189).mean().iloc[-1]
         momentum_12m = self.returns.rolling(window=252).mean().iloc[-1]
-        return (momentum_1m + momentum_3m + momentum_6m + momentum_9m + momentum_12m) / 5
+        return (momentum_3m + momentum_6m + momentum_9m + momentum_12m) / 4
 
 
     def filter_assets_by_sma(self):
@@ -110,10 +108,10 @@ class ClusteringPortfolio:
 
 if __name__ == "__main__":
 
-    tickers = ['TLT', 'TLH', 'IEI', 'IEF', 'SGOV', 'SHV', 'SHY',
+    tickers = ['VGSH', 'VCSH', 'GOVT', 'LQD'
                'GLD', 'DBC',
                'VOX', 'VCR', 'VDC', 'VDE', 'VFH', 'VHT', 'VIS', 'VGT', 'VAW', 'VNQ', 'VPU',
-               'VV', 'VUG', 'VTV', 'VB', 'VBK', 'VBR']
+               'DIA', 'QQQ', 'SPY']
 
-    portfolio = ClusteringPortfolio(tickers=tickers, start_date='2018-01-01', end_date='2024-09-01', max_distance=0.5, num_assets=2)
+    portfolio = ClusteringPortfolio(tickers=tickers, start_date='2018-01-01', end_date='2024-09-01', max_distance=0.5, num_assets=5)
     portfolio.process()
