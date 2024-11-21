@@ -40,18 +40,15 @@ class TestingTab:
 
         self.bold_font = ctk.CTkFont(size=12, weight="bold", family="Arial")
 
-        self.bottom_text = None
+        # self.bottom_text = None
+        # TODO bottom_text_area might still need to be set.
         self.create_widgets()
 
 
     def create_widgets(self):
-        # Creating bottom text frame
-        self.bottom_text_frame = ctk.CTkFrame(self.parent, fg_color="#edeaea")
-        self.bottom_text_frame.grid(row=1, column=1, columnspan=1, sticky="ew")
-
         # Center frame for main tabs
         center_frame = ctk.CTkFrame(self.parent, fg_color="#edeaea")
-        center_frame.grid(row=0, column=1, rowspan=1, sticky="nsew")
+        center_frame.pack()
 
         # Create tabs within the center frame
         self.high_level_tab_control = ctk.CTkTabview(center_frame, fg_color="#edeaea")
@@ -60,13 +57,16 @@ class TestingTab:
         # Add testing tabs
         self.create_testing_tabs(self.high_level_tab_control)
 
+        self.bottom_text_frame = ctk.CTkFrame(self.parent, fg_color="#edeaea")
+        self.bottom_text_frame.pack()
+
         # Add copyright info
         copyright_label = ctk.CTkLabel(
             self.parent,
             text="© Zephyr Analytics 2024",
             font=ctk.CTkFont(size=12)
         )
-        copyright_label.grid(row=4, column=1, sticky="ew")
+        copyright_label.pack()
 
 
     def create_testing_tabs(self, parent):
@@ -286,32 +286,32 @@ class TestingTab:
         for widget in self.bottom_text_frame.winfo_children():
             widget.destroy()
 
-    def load_weights_and_update(self):
-        """
-        Loads the asset weights from a file and updates the assets_weights attribute.
+    # def load_weights_and_update(self):
+    #     """
+    #     Loads the asset weights from a file and updates the assets_weights attribute.
 
-        Parameters
-        ----------
-        None
-        """
-        self.clear_bottom_text()
-        self.data_models.assets_weights, self.data_models.weights_filename = utilities.load_weights()
-        if self.data_models.assets_weights:
-            self.data_models.weights_filename = utilities.strip_csv_extension(
-                self.data_models.weights_filename
-            )
-            self.display_asset_weights()
+    #     Parameters
+    #     ----------
+    #     None
+    #     """
+    #     self.clear_bottom_text()
+    #     self.data_models.assets_weights, self.data_models.weights_filename = utilities.load_weights()
+    #     if self.data_models.assets_weights:
+    #         self.data_models.weights_filename = utilities.strip_csv_extension(
+    #             self.data_models.weights_filename
+    #         )
+    #         self.display_asset_weights()
 
-    def load_out_of_market_weights_and_update(self):
-        """
-        Loads the asset weights from a file and updates the assets_weights attribute.
+    # def load_out_of_market_weights_and_update(self):
+    #     """
+    #     Loads the asset weights from a file and updates the assets_weights attribute.
 
-        Parameters
-        ----------
-        None
-        """
-        self.clear_bottom_text()
-        self.data_models.out_of_market_tickers, self.file_name = utilities.load_weights()
+    #     Parameters
+    #     ----------
+    #     None
+    #     """
+    #     self.clear_bottom_text()
+    #     self.data_models.out_of_market_tickers, self.file_name = utilities.load_weights()
 
     def display_asset_weights(self):
         """
@@ -349,3 +349,7 @@ class TestingTab:
             text=result, text_color="green" if "completed" in result else "red"
         )
         self.bottom_text.pack(pady=5)
+
+
+    def update_tab(self):
+        self.display_asset_weights()

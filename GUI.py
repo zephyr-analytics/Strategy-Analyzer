@@ -1,9 +1,4 @@
-"""
-GUI user interface for running application.
-"""
-
 import customtkinter as ctk
-
 from gui import *
 from models_data import ModelsData
 
@@ -39,19 +34,30 @@ class PortfolioAnalyzer(ctk.CTk):
         center_frame.grid(row=0, column=1, rowspan=1, sticky="nsew")
 
         # High-Level Tab Control
-        self.high_level_tab_control = ctk.CTkTabview(center_frame)
+        self.high_level_tab_control = ctk.CTkTabview(center_frame, command=self.on_tab_switch)
         self.high_level_tab_control.pack(expand=1, fill="both")
 
         # Add Initial Testing Setup Tab
         setup_tab_frame = self.high_level_tab_control.add("Initial Testing Setup")
         self.setup_tab = SetupTab(setup_tab_frame, models_data=self._data_models)
 
-        # # Add Testing Tab
+        # Add Testing Tab
         testing_tab_frame = self.high_level_tab_control.add("Testing")
         self.testing_tab = TestingTab(testing_tab_frame, models_data=self._data_models)
 
         # Set initial tab
         self.high_level_tab_control.set("Initial Testing Setup")
+
+    def on_tab_switch(self):
+        """
+        Callback for tab switching.
+        Determines the active tab and calls the update_tab method of the respective tab.
+        """
+        active_tab = self.high_level_tab_control.get()  # Get the name of the currently selected tab
+        if active_tab == "Initial Testing Setup":
+            self.setup_tab.update_tab()
+        elif active_tab == "Testing":
+            self.testing_tab.update_tab()
 
 
 if __name__ == "__main__":
