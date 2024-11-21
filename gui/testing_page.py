@@ -69,7 +69,6 @@ class TestingTab:
         copyright_label.grid(row=4, column=1, sticky="ew")
 
 
-
     def create_testing_tabs(self, parent):
         """
         Creates the Testing tab with sub-tabs for SMA, Momentum, etc.
