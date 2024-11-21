@@ -1,6 +1,8 @@
 import customtkinter as ctk
 
 import utilities as utilities
+
+# TODO Selected assets and weights are not being displayed.
 class SetupTab:
     """
     Handles the layout and functionality of the Initial Testing Setup parent.
@@ -32,10 +34,9 @@ class SetupTab:
         )
 
         self.bold_font = ctk.CTkFont(size=12, weight="bold", family="Arial")
-
-
-
+        self.bottom_text_frame = ctk.CTkFrame(self.parent)
         self.create_initial_testing_tab(self.parent)
+
 
     def create_initial_testing_tab(self, parent):
         """
@@ -74,6 +75,7 @@ class SetupTab:
         data_frame.grid_columnconfigure(1, weight=1)
         data_frame.grid_columnconfigure(2, weight=1)
         data_frame.grid_columnconfigure(3, weight=1)
+
         ctk.CTkLabel(data_frame, text="Data Settings", font=self.bold_font).grid(row=0, column=0, columnspan=4, sticky="ew", pady=5)
 
         ctk.CTkLabel(data_frame, text="Start Date:", font=self.bold_font).grid(row=1, column=0, padx=5, sticky="e")
@@ -195,6 +197,50 @@ class SetupTab:
             command=lambda: self.high_level_parent_control.set("Testing")
         )
         proceed_button.pack(pady=20)
+
+        self.bottom_text_frame.pack()
+
+        # Add copyright info
+        copyright_label = ctk.CTkLabel(
+            self.parent,
+            text="© Zephyr Analytics 2024",
+            font=ctk.CTkFont(size=12)
+        )
+        copyright_label.pack()
+
+
+    def clear_bottom_text(self):
+        """
+        Clears the text at the bottom of the GUI.
+
+        Parameters
+        ----------
+        None
+        """
+        for widget in self.bottom_text_frame.winfo_children():
+            widget.destroy()
+
+    def display_asset_weights(self):
+        """
+        Displays the loaded asset weights in the GUI, capped at 10.
+
+        Parameters
+        ----------
+        None
+        """
+        assets_text = "\n".join(
+            [f"{asset}: {weight}" for asset, weight in list(self.data_models.assets_weights.items())[:10]]
+        )
+        if len(self.data_models.assets_weights) > 10:
+            assets_text += f"\n... (and {(len(self.data_models.assets_weights)-10)} more)"
+
+        self.bottom_text = ctk.CTkLabel(
+            self.bottom_text_frame,
+            text=f"Loaded Assets and Weights from: \n\n{self.data_models.weights_filename}:\n{assets_text}",
+            text_color="blue",
+            fg_color="#edeaea"
+        )
+        self.bottom_text.pack(pady=5)
 
     def load_weights_and_update(self):
         """

@@ -6,7 +6,7 @@ from models_factory import ModelsFactory
 from processing_types import *
 import utilities as utilities
 
-
+# TODO Selected assets and weights are not being displayed.
 class TestingTab:
     """
     Handles the layout and functionality of the Testing tab.
@@ -43,58 +43,31 @@ class TestingTab:
         self.bottom_text = None
         self.create_widgets()
 
-# TODO there is a flaw in the flow connection to parent.
+
     def create_widgets(self):
-        """
-        Creates the widgets and layouts for the application.
-        """
-        # self.grid_columnconfigure(0, weight=1)
-        # self.grid_columnconfigure(1, weight=3)
-        # self.grid_columnconfigure(2, weight=1)
-        # self.grid_rowconfigure(0, weight=1)
-        # self.grid_rowconfigure(1, weight=10)
-
-        # Create sidebars
-        # self.create_sidebars()
-
-        self.bottom_text_frame = ctk.CTkFrame(self, fg_color="#edeaea")
+        # Creating bottom text frame
+        self.bottom_text_frame = ctk.CTkFrame(self.parent, fg_color="#edeaea")
         self.bottom_text_frame.grid(row=1, column=1, columnspan=1, sticky="ew")
 
-        center_frame = ctk.CTkFrame(self, fg_color="#edeaea")
+        # Center frame for main tabs
+        center_frame = ctk.CTkFrame(self.parent, fg_color="#edeaea")
         center_frame.grid(row=0, column=1, rowspan=1, sticky="nsew")
 
-        # # Create top-level tab control
-        # self.high_level_tab_control = ctk.CTkTabview(
-        #     center_frame,
-        #     fg_color="#edeaea",
-        #     segmented_button_fg_color="#edeaea",
-        #     segmented_button_unselected_color="#bb8fce",
-        #     segmented_button_selected_color="#8e44ad",
-        #     text_color="#000000",
-        #     segmented_button_selected_hover_color="#8e44ad"
-        # )
-        # self.high_level_tab_control.pack(expand=1, fill="both")
+        # Create tabs within the center frame
+        self.high_level_tab_control = ctk.CTkTabview(center_frame, fg_color="#edeaea")
+        self.high_level_tab_control.pack(expand=True, fill="both")
 
-        # # Add Initial Testing Setup Tab
-        # initial_testing_tab = self.high_level_tab_control.add("Initial Testing Setup")
-        # self.create_initial_testing_tab(initial_testing_tab)
+        # Add testing tabs
+        self.create_testing_tabs(self.high_level_tab_control)
 
-        # # Add Testing Tab
-        # testing_tab = self.high_level_tab_control.add("Testing")
-        # self.create_testing_tabs(testing_tab)
-
-        # self.high_level_tab_control.set("Initial Testing Setup")
-
-        # Add copyright information
-        copyright_frame = ctk.CTkFrame(self, fg_color="#edeaea")
-        copyright_frame.grid(row=4, column=1, columnspan=1, sticky="ew", pady=(5, 5))
-
+        # Add copyright info
         copyright_label = ctk.CTkLabel(
-            copyright_frame,
+            self.parent,
             text="© Zephyr Analytics 2024",
             font=ctk.CTkFont(size=12)
         )
-        copyright_label.pack(pady=(0, 0))
+        copyright_label.grid(row=4, column=1, sticky="ew")
+
 
 
     def create_testing_tabs(self, parent):
@@ -112,8 +85,10 @@ class TestingTab:
             text_color="#000000",
             segmented_button_selected_hover_color="#8e44ad",
         )
-        self.testing_tab_control.pack(expand=1, fill="both")
+        # Use grid instead of pack
+        self.testing_tab_control.grid(row=0, column=0, sticky="nsew")
 
+        # Create individual testing tabs
         self.create_testing_tab("SMA Strategies")
         self.create_testing_tab("Momentum Strategies")
         self.create_testing_tab("Momentum In & Out Strategies")
@@ -178,7 +153,7 @@ class TestingTab:
 # function change what plot is populated within the webbroswer.
 
         plot_files = self.get_all_plot_files()
-        self.plot_var = StringVar(value=plot_files[0] if plot_files else "No plots available")
+        self.plot_var = ctk.StringVar(value=plot_files[0] if plot_files else "No plots available")
         plot_dropdown = ctk.CTkOptionMenu(
             tab,
             fg_color="#bb8fce",
