@@ -1,14 +1,22 @@
 import customtkinter as ctk
+import os
+import threading
+import webbrowser
+from models_factory import ModelsFactory
+from processing_types import *
+import utilities as utilities
 
 
 class TestingTab:
     """
     Handles the layout and functionality of the Testing tab.
     """
-    def __init__(self, parent):
+    def __init__(self, parent, models_data):
+        self.data_models = models_data
+
         self.parent = parent
         self.bold_font = ctk.CTkFont(size=12, weight="bold", family="Arial")
-        self.create_layout()
+        # self.create_layout()
         self.artifacts_directory = os.path.join(os.getcwd(), "artifacts")
         self.start_date_var = ctk.StringVar(value=self.data_models.start_date)
         self.end_date_var = ctk.StringVar(value=self.data_models.end_date)
@@ -35,16 +43,16 @@ class TestingTab:
         self.bottom_text = None
         self.create_widgets()
 
-
+# TODO there is a flaw in the flow connection to parent.
     def create_widgets(self):
         """
         Creates the widgets and layouts for the application.
         """
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_columnconfigure(1, weight=3)
-        self.grid_columnconfigure(2, weight=1)
-        self.grid_rowconfigure(0, weight=1)
-        self.grid_rowconfigure(1, weight=10)
+        # self.grid_columnconfigure(0, weight=1)
+        # self.grid_columnconfigure(1, weight=3)
+        # self.grid_columnconfigure(2, weight=1)
+        # self.grid_rowconfigure(0, weight=1)
+        # self.grid_rowconfigure(1, weight=10)
 
         # Create sidebars
         # self.create_sidebars()
@@ -55,27 +63,27 @@ class TestingTab:
         center_frame = ctk.CTkFrame(self, fg_color="#edeaea")
         center_frame.grid(row=0, column=1, rowspan=1, sticky="nsew")
 
-        # Create top-level tab control
-        self.high_level_tab_control = ctk.CTkTabview(
-            center_frame,
-            fg_color="#edeaea",
-            segmented_button_fg_color="#edeaea",
-            segmented_button_unselected_color="#bb8fce",
-            segmented_button_selected_color="#8e44ad",
-            text_color="#000000",
-            segmented_button_selected_hover_color="#8e44ad"
-        )
-        self.high_level_tab_control.pack(expand=1, fill="both")
+        # # Create top-level tab control
+        # self.high_level_tab_control = ctk.CTkTabview(
+        #     center_frame,
+        #     fg_color="#edeaea",
+        #     segmented_button_fg_color="#edeaea",
+        #     segmented_button_unselected_color="#bb8fce",
+        #     segmented_button_selected_color="#8e44ad",
+        #     text_color="#000000",
+        #     segmented_button_selected_hover_color="#8e44ad"
+        # )
+        # self.high_level_tab_control.pack(expand=1, fill="both")
 
-        # Add Initial Testing Setup Tab
-        initial_testing_tab = self.high_level_tab_control.add("Initial Testing Setup")
-        self.create_initial_testing_tab(initial_testing_tab)
+        # # Add Initial Testing Setup Tab
+        # initial_testing_tab = self.high_level_tab_control.add("Initial Testing Setup")
+        # self.create_initial_testing_tab(initial_testing_tab)
 
-        # Add Testing Tab
-        testing_tab = self.high_level_tab_control.add("Testing")
-        self.create_testing_tabs(testing_tab)
+        # # Add Testing Tab
+        # testing_tab = self.high_level_tab_control.add("Testing")
+        # self.create_testing_tabs(testing_tab)
 
-        self.high_level_tab_control.set("Initial Testing Setup")
+        # self.high_level_tab_control.set("Initial Testing Setup")
 
         # Add copyright information
         copyright_frame = ctk.CTkFrame(self, fg_color="#edeaea")
@@ -89,13 +97,13 @@ class TestingTab:
         copyright_label.pack(pady=(0, 0))
 
 
-    def create_testing_tabs(self, tab):
+    def create_testing_tabs(self, parent):
         """
         Creates the Testing tab with sub-tabs for SMA, Momentum, etc.
         Each sub-tab contains dropdowns for selecting Runs enum values and a plot display section.
         """
         self.testing_tab_control = ctk.CTkTabview(
-            tab,
+            parent,
             border_color="#edeaea",
             fg_color="#edeaea",
             segmented_button_fg_color="#edeaea",

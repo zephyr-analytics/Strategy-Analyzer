@@ -3,13 +3,14 @@ import customtkinter as ctk
 import utilities as utilities
 class SetupTab:
     """
-    Handles the layout and functionality of the Initial Testing Setup tab.
+    Handles the layout and functionality of the Initial Testing Setup parent.
     """
 
-    def __init__(self, parent, data_models):
+    def __init__(self, parent, models_data):
+        self.data_models = models_data
+
         self.parent = parent
         self.bold_font = ctk.CTkFont(size=12, weight="bold", family="Arial")
-        self.data_models = data_models
         self.start_date_var = ctk.StringVar(value=self.data_models.start_date)
         self.end_date_var = ctk.StringVar(value=self.data_models.end_date)
         self.cash_ticker_var = ctk.StringVar(value=self.data_models.cash_ticker)
@@ -34,19 +35,19 @@ class SetupTab:
 
 
 
-        self.create_layout()
+        self.create_initial_testing_tab(self.parent)
 
-    def create_initial_testing_tab(self, tab):
+    def create_initial_testing_tab(self, parent):
         """
-        Creates the Initial Testing Setup tab with categorized inputs for data, SMA, and momentum settings,
+        Creates the Initial Testing Setup parent with categorized inputs for data, SMA, and momentum settings,
         arranged using grid layout within frames and pack for frame placement.
         
         Parameters
         ----------
-        tab : ctk.CTkFrame
-            The frame for the Initial Testing Setup tab.
+        parent : ctk.CTkFrame
+            The frame for the Initial Testing Setup parent.
         """
-        header_frame = ctk.CTkFrame(tab, fg_color="transparent")
+        header_frame = ctk.CTkFrame(parent, fg_color="transparent")
         header_frame.pack(fill="x", pady=(10, 20), padx=10)
 
         header_frame.grid_columnconfigure(0, weight=1)
@@ -66,7 +67,7 @@ class SetupTab:
         ).grid(row=1, column=0, pady=10, sticky="ew")
 
         # Data Settings Section
-        data_frame = ctk.CTkFrame(tab, fg_color="#f5f5f5")
+        data_frame = ctk.CTkFrame(parent, fg_color="#f5f5f5")
         data_frame.pack(fill="x", pady=10, padx=10)
 
         data_frame.grid_columnconfigure(0, weight=1)
@@ -120,7 +121,7 @@ class SetupTab:
         )
 
         # SMA Settings Section
-        sma_frame = ctk.CTkFrame(tab, fg_color="#f5f5f5")
+        sma_frame = ctk.CTkFrame(parent, fg_color="#f5f5f5")
         sma_frame.pack(fill="x", pady=10, padx=10)
 
         sma_frame.grid_columnconfigure(1, weight=1)
@@ -141,7 +142,7 @@ class SetupTab:
 
 
         # Momentum Settings Section
-        momentum_frame = ctk.CTkFrame(tab, fg_color="#f5f5f5")
+        momentum_frame = ctk.CTkFrame(parent, fg_color="#f5f5f5")
         momentum_frame.pack(fill="x", pady=10, padx=10)
         momentum_frame.grid_columnconfigure(1, weight=1)
         ctk.CTkLabel(momentum_frame, text="Momentum Settings", font=self.bold_font).grid(row=0, column=0, columnspan=2, pady=5)
@@ -168,7 +169,7 @@ class SetupTab:
             command=self.load_out_of_market_weights_and_update).grid(row=3, column=1, sticky="ew", padx=5
         )
 
-        monte_carlo_frame = ctk.CTkFrame(tab, fg_color="#f5f5f5")
+        monte_carlo_frame = ctk.CTkFrame(parent, fg_color="#f5f5f5")
         monte_carlo_frame.pack(fill="x", pady=10, padx=10)
         monte_carlo_frame.grid_columnconfigure(1, weight=1)
         ctk.CTkLabel(monte_carlo_frame, text="Monte Carlo Settings", font=self.bold_font).grid(row=0, column=0, columnspan=2, pady=5)
@@ -182,16 +183,16 @@ class SetupTab:
         self.num_simulations_var.trace_add("write", self.update_num_simulations)
 
         # Footer Section
-        footer_frame = ctk.CTkFrame(tab, fg_color="transparent")
+        footer_frame = ctk.CTkFrame(parent, fg_color="transparent")
         footer_frame.pack(fill="x", pady=20)
 
         proceed_button = ctk.CTkButton(
             footer_frame,
-            text="Proceed to Testing Tab",
+            text="Proceed to Testing parent",
             fg_color="#bb8fce",
             text_color="#000000",
             hover_color="#8e44ad",
-            command=lambda: self.high_level_tab_control.set("Testing")
+            command=lambda: self.high_level_parent_control.set("Testing")
         )
         proceed_button.pack(pady=20)
 
