@@ -3,7 +3,7 @@
 import pandas as pd
 
 
-class CSVDataProcessor:
+class PortfolioDataProcessor:
     def __init__(self, file_path=None):
         # TODO there needs to be a data path supplied based on the selected file by the user.
         pass
