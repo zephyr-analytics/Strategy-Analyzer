@@ -32,6 +32,8 @@ class SignalsProcessor(ABC):
         self.current_date = models_data.end_date
         self.output_filename = models_data.weights_filename
         self.weights_filename = models_data.weights_filename
+        self.num_assets = models_data.num_assets_to_select
+
 
 
     def process(self):
@@ -114,4 +116,4 @@ class SignalsProcessor(ABC):
             ]
         )
 
-        utilities.save_html(fig, filename, self.weights_filename, self.output_filename)
+        utilities.save_html(fig, filename, self.weights_filename, self.output_filename, self.num_assets)

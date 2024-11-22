@@ -16,6 +16,7 @@ class TestingTab:
 
         self.parent = parent
         self.bold_font = ctk.CTkFont(size=12, weight="bold", family="Arial")
+
         # self.create_layout()
         self.artifacts_directory = os.path.join(os.getcwd(), "artifacts")
         self.start_date_var = ctk.StringVar(value=self.data_models.start_date)
@@ -38,8 +39,6 @@ class TestingTab:
             value=self.data_models._num_assets_to_select
         )
 
-        self.bold_font = ctk.CTkFont(size=12, weight="bold", family="Arial")
-
         # self.bottom_text = None
         # TODO bottom_text_area might still need to be set.
         self.create_widgets()
@@ -59,6 +58,17 @@ class TestingTab:
 
         self.bottom_text_frame = ctk.CTkFrame(self.parent, fg_color="#edeaea")
         self.bottom_text_frame.pack()
+
+        self.bottom_text_area = ctk.CTkLabel(
+            self.bottom_text_frame,
+            text="",  # Start with empty text
+            font=ctk.CTkFont(size=12),
+            wraplength=600,  # Optional: wrap long text
+            anchor="w",  # Align text to the left
+            justify="left",  # Align multi-line text
+            fg_color="#f8f9fa",  # Background color
+        )
+        self.bottom_text_area.pack(fill="x", padx=10, pady=5)
 
         # Add copyright info
         copyright_label = ctk.CTkLabel(
@@ -249,7 +259,7 @@ class TestingTab:
         try:
             factory = ModelsFactory(self.data_models)
             result = factory.run(model, run_type)
-            self.after(0, lambda: self.append_to_bottom_text(result))
+            self.parent.after(0, lambda: self.append_to_bottom_text(result))
         finally:
             self.get_all_plot_files()
 
@@ -268,11 +278,21 @@ class TestingTab:
 
     def append_to_bottom_text(self, message):
         """
-        Appends a message to the bottom text area.
+        Displays the latest message in the bottom text area.
         """
         if hasattr(self, "bottom_text_area"):
-            self.bottom_text_area.insert("end", message + "\n")
-            self.bottom_text_area.see("end")
+            self.clear_message_text
+            self.bottom_text_area.configure(text=message)
+        else:
+            print("Error: bottom_text_area is not initialized.")
+
+
+    def clear_message_text(self):
+        """
+        Clears the text in the bottom text area.
+        """
+        if hasattr(self, "bottom_text_area"):
+            self.bottom_text_area.configure(text="")
 
 
     def clear_bottom_text(self):
@@ -286,54 +306,36 @@ class TestingTab:
         for widget in self.bottom_text_frame.winfo_children():
             widget.destroy()
 
-    # def load_weights_and_update(self):
-    #     """
-    #     Loads the asset weights from a file and updates the assets_weights attribute.
-
-    #     Parameters
-    #     ----------
-    #     None
-    #     """
-    #     self.clear_bottom_text()
-    #     self.data_models.assets_weights, self.data_models.weights_filename = utilities.load_weights()
-    #     if self.data_models.assets_weights:
-    #         self.data_models.weights_filename = utilities.strip_csv_extension(
-    #             self.data_models.weights_filename
-    #         )
-    #         self.display_asset_weights()
-
-    # def load_out_of_market_weights_and_update(self):
-    #     """
-    #     Loads the asset weights from a file and updates the assets_weights attribute.
-
-    #     Parameters
-    #     ----------
-    #     None
-    #     """
-    #     self.clear_bottom_text()
-    #     self.data_models.out_of_market_tickers, self.file_name = utilities.load_weights()
 
     def display_asset_weights(self):
         """
-        Displays the loaded asset weights in the GUI, capped at 10.
-
-        Parameters
-        ----------
-        None
+        Displays the loaded asset weights in the GUI, capped at 10, 
+        without recreating widgets or duplicating content.
         """
         assets_text = "\n".join(
             [f"{asset}: {weight}" for asset, weight in list(self.data_models.assets_weights.items())[:10]]
         )
         if len(self.data_models.assets_weights) > 10:
-            assets_text += f"\n... (and {(len(self.data_models.assets_weights)-10)} more)"
+            assets_text += f"\n... (and {len(self.data_models.assets_weights) - 10} more)"
 
-        self.bottom_text = ctk.CTkLabel(
-            self.bottom_text_frame,
-            text=f"Loaded Assets and Weights from: \n\n{self.data_models.weights_filename}:\n{assets_text}",
-            text_color="blue",
-            fg_color="#edeaea"
-        )
-        self.bottom_text.pack(pady=5)
+        # Prepare the display text
+        display_text = f"Loaded Assets and Weights from:\n\n{self.data_models.weights_filename}:\n{assets_text}"
+
+        # If the label exists, update its content
+        if hasattr(self, "asset_weights_label") and self.asset_weights_label is not None:
+            self.asset_weights_label.configure(text=display_text)
+        else:
+            # Create the label if it doesn't exist
+            self.asset_weights_label = ctk.CTkLabel(
+                self.bottom_text_frame,
+                text=display_text,
+                text_color="blue",
+                fg_color="#edeaea",
+                anchor="w",  # Align text to the left
+                justify="left"  # Align multi-line text
+            )
+            self.asset_weights_label.pack(fill="x", padx=10, pady=5)
+
 
     def display_result(self, result):
         """
