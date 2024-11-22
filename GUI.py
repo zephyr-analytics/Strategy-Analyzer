@@ -1,6 +1,11 @@
+"""
+Module for managing GUI and initialization.
+"""
+
 import customtkinter as ctk
+
 from gui import *
-from models_data import ModelsData
+from models.models_data import ModelsData
 
 class PortfolioAnalyzer(ctk.CTk):
     """
@@ -10,7 +15,7 @@ class PortfolioAnalyzer(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.title("Portfolio Analyzer")
-        self.geometry("1200x700")
+        self.geometry("1200x800")
         data_models = ModelsData()
         self.data_models = data_models
 
@@ -53,7 +58,7 @@ class PortfolioAnalyzer(ctk.CTk):
         Callback for tab switching.
         Determines the active tab and calls the update_tab method of the respective tab.
         """
-        active_tab = self.high_level_tab_control.get()  # Get the name of the currently selected tab
+        active_tab = self.high_level_tab_control.get()
         if active_tab == "Initial Testing Setup":
             self.setup_tab.update_tab()
         elif active_tab == "Testing":

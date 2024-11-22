@@ -11,7 +11,7 @@ import pandas as pd
 
 import utilities as utilities
 
-from models_data import ModelsData
+from models.models_data import ModelsData
 from results.results_processor import ResultsProcessor
 
 

@@ -9,8 +9,8 @@ import pandas as pd
 
 import utilities as utilities
 
-from models_data import ModelsData
-from backtest_models.backtesting_processor import BacktestingProcessor
+from models.models_data import ModelsData
+from models.backtest_models.backtesting_processor import BacktestingProcessor
 from results.results_processor import ResultsProcessor
 
 warnings.filterwarnings("ignore")

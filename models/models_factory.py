@@ -3,10 +3,8 @@ Models factory for handling differnet backtesting models and runs.
 """
 
 from processing_types import *
-from backtest_models import *
-from create_signals import *
-from models_data import ModelsData
-from monte_carlo_simulation import *
+from models import *
+from models.models_data import ModelsData
 
 
 class ModelsFactory:

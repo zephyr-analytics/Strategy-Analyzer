@@ -9,8 +9,8 @@ import utilities as utilities
 from results.results_processor import ResultsProcessor
 import warnings
 
-from models_data import ModelsData
-from backtest_models.backtesting_processor import BacktestingProcessor
+from models.models_data import ModelsData
+from models.backtest_models.backtesting_processor import BacktestingProcessor
 
 warnings.filterwarnings("ignore")
 

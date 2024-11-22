@@ -1,8 +1,11 @@
+
+
 import customtkinter as ctk
 import os
 import threading
 import webbrowser
-from models_factory import ModelsFactory
+
+from models.models_factory import ModelsFactory
 from processing_types import *
 import utilities as utilities
 
