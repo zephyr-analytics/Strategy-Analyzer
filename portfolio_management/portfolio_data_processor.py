@@ -2,29 +2,15 @@
 
 import pandas as pd
 
+from portfolio_management.portfolio_data import PortfolioData
 
 class PortfolioDataProcessor:
-    def __init__(self, file_path=None):
+    def __init__(self, data_portfolio: PortfolioData):
         # TODO there needs to be a data path supplied based on the selected file by the user.
-        pass
+        self.data_portfolio = data_portfolio.portfolio_dataframe
 
     def read_data(file_path):
-        """
-        Reads a CSV file and returns it as a Pandas DataFrame.
-
-        Args:
-            file_path (str): The path to the .csv file.
-
-        Returns:
-            pd.DataFrame: DataFrame containing the CSV data.
-        """
-        try:
-            df = pd.read_csv(file_path)
-            print(f"Successfully loaded data from {file_path}.")
-            return df
-        except Exception as e:
-            print(f"Error loading file: {e}")
-            raise
+        pass
 
     # TODO this then gets parsed and placed within portfolio_data.
     # TODO create the portfolio_data getter and setter.
