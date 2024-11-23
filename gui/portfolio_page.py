@@ -94,15 +94,14 @@ class PortfolioTab:
         """
         self.clear_bottom_text()
         try:
-            portfolio_data, portfolio_filename = utilities.load_portfolio()
+            portfolio_data = utilities.load_portfolio()
             if portfolio_data:
                 # Update label to show successful upload
                 self.upload_status_label.configure(
-                    text=f"Uploaded: {portfolio_filename}",
+                    text=f"Portfolio Uploaded",
                     text_color="green"
                 )
                 self.data_portfolios.portfolio_dataframe = portfolio_data
-                # self.data_portfolios.first_portfolio_filename = portfolio_filename
             else:
                 self.upload_status_label.configure(
                     text="File upload failed or no data found.",

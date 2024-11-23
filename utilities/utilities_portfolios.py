@@ -27,7 +27,7 @@ def load_portfolio():
         )
 
         if not file_path:
-            return None, None  # User canceled the file dialog
+            return None  # User canceled the file dialog
 
         # Load the CSV file into a DataFrame
         portfolio_data = pd.read_csv(file_path, index_col=0, parse_dates=True)

@@ -54,6 +54,7 @@ class SignalsProcessor(ABC):
 
 
     def plot_signals(self, latest_weights, filename='signals.html'):
+        # TODO latest_weights has issues on being a a numpy array and not a list.
         """
         Plots a pie chart and a table showing the asset weights as a percentage of the total portfolio.
 
@@ -68,7 +69,7 @@ class SignalsProcessor(ABC):
             column_widths=[0.6, 0.4],
             subplot_titles=("Asset Weights", "Portfolio Weights Distribution")
         )
-        
+
         asset_labels = list(latest_weights.keys())
         asset_weights = list(latest_weights.values())
         asset_percentages = [weight * 100 for weight in asset_weights]
