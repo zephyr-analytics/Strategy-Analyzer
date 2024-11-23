@@ -12,6 +12,7 @@ class PortfolioDataProcessor:
     def read_data(file_path):
         pass
 
+    
     # TODO this then gets parsed and placed within portfolio_data.
     # TODO create the portfolio_data getter and setter.
     # TODO After the portoflio_data object will get passed to the portoflio analyzer.

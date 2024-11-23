@@ -38,3 +38,5 @@ class PortfolioData:
             Dataframe containing data from backtesting.            
         """
         self._portfolio_dataframe = value
+
+
