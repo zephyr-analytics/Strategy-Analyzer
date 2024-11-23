@@ -426,5 +426,5 @@ class SetupTab:
         self.data_models.num_assets_to_select = str(self.num_assets_to_select_entry_var.get())
 
 
-    def update_tab():
+    def update_tab(self):
         pass
