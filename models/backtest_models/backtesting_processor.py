@@ -5,6 +5,8 @@ Abstract module for processing momentum trading models.
 import datetime
 import os
 
+from datetime import datetime
+
 from abc import ABC, abstractmethod
 from typing import List, Dict
 
@@ -179,13 +181,10 @@ class BacktestingProcessor(ABC):
 
         Handles adjusted weights, portfolio returns, and portfolio values dynamically.
         """
-        # Create a DataFrame from adjusted_weights (expanding dictionaries into columns)
         adjusted_weights_df = pd.DataFrame(list(self.data_models.adjusted_weights), index=self.data_models.adjusted_weights.index)
 
-        # Fill missing values with 0.0 (assets that don't appear in some rows)
         adjusted_weights_df = adjusted_weights_df.fillna(0.0)
 
-        # Combine with portfolio_returns and portfolio_values (aligned by index)
         combined_df = pd.concat(
             [
                 adjusted_weights_df,
@@ -195,10 +194,8 @@ class BacktestingProcessor(ABC):
             axis=1,
         )
 
-        # Define the file path and name
         current_directory = os.getcwd()
-        data_path = os.path.join(current_directory, "models", "artifacts")
-        file_name = f"{self.output_filename}_combined.csv"
+        data_path = os.path.join(current_directory, "models", "artifacts", f"{self.output_filename}")
+        file_name = f"{datetime.today().strftime('%Y-%m-%d')}_{self.trading_frequency}_{self.num_assets_to_select}.csv"
 
-        # Save the combined DataFrame to a CSV file
         utilities.save_dataframe_to_csv(data=combined_df, path=data_path, file_name=file_name)
