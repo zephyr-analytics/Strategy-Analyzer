@@ -90,6 +90,7 @@ class SmaBacktestPortfolio(BacktestingProcessor):
         self._run_backtest()
         self._get_portfolio_statistics()
         self._calculate_buy_and_hold()
+        self.persist_data()
         results_processor = ResultsProcessor(self.data_models)
         results_processor.plot_portfolio_value()
         results_processor.plot_var_cvar()

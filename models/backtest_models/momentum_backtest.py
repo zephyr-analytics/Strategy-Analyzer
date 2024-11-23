@@ -78,10 +78,12 @@ class BacktestMomentumPortfolio(BacktestingProcessor):
         self.run_backtest()
         self._get_portfolio_statistics()
         self._calculate_buy_and_hold()
+        self.persist_data()
         results_processor = ResultsProcessor(self.data_models)
         results_processor.plot_portfolio_value()
         results_processor.plot_var_cvar()
         results_processor.plot_returns_heatmaps()
+
 
 
     def calculate_momentum(self, current_date: datetime) -> float:
@@ -187,6 +189,7 @@ class BacktestMomentumPortfolio(BacktestingProcessor):
         monthly_dates = pd.date_range(start=self.start_date, end=self.end_date, freq='M')
         portfolio_values = [self.initial_portfolio_value]
         portfolio_returns = []
+        all_adjusted_weights = []
         if self.trading_frequency == 'Monthly':
             step = 1
             freq = 'M'
@@ -217,10 +220,22 @@ class BacktestMomentumPortfolio(BacktestingProcessor):
             monthly_returns = (next_month_end_data / month_end_data) - 1
             month_return = sum([monthly_returns[ticker] * weight for ticker, weight in adjusted_weights.items()])
             new_portfolio_value = previous_value * (1 + month_return)
+
+            all_adjusted_weights.append(adjusted_weights)
             portfolio_values.append(new_portfolio_value)
             portfolio_returns.append(month_return)
 
-        self.data_models.adjusted_weights = adjusted_weights
+        placeholder_weights = {asset: 0.0 for asset in all_adjusted_weights[0].keys()}
+        all_adjusted_weights = all_adjusted_weights + [placeholder_weights]
+
+        self.data_models.adjusted_weights = pd.Series(
+            all_adjusted_weights,
+            index=pd.date_range(
+                start=self.start_date,
+                periods=len(portfolio_values),
+                freq=freq
+            )
+        )
         self.data_models.portfolio_values = pd.Series(
             portfolio_values,
             index=pd.date_range(

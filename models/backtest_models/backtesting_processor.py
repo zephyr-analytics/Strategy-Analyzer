@@ -3,6 +3,7 @@ Abstract module for processing momentum trading models.
 """
 
 import datetime
+import os
 
 from abc import ABC, abstractmethod
 from typing import List, Dict
@@ -11,6 +12,7 @@ import pandas as pd
 
 import utilities as utilities
 
+from processing_types import *
 from models.models_data import ModelsData
 from results.results_processor import ResultsProcessor
 
@@ -169,3 +171,34 @@ class BacktestingProcessor(ABC):
 
         self.data_models.buy_and_hold_values = pd.Series(portfolio_values, index=monthly_dates[:len(portfolio_values)])
         self.data_models.buy_and_hold_returns = pd.Series(portfolio_returns, index=monthly_dates[1:len(portfolio_returns)+1])
+
+
+    def persist_data(self):
+        """
+        Saves combined datasets to a single CSV file in the specified directory.
+
+        Handles adjusted weights, portfolio returns, and portfolio values dynamically.
+        """
+        # Create a DataFrame from adjusted_weights (expanding dictionaries into columns)
+        adjusted_weights_df = pd.DataFrame(list(self.data_models.adjusted_weights), index=self.data_models.adjusted_weights.index)
+
+        # Fill missing values with 0.0 (assets that don't appear in some rows)
+        adjusted_weights_df = adjusted_weights_df.fillna(0.0)
+
+        # Combine with portfolio_returns and portfolio_values (aligned by index)
+        combined_df = pd.concat(
+            [
+                adjusted_weights_df,
+                self.data_models.portfolio_returns.rename("Portfolio Returns"),
+                self.data_models.portfolio_values.rename("Portfolio Values"),
+            ],
+            axis=1,
+        )
+
+        # Define the file path and name
+        current_directory = os.getcwd()
+        data_path = os.path.join(current_directory, "models", "artifacts")
+        file_name = f"{self.output_filename}_combined.csv"
+
+        # Save the combined DataFrame to a CSV file
+        utilities.save_dataframe_to_csv(data=combined_df, path=data_path, file_name=file_name)

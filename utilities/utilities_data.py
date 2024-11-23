@@ -3,6 +3,7 @@ Utilities module for loading and processing data.
 """
 
 import os
+import pathlib as Path
 
 from datetime import datetime
 from tkinter import filedialog
@@ -130,3 +131,28 @@ def save_html(fig, filename, weights_filename, output_filename, num_assets):
     else:
         file_path = os.path.join(artifacts_directory, f"{output_filename}_{current_date}_{filename}.html")
         fig.write_html(file_path)
+
+
+def save_dataframe_to_csv(data, path, file_name):
+    """
+    Saves a pandas DataFrame to a CSV file at the specified path with the given file name.
+
+    Parameters:
+        data (pd.DataFrame or any): The data to save. If not a DataFrame, an attempt will be made to convert it to one.
+        path (Path or str): The directory path where the file will be saved.
+        file_name (str): The name of the file (including the .csv extension).
+
+    Returns:
+        Path: The full path of the saved file.
+    """
+    if not isinstance(path, str):
+        raise ValueError("Path must be a string.")
+
+    # Create the directory if it doesn't exist
+    if not os.path.exists(path):
+        os.makedirs(path)
+
+    full_path = os.path.join(path, file_name)
+
+    # Save the DataFrame to the CSV file
+    data.to_csv(full_path, index=True)
