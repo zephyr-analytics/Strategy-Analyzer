@@ -303,10 +303,6 @@ class TestingTab:
     def display_asset_weights(self):
         """
         Displays the loaded asset weights in the GUI, capped at 10.
-
-        Parameters
-        ----------
-        None
         """
         assets_text = "\n".join(
             [f"{asset}: {weight}" for asset, weight in list(self.data_models.assets_weights.items())[:10]]
