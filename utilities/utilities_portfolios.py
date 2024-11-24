@@ -9,15 +9,8 @@ def load_portfolio():
 
     Returns
     -------
-    tuple
-        A tuple containing:
-        - DataFrame: The loaded portfolio data.
-        - str: The filename of the uploaded file.
-
-    Raises
-    ------
-    ValueError
-        If the selected file is not a valid CSV or does not contain proper date-indexed data.
+    portfolio_data : Dataframe
+        Dataframe of portfolio data.
     """
     try:
         # Open file dialog to select the CSV file

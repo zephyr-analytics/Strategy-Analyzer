@@ -92,26 +92,11 @@ class PortfolioTab:
         ----------
         None
         """
+        # TODO portfolio data is now loaded as expected.
         self.clear_bottom_text()
-        try:
-            portfolio_data = utilities.load_portfolio()
-            if portfolio_data:
-                # Update label to show successful upload
-                self.upload_status_label.configure(
-                    text=f"Portfolio Uploaded",
-                    text_color="green"
-                )
-                self.data_portfolios.portfolio_dataframe = portfolio_data
-            else:
-                self.upload_status_label.configure(
-                    text="File upload failed or no data found.",
-                    text_color="red"
-                )
-        except Exception as e:
-            self.upload_status_label.configure(
-                text=f"Error: {str(e)}",
-                text_color="red"
-            )
+        portfolio_data = utilities.load_portfolio()
+        self.data_portfolios.portfolio_dataframe = portfolio_data
+        # print(portfolio_data)
 
     def clear_bottom_text(self):
         """
