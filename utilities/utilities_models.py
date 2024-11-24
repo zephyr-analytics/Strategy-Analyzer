@@ -2,8 +2,9 @@
 Utilities module for helper methods of processors.
 """
 
-from scipy.optimize import minimize
 import numpy as np
+
+from scipy.optimize import minimize
 
 
 def equal_weighting(assets_weights):
@@ -78,3 +79,28 @@ def risk_contribution_weighting(cov_matrix, assets_weights):
                       method='SLSQP', bounds=bounds, constraints=constraints)
 
     return dict(zip(assets_weights.keys(), result.x))
+
+# TODO implement this through out the backtesting process.
+    # def _rebalance_portfolio(self, current_weights):
+    #     """
+    #     Rebalances the portfolio if the weights are outside their target range.
+
+    #     Parameters
+    #     ----------
+    #     current_weights : dict
+    #         Dictionary of current asset weights.
+
+    #     Returns
+    #     -------
+    #     dict
+    #         Dictionary of rebalanced asset weights.
+    #     """
+    #     rebalanced_weights = current_weights.copy()
+    #     for ticker, target_weight in self.assets_weights.items():
+    #         if abs(current_weights[ticker] - target_weight) > self.rebalance_threshold:
+    #             rebalanced_weights[ticker] = target_weight
+    #     total_weight = sum(rebalanced_weights.values())
+    #     for ticker in rebalanced_weights:
+    #         rebalanced_weights[ticker] /= total_weight
+
+    #     return rebalanced_weights

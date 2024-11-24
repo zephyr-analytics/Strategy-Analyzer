@@ -3,6 +3,7 @@ Utilities module for loading and processing data.
 """
 
 import os
+import pathlib as Path
 
 from datetime import datetime
 from tkinter import filedialog
@@ -13,11 +14,12 @@ import yfinance as yf
 
 def fetch_data(all_tickers, start_date, end_date):
     """
-    Fetches the adjusted closing prices of the assets.
+    Fetches and trims the adjusted closing prices of the assets to the common earliest date,
+    while providing information about the earliest common start date and trimmed assets.
 
     Parameters
     ----------
-    all_assets : list
+    all_tickers : list
         List of asset tickers.
     start_date : str
         The start date for fetching the data.
@@ -26,11 +28,27 @@ def fetch_data(all_tickers, start_date, end_date):
 
     Returns
     -------
-    DataFrame
-        DataFrame containing the adjusted closing prices of the assets.
+    tuple
+        A tuple containing:
+        - DataFrame: Trimmed adjusted closing prices of the assets.
+        - str: Message indicating the earliest common start date and the assets causing trimming.
     """
     data = yf.download(all_tickers, start=start_date, end=end_date)['Adj Close']
-    return data
+
+    original_start_dates = data.apply(lambda col: col.first_valid_index())
+
+    common_start_date = original_start_dates.max()
+
+    trimmed_assets = original_start_dates[original_start_dates < common_start_date].index.tolist()
+
+    trimmed_data = data.loc[common_start_date:].dropna(how='any', axis=0)
+
+    message = (
+        f"The earliest common start date is {common_start_date.date()}. "
+        f"Data reduction was caused by these assets: {', '.join(trimmed_assets) if trimmed_assets else 'None'}."
+    )
+    
+    return trimmed_data, message
 
 
 def fetch_out_of_market_data(assets_tickers, start_date, end_date):
@@ -91,7 +109,7 @@ def strip_csv_extension(filename):
     return os.path.splitext(filename)[0]
 
 
-def save_html(fig, filename, output_filename):
+def save_html(fig, filename, weights_filename, output_filename, num_assets):
     """
     Save the HTML file to the 'artifacts' directory within the current working directory.
 
@@ -105,8 +123,36 @@ def save_html(fig, filename, output_filename):
     """
     current_directory = os.getcwd()
     current_date = datetime.now().strftime("%Y-%m-%d")
-    artifacts_directory = os.path.join(current_directory, 'artifacts')
+    artifacts_directory = os.path.join(current_directory, 'artifacts', f"{weights_filename}")
     os.makedirs(artifacts_directory, exist_ok=True)
-    
-    file_path = os.path.join(artifacts_directory, f"{output_filename}_{current_date}_{filename}.html")
-    fig.write_html(file_path)
+    if num_assets != None:
+        file_path = os.path.join(artifacts_directory, f"{output_filename}_{current_date}_{num_assets}_{filename}.html")
+        fig.write_html(file_path)
+    else:
+        file_path = os.path.join(artifacts_directory, f"{output_filename}_{current_date}_{filename}.html")
+        fig.write_html(file_path)
+
+
+def save_dataframe_to_csv(data, path, file_name):
+    """
+    Saves a pandas DataFrame to a CSV file at the specified path with the given file name.
+
+    Parameters:
+        data (pd.DataFrame or any): The data to save. If not a DataFrame, an attempt will be made to convert it to one.
+        path (Path or str): The directory path where the file will be saved.
+        file_name (str): The name of the file (including the .csv extension).
+
+    Returns:
+        Path: The full path of the saved file.
+    """
+    if not isinstance(path, str):
+        raise ValueError("Path must be a string.")
+
+    # Create the directory if it doesn't exist
+    if not os.path.exists(path):
+        os.makedirs(path)
+
+    full_path = os.path.join(path, file_name)
+
+    # Save the DataFrame to the CSV file
+    data.to_csv(full_path, index=True)

@@ -3,6 +3,9 @@ Abstract module for processing momentum trading models.
 """
 
 import datetime
+import os
+
+from datetime import datetime
 
 from abc import ABC, abstractmethod
 from typing import List, Dict
@@ -11,10 +14,12 @@ import pandas as pd
 
 import utilities as utilities
 
-from models_data import ModelsData
+from processing_types import *
+from models.models_data import ModelsData
 from results.results_processor import ResultsProcessor
 
-class MomentumProcessor(ABC):
+
+class BacktestingProcessor(ABC):
     """
     Abstract base class for backtesting portfolios with configurable strategies.
 
@@ -35,7 +40,7 @@ class MomentumProcessor(ABC):
     _data : DataFrame or None
         DataFrame to store the adjusted closing prices of the assets.
     """
-    # TODO this is not properly abstracted.
+    # TODO this needs to become backtesting processor, and sma backtesting needs to be become apart of it.
     def __init__(self, data_models: ModelsData):
         self.data_models = data_models
 
@@ -142,7 +147,7 @@ class MomentumProcessor(ABC):
         Calculates the buy-and-hold performance of the portfolio with the same assets and weights over the time frame.
         """
         all_tickers = list(self.assets_weights.keys())
-        self._data = utilities.fetch_data(
+        self._bnh_data, message = utilities.fetch_data(
             all_tickers=all_tickers,
             start_date=self.start_date,
             end_date=self.end_date
@@ -154,10 +159,10 @@ class MomentumProcessor(ABC):
         monthly_dates = pd.date_range(start=self.start_date, end=self.end_date, freq='M')
         
         for i in range(1, len(monthly_dates)):
-            start_index = self._data.index.get_indexer([monthly_dates[i-1]], method='nearest')[0]
-            end_index = self._data.index.get_indexer([monthly_dates[i]], method='nearest')[0]
-            start_data = self._data.iloc[start_index]
-            end_data = self._data.iloc[end_index]
+            start_index = self._bnh_data.index.get_indexer([monthly_dates[i-1]], method='nearest')[0]
+            end_index = self._bnh_data.index.get_indexer([monthly_dates[i]], method='nearest')[0]
+            start_data = self._bnh_data.iloc[start_index]
+            end_data = self._bnh_data.iloc[end_index]
 
             previous_value = portfolio_values[-1]
             monthly_returns = (end_data / start_data) - 1
@@ -168,3 +173,29 @@ class MomentumProcessor(ABC):
 
         self.data_models.buy_and_hold_values = pd.Series(portfolio_values, index=monthly_dates[:len(portfolio_values)])
         self.data_models.buy_and_hold_returns = pd.Series(portfolio_returns, index=monthly_dates[1:len(portfolio_returns)+1])
+
+
+    def persist_data(self):
+        """
+        Saves combined datasets to a single CSV file in the specified directory.
+
+        Handles adjusted weights, portfolio returns, and portfolio values dynamically.
+        """
+        adjusted_weights_df = pd.DataFrame(list(self.data_models.adjusted_weights), index=self.data_models.adjusted_weights.index)
+
+        adjusted_weights_df = adjusted_weights_df.fillna(0.0)
+
+        combined_df = pd.concat(
+            [
+                adjusted_weights_df,
+                self.data_models.portfolio_returns.rename("Portfolio Returns"),
+                self.data_models.portfolio_values.rename("Portfolio Values"),
+            ],
+            axis=1,
+        )
+
+        current_directory = os.getcwd()
+        data_path = os.path.join(current_directory, "models", "artifacts", f"{self.output_filename}")
+        file_name = f"{datetime.today().strftime('%Y-%m-%d')}_{self.trading_frequency}_{self.num_assets_to_select}.csv"
+
+        utilities.save_dataframe_to_csv(data=combined_df, path=data_path, file_name=file_name)

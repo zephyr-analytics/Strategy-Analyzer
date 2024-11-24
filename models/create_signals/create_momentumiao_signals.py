@@ -2,8 +2,8 @@
 Module for creating IAO momentum trading signals.
 """
 
-from create_signals.signals_processor import SignalsProcessor
-from momentum_models.iao_momentum_backtest import BacktestInAndOutMomentumPortfolio
+from models.create_signals.signals_processor import SignalsProcessor
+from models.backtest_models.iao_momentum_backtest import BacktestInAndOutMomentumPortfolio
 
 
 class CreateMomentumInAndOutSignals(SignalsProcessor):
@@ -29,5 +29,6 @@ class CreateMomentumInAndOutSignals(SignalsProcessor):
         self.backtest_portfolio = BacktestInAndOutMomentumPortfolio(self.data_models)
         self.backtest_portfolio.process()
         latest_weights = self.data_models.adjusted_weights
+        latest_weights = latest_weights.iloc[-2]
         print(latest_weights)
         self.plot_signals(latest_weights)

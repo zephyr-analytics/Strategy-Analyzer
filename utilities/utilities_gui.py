@@ -4,6 +4,7 @@ Utilities module for helper methods of GUI.
 
 from PIL import Image, ImageOps, ImageDraw
 
+
 def round_corners(image, radius):
     """
     Rounds the corners of an image with the specified radius.
@@ -21,3 +22,10 @@ def round_corners(image, radius):
     rounded_image = ImageOps.fit(image, mask.size)
     rounded_image.putalpha(mask)
     return rounded_image
+
+
+def update_trading_frequency(data_models, trading_frequency):
+    """
+    Updates the trading frequency in the data model.
+    """
+    data_models.trading_frequency = trading_frequency

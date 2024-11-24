@@ -3,17 +3,20 @@ Abstract module for processing trading signals.
 """
 
 from abc import ABC, abstractmethod
+
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 import utilities as utilities
+from models.models_data import ModelsData
+
 
 class SignalsProcessor(ABC):
     """
     Abstract base class for creating portfolio signals.
     """
 
-    def __init__(self, models_data):
+    def __init__(self, models_data: ModelsData):
         """
         Initializes the SignalProcessor class.
 
@@ -31,12 +34,13 @@ class SignalsProcessor(ABC):
         self.sma_period = int(models_data.sma_window)
         self.current_date = models_data.end_date
         self.output_filename = models_data.weights_filename
+        self.weights_filename = models_data.weights_filename
+        self.num_assets = models_data.num_assets_to_select
 
 
     def process(self):
         """
         Abstract method to process data and generate trading signals.
-        Must be implemented in subclasses.
         """
         self.generate_signals()
 
@@ -45,12 +49,10 @@ class SignalsProcessor(ABC):
     def generate_signals(self):
         """
         Abstract method to generate trading signals.
-        Must be implemented in subclasses.
         """
-        pass
 
 
-    def plot_signals(self, latest_weights, filename='signals.html'):
+    def plot_signals(self, latest_weights: dict, filename: str ='signals.html'):
         """
         Plots a pie chart and a table showing the asset weights as a percentage of the total portfolio.
 
@@ -58,6 +60,8 @@ class SignalsProcessor(ABC):
         ----------
         latest_weights : dict
             The latest asset weights after adjustments from backtesting.
+        filename : str
+            The filename ending to be added for saving plot.
         """
         fig = make_subplots(
             rows=1, cols=2,
@@ -65,15 +69,13 @@ class SignalsProcessor(ABC):
             column_widths=[0.6, 0.4],
             subplot_titles=("Asset Weights", "Portfolio Weights Distribution")
         )
-        
+
         asset_labels = list(latest_weights.keys())
         asset_weights = list(latest_weights.values())
         asset_percentages = [weight * 100 for weight in asset_weights]
-        
-        # Calculate expected value based on initial portfolio value
+
         asset_values = [weight * self.initial_portfolio_value for weight in asset_weights]
 
-        # Add table with asset weights and expected values
         fig.add_trace(go.Table(
             header=dict(values=["Asset", "% Weight", "Expected Value"]),
             cells=dict(values=[
@@ -84,7 +86,6 @@ class SignalsProcessor(ABC):
             columnwidth=[80, 200, 200],
         ), row=1, col=1)
 
-        # Add pie chart with asset weight distribution
         fig.add_trace(go.Pie(
             labels=asset_labels,
             values=asset_weights,
@@ -94,13 +95,11 @@ class SignalsProcessor(ABC):
             showlegend=True
         ), row=1, col=2)
 
-        # Update layout and add watermark annotation
         fig.update_layout(
             title_text=f"Portfolio Signals on {self.current_date}",
             height=600,
             margin=dict(t=50, b=50, l=50, r=50),
             annotations=[
-                # Watermark annotation
                 dict(
                     xref='paper', yref='paper', x=0.5, y=0.1,
                     text="© Zephyr Analytics",
@@ -112,6 +111,5 @@ class SignalsProcessor(ABC):
                 )
             ]
         )
-        
-        # Save the plot as an HTML file
-        utilities.save_html(fig, filename, self.output_filename)
+
+        utilities.save_html(fig, filename, self.weights_filename, self.output_filename, self.num_assets)

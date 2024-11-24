@@ -9,14 +9,14 @@ import pandas as pd
 
 import utilities as utilities
 
-from models_data import ModelsData
-from momentum_models.momentum_processor import MomentumProcessor
+from models.models_data import ModelsData
+from models.backtest_models.backtesting_processor import BacktestingProcessor
 from results.results_processor import ResultsProcessor
 
 warnings.filterwarnings("ignore")
 
 
-class BacktestInAndOutMomentumPortfolio(MomentumProcessor):
+class BacktestInAndOutMomentumPortfolio(BacktestingProcessor):
     """
     A class to backtest a static portfolio with adjustable weights based on Simple Moving Average (SMA),
     with momentum calculations for both in-market and out-of-market assets.
@@ -98,9 +98,11 @@ class BacktestInAndOutMomentumPortfolio(MomentumProcessor):
         if self.bond_ticker != "":
             all_tickers.append(self.bond_ticker)
 
-        self._data = utilities.fetch_data(all_tickers, self.start_date, self.end_date)
+        self._data, message = utilities.fetch_data(all_tickers, self.start_date, self.end_date)
+        print(f"Data was updated for common start dates:\n\n {message}")
 
-        self._out_of_market_data = utilities.fetch_out_of_market_data(self.out_of_market_tickers, self.start_date, self.end_date)
+        self._out_of_market_data, message = utilities.fetch_out_of_market_data(self.out_of_market_tickers, self.start_date, self.end_date)
+        print(f"Data was updated for common start dates:\n\n {message}")
 
         # Calculate momentum for both in-market and out-of-market assets
         self._momentum_data = self._data.copy().pct_change().dropna()
@@ -109,10 +111,12 @@ class BacktestInAndOutMomentumPortfolio(MomentumProcessor):
         self.run_backtest()
         self._get_portfolio_statistics()
         self._calculate_buy_and_hold()
+        self.persist_data()
         results_processor = ResultsProcessor(self.data_models)
         results_processor.plot_portfolio_value()
         results_processor.plot_var_cvar()
         results_processor.plot_returns_heatmaps()
+
 
 
     def calculate_momentum(self, current_date: datetime) -> tuple:
