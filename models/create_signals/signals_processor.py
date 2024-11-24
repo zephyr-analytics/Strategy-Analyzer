@@ -35,7 +35,6 @@ class SignalsProcessor(ABC):
         self.num_assets = models_data.num_assets_to_select
 
 
-
     def process(self):
         """
         Abstract method to process data and generate trading signals.
@@ -50,7 +49,6 @@ class SignalsProcessor(ABC):
         Abstract method to generate trading signals.
         Must be implemented in subclasses.
         """
-        pass
 
 
     def plot_signals(self, latest_weights, filename='signals.html'):

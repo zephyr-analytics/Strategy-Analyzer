@@ -1,9 +1,9 @@
 """
-Processor for creating sma based porfolio signals.
+Module for creating sma based porfolio signals.
 """
 
-from models.backtest_models.sma_backtesting import SmaBacktestPortfolio
 from models.create_signals.signals_processor import SignalsProcessor
+from models.backtest_models.sma_backtesting import SmaBacktestPortfolio
 
 
 class CreateSmaSignals(SignalsProcessor):
@@ -29,5 +29,6 @@ class CreateSmaSignals(SignalsProcessor):
         self.backtest_portfolio = SmaBacktestPortfolio(self.data_models)
         self.backtest_portfolio.process()
         latest_weights = self.data_models.adjusted_weights
+        latest_weights = latest_weights.iloc[-1]
         print(latest_weights)
         self.plot_signals(latest_weights)

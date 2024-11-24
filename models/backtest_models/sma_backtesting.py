@@ -52,23 +52,24 @@ class SmaBacktestPortfolio(BacktestingProcessor):
         data_models : ModelsData
             An instance of the ModelsData class containing all relevant parameters and data for backtesting.
         """
-        self.data_models = data_models
+        super().__init__(data_models=data_models)
+        # self.data_models = data_models
 
-        self.assets_weights = data_models.assets_weights
-        self.start_date = data_models.start_date
-        self.end_date = data_models.end_date
-        self.trading_frequency = data_models.trading_frequency
-        self.output_filename = data_models.weights_filename
-        self.rebalance_threshold = 0.02
-        self.threshold_asset = str(data_models.threshold_asset)
-        self.weighting_strategy = data_models.weighting_strategy
-        self.sma_period = int(data_models.sma_window)
-        self.bond_ticker = str(data_models.bond_ticker)
-        self.cash_ticker = str(data_models.cash_ticker)
-        self.initial_portfolio_value = int(data_models.initial_portfolio_value)
+        # self.assets_weights = data_models.assets_weights
+        # self.start_date = data_models.start_date
+        # self.end_date = data_models.end_date
+        # self.trading_frequency = data_models.trading_frequency
+        # self.output_filename = data_models.weights_filename
+        # self.rebalance_threshold = 0.02
+        # self.threshold_asset = str(data_models.threshold_asset)
+        # self.weighting_strategy = data_models.weighting_strategy
+        # self.sma_period = int(data_models.sma_window)
+        # self.bond_ticker = str(data_models.bond_ticker)
+        # self.cash_ticker = str(data_models.cash_ticker)
+        # self.initial_portfolio_value = int(data_models.initial_portfolio_value)
 
-        # Class-defined attributes
-        self._data = None
+        # # Class-defined attributes
+        # self._data = None
 
 
     def process(self):
@@ -87,7 +88,7 @@ class SmaBacktestPortfolio(BacktestingProcessor):
 
         print(f"Data was updated for common start dates:\n\n {message}")
 
-        self._run_backtest()
+        self.run_backtest()
         self._get_portfolio_statistics()
         self._calculate_buy_and_hold()
         self.persist_data()
@@ -96,8 +97,11 @@ class SmaBacktestPortfolio(BacktestingProcessor):
         results_processor.plot_var_cvar()
         results_processor.plot_returns_heatmaps()
 
+    def calculate_momentum(self, current_date=None):
+        pass
 
-    def _adjust_weights(self, current_date):
+
+    def adjust_weights(self, current_date, selected_assets=None, selected_out_of_market_assets=None):
         """
         Adjusts the weights of the assets based on their SMA and the selected weighting strategy.
 
@@ -153,7 +157,7 @@ class SmaBacktestPortfolio(BacktestingProcessor):
         return adjusted_weights
 
 
-    def _run_backtest(self):
+    def run_backtest(self):
         """
         Runs the backtest by calculating portfolio values and returns over time.
         """
@@ -161,6 +165,8 @@ class SmaBacktestPortfolio(BacktestingProcessor):
         monthly_dates = pd.date_range(start=self.start_date, end=self.end_date, freq='M')
         portfolio_values = [self.initial_portfolio_value]
         portfolio_returns = []
+        all_adjusted_weights = []
+
         if self.trading_frequency == 'Monthly':
             step = 1
             freq = 'M'
@@ -169,11 +175,12 @@ class SmaBacktestPortfolio(BacktestingProcessor):
             freq = '2M'
         else:
             raise ValueError("Invalid trading frequency. Choose 'Monthly' or 'Bi-Monthly'.")
+
         for i in range(0, len(monthly_dates), step):
             current_date = monthly_dates[i]
             next_date = monthly_dates[min(i + step, len(monthly_dates) - 1)]
             last_date_current_month = self._data.index[self._data.index.get_loc(current_date, method='pad')]
-            adjusted_weights = self._adjust_weights(last_date_current_month)
+            adjusted_weights = self.adjust_weights(last_date_current_month)
             # adjusted_weights = self._rebalance_portfolio(adjusted_weights)
             previous_value = portfolio_values[-1]
             month_end_data = self._data.loc[last_date_current_month]
@@ -183,10 +190,22 @@ class SmaBacktestPortfolio(BacktestingProcessor):
             monthly_returns = (next_month_end_data / month_start_data) - 1
             month_return = sum([monthly_returns[ticker] * weight for ticker, weight in adjusted_weights.items()])
             new_portfolio_value = previous_value * (1 + month_return)
+
+            all_adjusted_weights.append(adjusted_weights)
             portfolio_values.append(new_portfolio_value)
             portfolio_returns.append(month_return)
 
-        self.data_models.adjusted_weights = adjusted_weights
+        placeholder_weights = {asset: 0.0 for asset in all_adjusted_weights[0].keys()}
+        all_adjusted_weights = all_adjusted_weights + [placeholder_weights]
+
+        self.data_models.adjusted_weights = pd.Series(
+            all_adjusted_weights,
+            index=pd.date_range(
+                start=self.start_date,
+                periods=len(portfolio_values),
+                freq=freq
+            )
+        )
         self.data_models.portfolio_values = pd.Series(
             portfolio_values,
             index=pd.date_range(
@@ -203,54 +222,3 @@ class SmaBacktestPortfolio(BacktestingProcessor):
                 freq=freq
             )
         )
-
-
-    def _get_portfolio_statistics(self):
-        """
-        Calculates and sets portfolio statistics such as CAGR, average annual return, max drawdown, VaR, and CVaR in models_data.
-        """
-        cagr = utilities.calculate_cagr(self.data_models.portfolio_values, self.trading_frequency)
-        average_annual_return = utilities.calculate_average_annual_return(self.data_models.portfolio_returns, self.trading_frequency)
-        max_drawdown = utilities.calculate_max_drawdown(self.data_models.portfolio_values)
-        var, cvar = utilities.calculate_var_cvar(self.data_models.portfolio_returns)
-        annual_volatility = utilities.calculate_annual_volatility(self.trading_frequency, self.data_models.portfolio_returns)
-
-        self.data_models.cagr = cagr
-        self.data_models.average_annual_return =average_annual_return
-        self.data_models.max_drawdown = max_drawdown
-        self.data_models.var = var
-        self.data_models.cvar = cvar
-        self.data_models.annual_volatility = annual_volatility
-
-
-    def _calculate_buy_and_hold(self):
-        """
-        Calculates the buy-and-hold performance of the portfolio with the same assets and weights over the time frame.
-        """
-        all_tickers = list(self.assets_weights.keys())
-        self._bnh_data, message = utilities.fetch_data(
-            all_tickers=all_tickers,
-            start_date=self.start_date,
-            end_date=self.end_date
-        )
-
-        portfolio_values = [self.initial_portfolio_value]
-        portfolio_returns = []
-        
-        monthly_dates = pd.date_range(start=self.start_date, end=self.end_date, freq='M')
-
-        for i in range(1, len(monthly_dates)):
-            start_index = self._bnh_data.index.get_indexer([monthly_dates[i-1]], method='nearest')[0]
-            end_index = self._bnh_data.index.get_indexer([monthly_dates[i]], method='nearest')[0]
-            start_data = self._bnh_data.iloc[start_index]
-            end_data = self._bnh_data.iloc[end_index]
-
-            previous_value = portfolio_values[-1]
-            monthly_returns = (end_data / start_data) - 1
-            month_return = sum([monthly_returns[ticker] * weight for ticker, weight in self.assets_weights.items()])
-            new_portfolio_value = previous_value * (1 + month_return)
-            portfolio_values.append(new_portfolio_value)
-            portfolio_returns.append(month_return)
-
-        self.data_models.buy_and_hold_values = pd.Series(portfolio_values, index=monthly_dates[:len(portfolio_values)])
-        self.data_models.buy_and_hold_returns = pd.Series(portfolio_returns, index=monthly_dates[1:len(portfolio_returns)+1])

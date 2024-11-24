@@ -190,6 +190,7 @@ class BacktestMomentumPortfolio(BacktestingProcessor):
         portfolio_values = [self.initial_portfolio_value]
         portfolio_returns = []
         all_adjusted_weights = []
+
         if self.trading_frequency == 'Monthly':
             step = 1
             freq = 'M'

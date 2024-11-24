@@ -10,6 +10,8 @@ class PortfolioDataProcessor:
         self.data_portfolio = data_portfolio.portfolio_dataframe
 
     def read_data(file_path):
+        """
+        """
         pass
 
     
