@@ -57,6 +57,7 @@ class BacktestingProcessor(ABC):
         self.initial_portfolio_value = int(data_models.initial_portfolio_value)
         self.num_assets_to_select = int(data_models.num_assets_to_select)
         self.threshold_asset = str(data_models.threshold_asset)
+        self.processing_type = data_models.processing_type
 
         self._data = None
         self._momentum_data = None
@@ -175,6 +176,52 @@ class BacktestingProcessor(ABC):
         self.data_models.buy_and_hold_returns = pd.Series(portfolio_returns, index=monthly_dates[1:len(portfolio_returns)+1])
 
 
+    def _calculate_benchmark(self, benchmark_ticker: str):
+        """
+        Calculates the performance of a benchmark asset over the specified timeframe.
+
+        Parameters
+        ----------
+        benchmark_ticker : str
+            The ticker of the benchmark asset to evaluate.
+        """
+        # TODO Benchmark results will need to be added to results processor.
+        if self.benchmark_asset != None:
+            # TODO benchmark_data will need to be tied to the actually benchmark asset.
+            benchmark_data, message = utilities.fetch_data(
+                all_tickers=[benchmark_ticker],
+                start_date=self.start_date,
+                end_date=self.end_date
+            )
+
+            if benchmark_data.empty:
+                raise ValueError(f"No data retrieved for benchmark ticker '{benchmark_ticker}'.")
+
+            benchmark_values = [self.initial_portfolio_value]
+            benchmark_returns = []
+
+            monthly_dates = pd.date_range(start=self.start_date, end=self.end_date, freq='M')
+
+            for i in range(1, len(monthly_dates)):
+                start_index = benchmark_data.index.get_indexer([monthly_dates[i-1]], method='nearest')[0]
+                end_index = benchmark_data.index.get_indexer([monthly_dates[i]], method='nearest')[0]
+
+                start_price = benchmark_data.iloc[start_index][benchmark_ticker]
+                end_price = benchmark_data.iloc[end_index][benchmark_ticker]
+
+                monthly_return = (end_price / start_price) - 1
+
+                previous_value = benchmark_values[-1]
+                new_benchmark_value = previous_value * (1 + monthly_return)
+                benchmark_values.append(new_benchmark_value)
+                benchmark_returns.append(monthly_return)
+
+            self.data_models.benchmark_values = pd.Series(benchmark_values, index=monthly_dates[:len(benchmark_values)])
+            self.data_models.benchmark_returns = pd.Series(benchmark_returns, index=monthly_dates[1:len(benchmark_returns)+1])
+        else:
+            pass
+
+
     def persist_data(self):
         """
         Saves combined datasets to a single CSV file in the specified directory.
@@ -182,9 +229,7 @@ class BacktestingProcessor(ABC):
         Handles adjusted weights, portfolio returns, and portfolio values dynamically.
         """
         adjusted_weights_df = pd.DataFrame(list(self.data_models.adjusted_weights), index=self.data_models.adjusted_weights.index)
-
         adjusted_weights_df = adjusted_weights_df.fillna(0.0)
-
         combined_df = pd.concat(
             [
                 adjusted_weights_df,
@@ -194,8 +239,9 @@ class BacktestingProcessor(ABC):
             axis=1,
         )
 
-        current_directory = os.getcwd()
-        data_path = os.path.join(current_directory, "models", "artifacts", f"{self.output_filename}")
-        file_name = f"{datetime.today().strftime('%Y-%m-%d')}_{self.trading_frequency}_{self.num_assets_to_select}.csv"
-
-        utilities.save_dataframe_to_csv(data=combined_df, path=data_path, file_name=file_name)
+        utilities.save_dataframe_to_csv(
+            data=combined_df,
+            output_filename=self.output_filename,
+            processing_type=self.processing_type,
+            num_assets=self.num_assets_to_select
+        )
