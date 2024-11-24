@@ -29,6 +29,6 @@ class CreateMomentumSignals(SignalsProcessor):
         self.backtest_portfolio = BacktestMomentumPortfolio(self.data_models)
         self.backtest_portfolio.process()
         latest_weights = self.data_models.adjusted_weights
-        latest_weights = latest_weights.iloc[-1]
+        latest_weights = latest_weights.iloc[-2]
         print(latest_weights)
         self.plot_signals(latest_weights)
