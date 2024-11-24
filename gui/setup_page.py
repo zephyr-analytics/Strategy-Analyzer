@@ -22,15 +22,15 @@ class SetupTab:
         self.sma_window_var = ctk.StringVar(value=self.data_models.sma_window)
         self.num_simulations_var = ctk.StringVar(value=self.data_models.num_simulations)
         self.simulation_horizon_entry_var = ctk.StringVar(value=self.data_models.simulation_horizon)
-        # TODO add benchmark asset
+        self.benchmark_asset_entry_var = ctk.StringVar(value=self.data_models.benchmark_asset)
         # TODO add addition portfolio contributions
         self.theme_mode_var = ctk.StringVar(value=self.data_models.theme_mode)
         self.initial_portfolio_value_var = ctk.StringVar(
             value=self.data_models._initial_portfolio_value
         )
-        self.threshold_asset_entry_var = ctk.StringVar(value=self.data_models._threshold_asset)
+        self.threshold_asset_entry_var = ctk.StringVar(value=self.data_models.threshold_asset)
         self.num_assets_to_select_entry_var = ctk.StringVar(
-            value=self.data_models._num_assets_to_select
+            value=self.data_models.num_assets_to_select
         )
 
         self.bold_font = ctk.CTkFont(size=12, weight="bold", family="Arial")
@@ -90,9 +90,17 @@ class SetupTab:
         ctk.CTkEntry(data_frame, textvariable=self.cash_ticker_var).grid(row=2, column=1, sticky="ew", padx=5)
         self.cash_ticker_var.trace_add("write", self.update_cash_ticker)
 
-        ctk.CTkLabel(data_frame, text="Bond Ticker:", font=self.bold_font).grid(row=3, column=0, sticky="e", padx=5)
-        ctk.CTkEntry(data_frame, textvariable=self.bond_ticker_var).grid(row=3, column=1, sticky="ew", padx=5)
+        ctk.CTkLabel(data_frame, text="Bond Ticker:", font=self.bold_font).grid(row=2, column=2, sticky="e", padx=5)
+        ctk.CTkEntry(data_frame, textvariable=self.bond_ticker_var).grid(row=2, column=3, sticky="ew", padx=5)
         self.bond_ticker_var.trace_add("write", self.update_bond_ticker)
+
+        ctk.CTkLabel(data_frame, text="Threshold Asset:", font=self.bold_font).grid(row=3, column=0, sticky="e", padx=5)
+        ctk.CTkEntry(data_frame, textvariable=self.threshold_asset_entry_var).grid(row=3, column=1, sticky="ew", padx=5)
+        self.threshold_asset_entry_var.trace_add("write", self.update_threshold_asset)
+
+        ctk.CTkLabel(data_frame, text="Benchmark Asset:", font=self.bold_font).grid(row=3, column=2, sticky="e", padx=5)
+        ctk.CTkEntry(data_frame, textvariable=self.benchmark_asset_entry_var).grid(row=3, column=3, sticky="ew", padx=5)
+        self.benchmark_asset_entry_var.trace_add("write", self.update_benchmark_asset)
 
         ctk.CTkLabel(data_frame, text="Trading Frequency:", font=self.bold_font).grid(row=4, column=0, sticky="e", padx=5)
 
@@ -148,10 +156,6 @@ class SetupTab:
         momentum_frame.pack(fill="x", pady=10, padx=10)
         momentum_frame.grid_columnconfigure(1, weight=1)
         ctk.CTkLabel(momentum_frame, text="Momentum Settings", font=self.bold_font).grid(row=0, column=0, columnspan=2, pady=5)
-
-        ctk.CTkLabel(momentum_frame, text="Threshold Asset:", font=self.bold_font).grid(row=1, column=0, sticky="e", padx=5)
-        ctk.CTkEntry(momentum_frame, textvariable=self.threshold_asset_entry_var).grid(row=1, column=1, sticky="ew", padx=5)
-        self.threshold_asset_entry_var.trace_add("write", self.update_threshold_asset)
 
         ctk.CTkLabel(momentum_frame, text="Number of assets to select:", font=self.bold_font).grid(row=2, column=0, sticky="e", padx=5)
         ctk.CTkEntry(momentum_frame, textvariable=self.num_assets_to_select_entry_var).grid(row=2, column=1, sticky="ew", padx=5)
@@ -402,6 +406,18 @@ class SetupTab:
         """
         _ = args
         self.data_models.threshold_asset = str(self.threshold_asset_entry_var.get())
+
+    def update_benchmark_asset(self, *args):
+        """
+        Updates the benchmark asset in the data model based on the entry box.
+
+        Parameters
+        ----------
+        *args : tuple
+            Additional arguments passed by the trace method.
+        """
+        _ = args
+        self.data_models.benchmark_asset = str(self.benchmark_asset_entry_var.get())
 
     def update_num_assets_to_select(self, *args):
         """

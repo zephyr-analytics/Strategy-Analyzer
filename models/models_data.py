@@ -42,6 +42,7 @@ class ModelsData:
         self._standard_deviation = None
         self._out_of_market_tickers = {}
         self._processing_type = str
+        self._benchmark_asset = ""
 
 
     @property
@@ -688,3 +689,24 @@ class ModelsData:
             value (str): String representing the processing type.
         """
         self._processing_type = value
+
+
+    @property
+    def benchmark_asset(self):
+        """
+        Gets the benchmark_asset.
+
+        Returns:
+            str: String representing the benchmark_asset.
+        """
+        return self._benchmark_asset
+
+    @benchmark_asset.setter
+    def benchmark_asset(self, value):
+        """
+        Sets the benchmark_asset.
+
+        Args:
+            value (str): String representing the benchmark_asset.
+        """
+        self._benchmark_asset = value
