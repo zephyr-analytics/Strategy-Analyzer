@@ -57,6 +57,7 @@ class BacktestingProcessor(ABC):
         self.initial_portfolio_value = int(data_models.initial_portfolio_value)
         self.num_assets_to_select = int(data_models.num_assets_to_select)
         self.threshold_asset = str(data_models.threshold_asset)
+        self.processing_type = data_models.processing_type
 
         self._data = None
         self._momentum_data = None
@@ -182,9 +183,7 @@ class BacktestingProcessor(ABC):
         Handles adjusted weights, portfolio returns, and portfolio values dynamically.
         """
         adjusted_weights_df = pd.DataFrame(list(self.data_models.adjusted_weights), index=self.data_models.adjusted_weights.index)
-
         adjusted_weights_df = adjusted_weights_df.fillna(0.0)
-
         combined_df = pd.concat(
             [
                 adjusted_weights_df,
@@ -194,8 +193,9 @@ class BacktestingProcessor(ABC):
             axis=1,
         )
 
-        current_directory = os.getcwd()
-        data_path = os.path.join(current_directory, "models", "artifacts", f"{self.output_filename}")
-        file_name = f"{datetime.today().strftime('%Y-%m-%d')}_{self.trading_frequency}_{self.num_assets_to_select}.csv"
-
-        utilities.save_dataframe_to_csv(data=combined_df, path=data_path, file_name=file_name)
+        utilities.save_dataframe_to_csv(
+            data=combined_df,
+            output_filename=self.output_filename,
+            processing_type=self.processing_type,
+            num_assets=self.num_assets_to_select
+        )
