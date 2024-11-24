@@ -179,10 +179,13 @@ class BacktestingProcessor(ABC):
     def _calculate_benchmark(self, benchmark_ticker: str):
         """
         Calculates the performance of a benchmark asset over the specified timeframe.
-        
-        Args:
-            benchmark_ticker (str): The ticker of the benchmark asset to evaluate.
+
+        Parameters
+        ----------
+        benchmark_ticker : str
+            The ticker of the benchmark asset to evaluate.
         """
+        # TODO Benchmark results will need to be added to results processor.
         if self.benchmark_asset != None:
             # TODO benchmark_data will need to be tied to the actually benchmark asset.
             benchmark_data, message = utilities.fetch_data(
