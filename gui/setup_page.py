@@ -188,16 +188,6 @@ class SetupTab:
         footer_frame = ctk.CTkFrame(parent, fg_color="transparent")
         footer_frame.pack(fill="x", pady=20)
 
-        # proceed_button = ctk.CTkButton(
-        #     footer_frame,
-        #     text="Proceed to Testing parent",
-        #     fg_color="#bb8fce",
-        #     text_color="#000000",
-        #     hover_color="#8e44ad",
-        #     command=lambda: self.high_level_parent_control.set("Testing")
-        # )
-        # proceed_button.pack(pady=20)
-
         self.bottom_text_frame.pack()
 
         # Add copyright info

@@ -41,6 +41,7 @@ class ModelsData:
         self._num_assets_to_select = 1
         self._standard_deviation = None
         self._out_of_market_tickers = {}
+        self._processing_type = str
 
 
     @property
@@ -666,3 +667,24 @@ class ModelsData:
             value (dict): A dictionary containing the asset weights.
         """
         self._out_of_market_tickers = value
+
+
+    @property
+    def processing_type(self):
+        """
+        Gets the processing type.
+
+        Returns:
+            str: String representing the processing type.
+        """
+        return self._processing_type
+
+    @processing_type.setter
+    def processing_type(self, value):
+        """
+        Sets the processing type.
+
+        Args:
+            value (str): String representing the processing type.
+        """
+        self._processing_type = value

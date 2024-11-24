@@ -13,21 +13,33 @@ class ModelsFactory:
     """
     Factory class to handle model processing based on the provided enum types.
     """
+
     def __init__(self, data_models: ModelsData):
         """
         Initializes the ModelsFactory with the provided data models.
-        
-        :param data_models: An instance of ModelsData containing the relevant data.
+
+        Parameters
+        ----------
+        data_models : ModelsData
+            An instance of ModelsData containing the relevant data.
         """
         self.data_models = data_models
 
     def run(self, model: Models, run_type: Runs) -> str:
         """
         Executes the corresponding method based on the provided model and run type.
-        
-        :param model: Enum representing the model type (e.g., Models.SMA).
-        :param run_type: Enum representing the run type (e.g., Runs.BACKTEST).
-        :return: Result message as a string.
+
+        Parameters
+        ----------
+        model : Models
+            Enum representing the model type (e.g., Models.SMA).
+        run_type : Runs
+            Enum representing the run type (e.g., Runs.BACKTEST).
+
+        Returns
+        -------
+        str
+            Result message indicating the outcome of the operation.
         """
         model_run_map = {
             (Models.SMA, Runs.BACKTEST): self._run_sma_backtest,
@@ -43,52 +55,108 @@ class ModelsFactory:
         method = model_run_map.get((model, run_type))
         if not method:
             return "Invalid model or run type combination."
-
+        self.data_models.processing_type = f"{model.name}_{run_type.name}"
         return method()
 
-    def _run_sma_backtest(self):
+    def _run_sma_backtest(self) -> str:
+        """
+        Executes the SMA backtest process.
+
+        Returns
+        -------
+        str
+            Message indicating the outcome of the SMA backtest.
+        """
         if not self.data_models.assets_weights:
             return "Please load asset weights file."
         backtest = SmaBacktestPortfolio(self.data_models)
         backtest.process()
         return "SMA backtest completed and plots saved."
 
-    def _run_sma_signals(self):
+    def _run_sma_signals(self) -> str:
+        """
+        Executes the SMA signals generation process.
+
+        Returns
+        -------
+        str
+            Message indicating the outcome of the SMA signals generation.
+        """
         if not self.data_models.assets_weights:
             return "Please load asset weights file."
         create_signals = CreateSmaSignals(self.data_models)
         create_signals.process()
         return f"SMA signals generated for {self.data_models.end_date}."
 
-    def _run_sma_simulation(self):
+    def _run_sma_simulation(self) -> str:
+        """
+        Executes the SMA Monte Carlo simulation process.
+
+        Returns
+        -------
+        str
+            Message indicating the outcome of the SMA simulation.
+        """
         if not self.data_models.assets_weights:
             return "Please load asset weights file."
         monte_carlo = MonteCarloSimulation(self.data_models)
         monte_carlo.process()
         return "SMA simulation completed and plots saved."
 
-    def _run_momentum_backtest(self):
+    def _run_momentum_backtest(self) -> str:
+        """
+        Executes the momentum backtest process.
+
+        Returns
+        -------
+        str
+            Message indicating the outcome of the momentum backtest.
+        """
         if not self.data_models.assets_weights:
             return "Please load asset weights file."
         backtest = BacktestMomentumPortfolio(self.data_models)
         backtest.process()
         return "Momentum backtest completed and plots saved."
 
-    def _run_momentum_signals(self):
+    def _run_momentum_signals(self) -> str:
+        """
+        Executes the momentum signals generation process.
+
+        Returns
+        -------
+        str
+            Message indicating the outcome of the momentum signals generation.
+        """
         if not self.data_models.assets_weights:
             return "Please load asset weights file."
         create_signals = CreateMomentumSignals(self.data_models)
         create_signals.process()
         return f"Momentum signals generated for {self.data_models.end_date}."
 
-    def _run_machine_learning_backtest(self):
+    def _run_machine_learning_backtest(self) -> str:
+        """
+        Executes the machine learning backtest process.
+
+        Returns
+        -------
+        str
+            Message indicating the outcome of the machine learning backtest.
+        """
         if not self.data_models.assets_weights:
             return "Please load asset weights file."
         backtest = BacktestClusteringPortfolio(self.data_models)
         backtest.process()
         return "Machine learning backtest completed and plots saved."
 
-    def _run_in_and_out_of_market_backtest(self):
+    def _run_in_and_out_of_market_backtest(self) -> str:
+        """
+        Executes the In and Out of Market backtest process.
+
+        Returns
+        -------
+        str
+            Message indicating the outcome of the In and Out of Market backtest.
+        """
         if not self.data_models.assets_weights:
             return "Please load asset weights file."
         if not self.data_models.out_of_market_tickers:
@@ -97,7 +165,15 @@ class ModelsFactory:
         backtest.process()
         return "In and Out of Market backtest completed and plots saved."
 
-    def _run_in_and_out_of_market_signals(self):
+    def _run_in_and_out_of_market_signals(self) -> str:
+        """
+        Executes the In and Out of Market signals generation process.
+
+        Returns
+        -------
+        str
+            Message indicating the outcome of the In and Out of Market signals generation.
+        """
         if not self.data_models.assets_weights:
             return "Please load asset weights file."
         if not self.data_models.out_of_market_tickers:

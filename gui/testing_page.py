@@ -328,7 +328,6 @@ class TestingTab:
         result : str
             The result text to be displayed in the GUI.
         """
-        # TODO this area needs to seperate from the area assets and weights are written to.
         self.bottom_text_result_display = ctk.CTkLabel(
             self.bottom_text_frame,
             text=result, text_color="green" if "completed" in result else "red",
