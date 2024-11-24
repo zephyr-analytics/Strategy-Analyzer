@@ -4,9 +4,11 @@
 
 This application is designed for comprehensive portfolio analysis, incorporating backtesting, Monte Carlo simulations, and signal generation. The application supports multiple weighting strategies, theme selection, and various portfolio analysis tasks, making it a versatile tool for financial analysis.
 
-## Features
+## Features:
+## **Backtesting**: Perform backtests on static portfolios with customizable parameters like trading frequency, SMA window, and weighting strategy.
+### Simple Moving Avergae:
+### Momentum:
 
-- **Backtesting**: Perform backtests on static portfolios with customizable parameters like trading frequency, SMA window, and weighting strategy.
 - **Monte Carlo Simulation**: Run simulations to project future portfolio values based on historical data.
 - **Signal Generation**: Generate and visualize trading signals based on moving averages and asset weights.
 
@@ -34,6 +36,8 @@ This application is designed for comprehensive portfolio analysis, incorporating
    - **Trading Frequency**: The frequency at which the portfolio is strategy is reset.
    - **Weighting Strategy**: The strategy for weighting assets (e.g., 'Equal Weight', 'Risk Contribution').
    - **SMA Window**: The Simple Moving Average window for generating signals.
+   - **Threshold Asset**: If set when backtesting the algorithm will look at this asset's SMA rather than the provided assets.
+   - **Out Of Market Assets**: When using in and out of market momentum the model will use the assets and weights in this file to construct out of market momentum trading.
 
 ## Example Usage
 

@@ -37,6 +37,9 @@ class ResultsProcessor:
         self.avg_annual_return = data_models.average_annual_return
         self.standard_deviation = data_models.annual_volatility
         self.buy_and_hold_values = data_models.buy_and_hold_values
+        self.weights_filename = data_models.weights_filename
+        self.num_assets = data_models.num_assets_to_select
+        self.trading_frequency = data_models.trading_frequency
 
 
     def plot_portfolio_value(self, filename='portfolio_value'):
@@ -130,7 +133,7 @@ class ResultsProcessor:
 
         fig.update_layout(
             title=dict(
-                text=f'Portfolio Value for {self.output_filename}',
+                text=f'Portfolio Value for {self.output_filename}, # of Assets {self.num_assets}, Trading Freq {self.trading_frequency}',
                 x=0.5,
                 y=1,
                 xanchor='center',
@@ -148,7 +151,7 @@ class ResultsProcessor:
             )
         )
 
-        utilities.save_html(fig, filename, self.output_filename)
+        utilities.save_html(fig, filename, self.weights_filename, self.output_filename, self.num_assets)
 
 
     def plot_var_cvar(self, confidence_level=0.95, filename='var_cvar'):
@@ -240,7 +243,7 @@ class ResultsProcessor:
                 )
             ]
         )
-        utilities.save_html(fig, filename, self.output_filename)
+        utilities.save_html(fig, filename, self.weights_filename, self.output_filename, self.num_assets)
 
 
     def plot_monte_carlo_simulation(
@@ -315,7 +318,7 @@ class ResultsProcessor:
         )
 
         # Save the plot as an HTML file
-        utilities.save_html(fig, filename, output_filename)
+        utilities.save_html(fig, filename, self.weights_filename, self.output_filename, self.num_assets)
 
 
     def plot_returns_heatmaps(self, filename='returns_heatmap'):
@@ -421,4 +424,4 @@ class ResultsProcessor:
         )
 
         # Save the plot as an HTML file
-        utilities.save_html(fig, filename, self.output_filename)
+        utilities.save_html(fig, filename, self.weights_filename, self.output_filename, self.num_assets)

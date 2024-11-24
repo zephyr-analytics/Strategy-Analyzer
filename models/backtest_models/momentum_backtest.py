@@ -9,14 +9,14 @@ import pandas as pd
 
 import utilities as utilities
 
-from models_data import ModelsData
-from momentum_models.momentum_processor import MomentumProcessor
+from models.models_data import ModelsData
+from models.backtest_models.backtesting_processor import BacktestingProcessor
 from results.results_processor import ResultsProcessor
 
 warnings.filterwarnings("ignore")
 
 
-class BacktestMomentumPortfolio(MomentumProcessor):
+class BacktestMomentumPortfolio(BacktestingProcessor):
     """
     A class to backtest a static portfolio with adjustable weights based on Simple Moving Average (SMA).
 
@@ -70,16 +70,20 @@ class BacktestMomentumPortfolio(MomentumProcessor):
         if self.bond_ticker != "":
             all_tickers.append(self.bond_ticker)
 
-        self._data = utilities.fetch_data(all_tickers, self.start_date, self.end_date)
+        self._data, message = utilities.fetch_data(all_tickers, self.start_date, self.end_date)
+
+        print(f"Data was updated for common start dates:\n\n {message}")
 
         self._momentum_data = self._data.copy().pct_change().dropna()
         self.run_backtest()
         self._get_portfolio_statistics()
         self._calculate_buy_and_hold()
+        self.persist_data()
         results_processor = ResultsProcessor(self.data_models)
         results_processor.plot_portfolio_value()
         results_processor.plot_var_cvar()
         results_processor.plot_returns_heatmaps()
+
 
 
     def calculate_momentum(self, current_date: datetime) -> float:
@@ -185,6 +189,8 @@ class BacktestMomentumPortfolio(MomentumProcessor):
         monthly_dates = pd.date_range(start=self.start_date, end=self.end_date, freq='M')
         portfolio_values = [self.initial_portfolio_value]
         portfolio_returns = []
+        all_adjusted_weights = []
+
         if self.trading_frequency == 'Monthly':
             step = 1
             freq = 'M'
@@ -215,10 +221,22 @@ class BacktestMomentumPortfolio(MomentumProcessor):
             monthly_returns = (next_month_end_data / month_end_data) - 1
             month_return = sum([monthly_returns[ticker] * weight for ticker, weight in adjusted_weights.items()])
             new_portfolio_value = previous_value * (1 + month_return)
+
+            all_adjusted_weights.append(adjusted_weights)
             portfolio_values.append(new_portfolio_value)
             portfolio_returns.append(month_return)
 
-        self.data_models.adjusted_weights = adjusted_weights
+        placeholder_weights = {asset: 0.0 for asset in all_adjusted_weights[0].keys()}
+        all_adjusted_weights = all_adjusted_weights + [placeholder_weights]
+
+        self.data_models.adjusted_weights = pd.Series(
+            all_adjusted_weights,
+            index=pd.date_range(
+                start=self.start_date,
+                periods=len(portfolio_values),
+                freq=freq
+            )
+        )
         self.data_models.portfolio_values = pd.Series(
             portfolio_values,
             index=pd.date_range(
