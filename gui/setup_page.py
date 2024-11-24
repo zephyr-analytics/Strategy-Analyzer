@@ -427,4 +427,7 @@ class SetupTab:
 
 
     def update_tab(self):
+        """
+        Method used by GUI to update tab components.
+        """
         pass

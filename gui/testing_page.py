@@ -48,6 +48,9 @@ class TestingTab:
 
 
     def create_widgets(self):
+        """
+        """
+        # TODO write the docstring for this.
         # Center frame for main tabs
         center_frame = ctk.CTkFrame(self.parent, fg_color="#edeaea")
         center_frame.pack()
@@ -59,19 +62,14 @@ class TestingTab:
         # Add testing tabs
         self.create_testing_tabs(self.high_level_tab_control)
 
-        self.bottom_text_frame = ctk.CTkFrame(self.parent, fg_color="#edeaea")
+        self.bottom_text_frame = ctk.CTkFrame(self.parent, fg_color="transparent")
         self.bottom_text_frame.pack()
 
-        self.bottom_text_area = ctk.CTkLabel(
-            self.bottom_text_frame,
-            text="",  # Start with empty text
-            font=ctk.CTkFont(size=12),
-            wraplength=600,  # Optional: wrap long text
-            anchor="w",  # Align text to the left
-            justify="left",  # Align multi-line text
-            fg_color="#f8f9fa",  # Background color
-        )
-        self.bottom_text_area.pack(fill="x", padx=10, pady=5)
+        self.bottom_text = ctk.CTkFrame(self.bottom_text_frame)
+        self.bottom_text.pack()
+
+        self.bottom_text_result_display = ctk.CTkLabel(self.bottom_text_frame)
+        self.bottom_text_result_display.pack()
 
         # Add copyright info
         copyright_label = ctk.CTkLabel(
@@ -85,7 +83,11 @@ class TestingTab:
     def create_testing_tabs(self, parent):
         """
         Creates the Testing tab with sub-tabs for SMA, Momentum, etc.
-        Each sub-tab contains dropdowns for selecting Runs enum values and a plot display section.
+
+        Parameters
+        ----------
+        parent : CTKFrame
+            The parent window of all tabs and frames.
         """
         self.testing_tab_control = ctk.CTkTabview(
             parent,
@@ -212,7 +214,7 @@ class TestingTab:
         file_path = os.path.join(self.artifacts_directory, selected_plot)
 
         if not os.path.exists(file_path):
-            self.append_to_bottom_text(f"File not found: {file_path}")
+            self.display_result(f"File not found: {file_path}")
             return
 
         webbrowser.open(f"file://{file_path}")
@@ -239,7 +241,7 @@ class TestingTab:
         run_enum = Runs[selected_run] if selected_run in Runs.__members__ else None
 
         if not model_enum or not run_enum:
-            self.append_to_bottom_text("Invalid model or run type selection.")
+            self.display_result("Invalid model or run type selection.")
             return
 
         threading.Thread(
@@ -259,10 +261,11 @@ class TestingTab:
         run_type : Runs
             The run type (e.g., Runs.BACKTEST, Runs.SIMULATION, Runs.SIGNALS).
         """
+        self.clear_message_text()
         try:
             factory = ModelsFactory(self.data_models)
             result = factory.run(model, run_type)
-            self.parent.after(0, lambda: self.append_to_bottom_text(result))
+            self.parent.after(0, lambda: self.display_result(result))
         finally:
             self.get_all_plot_files()
 
@@ -279,23 +282,11 @@ class TestingTab:
         ctk.set_appearance_mode(selected_theme)
 
 
-    def append_to_bottom_text(self, message):
-        """
-        Displays the latest message in the bottom text area.
-        """
-        if hasattr(self, "bottom_text_area"):
-            self.clear_message_text
-            self.bottom_text_area.configure(text=message)
-        else:
-            print("Error: bottom_text_area is not initialized.")
-
-
     def clear_message_text(self):
         """
         Clears the text in the bottom text area.
         """
-        if hasattr(self, "bottom_text_area"):
-            self.bottom_text_area.configure(text="")
+        self.bottom_text_result_display.destroy()
 
 
     def clear_bottom_text(self):
@@ -306,41 +297,33 @@ class TestingTab:
         ----------
         None
         """
-        for widget in self.bottom_text_frame.winfo_children():
-            widget.destroy()
+        self.bottom_text.destroy()
 
 
     def display_asset_weights(self):
         """
-        Displays the loaded asset weights in the GUI, capped at 10, 
-        without recreating widgets or duplicating content.
+        Displays the loaded asset weights in the GUI, capped at 10.
+
+        Parameters
+        ----------
+        None
         """
         assets_text = "\n".join(
             [f"{asset}: {weight}" for asset, weight in list(self.data_models.assets_weights.items())[:10]]
         )
         if len(self.data_models.assets_weights) > 10:
-            assets_text += f"\n... (and {len(self.data_models.assets_weights) - 10} more)"
+            assets_text += f"\n... (and {(len(self.data_models.assets_weights)-10)} more)"
 
-        # Prepare the display text
-        display_text = f"Loaded Assets and Weights from:\n\n{self.data_models.weights_filename}:\n{assets_text}"
-
-        # If the label exists, update its content
-        if hasattr(self, "asset_weights_label") and self.asset_weights_label is not None:
-            self.asset_weights_label.configure(text=display_text)
-        else:
-            # Create the label if it doesn't exist
-            self.asset_weights_label = ctk.CTkLabel(
-                self.bottom_text_frame,
-                text=display_text,
-                text_color="blue",
-                fg_color="#edeaea",
-                anchor="w",  # Align text to the left
-                justify="left"  # Align multi-line text
-            )
-            self.asset_weights_label.pack(fill="x", padx=10, pady=5)
+        self.bottom_text = ctk.CTkLabel(
+            self.bottom_text_frame,
+            text=f"Loaded Assets and Weights from: \n\n{self.data_models.weights_filename}:\n{assets_text}",
+            text_color="blue",
+            fg_color="transparent"
+        )
+        self.bottom_text.pack(pady=5)
 
 
-    def display_result(self, result):
+    def display_result(self, result: str):
         """
         Displays the result of a task in the GUI.
 
@@ -349,12 +332,19 @@ class TestingTab:
         result : str
             The result text to be displayed in the GUI.
         """
-        self.bottom_text = ctk.CTkLabel(
+        # TODO this area needs to seperate from the area assets and weights are written to.
+        self.bottom_text_result_display = ctk.CTkLabel(
             self.bottom_text_frame,
-            text=result, text_color="green" if "completed" in result else "red"
+            text=result, text_color="green" if "completed" in result else "red",
+            fg_color="transparent",
         )
-        self.bottom_text.pack(pady=5)
+        self.bottom_text_result_display.pack(pady=5)
 
 
     def update_tab(self):
+        """
+        Method used by GUI to update tab components.
+        """
+        self.clear_bottom_text()
+        self.clear_message_text()
         self.display_asset_weights()

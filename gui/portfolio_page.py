@@ -1,13 +1,15 @@
 import customtkinter as ctk
 import utilities as utilities
+from portfolio_management.portfolio_data import PortfolioData
+
 
 class PortfolioTab:
     """
     Handles the layout and functionality of the Portfolio Aggregator parent.
     """
 
-    def __init__(self, parent, portfolios_data):
-        self.data_portfolios = portfolios_data
+    def __init__(self, parent, portfolio_data: PortfolioData):
+        self.data_portfolios = portfolio_data
         self.parent = parent
         self.bold_font = ctk.CTkFont(size=12, weight="bold", family="Arial")
         self.bottom_text_frame = ctk.CTkFrame(self.parent)
@@ -17,7 +19,7 @@ class PortfolioTab:
     def create_initial_tab(self, parent):
         """
         Creates the Portfolio Aggregator tab with inputs for portfolio selection.
-        
+
         Parameters
         ----------
         parent : ctk.CTkFrame
@@ -87,12 +89,7 @@ class PortfolioTab:
     def load_portfolio_and_update(self):
         """
         Loads the first portfolio from a file and updates the status label.
-
-        Parameters
-        ----------
-        None
         """
-        # TODO portfolio data is now loaded as expected.
         self.clear_bottom_text()
         portfolio_data = utilities.load_portfolio()
         self.data_portfolios.portfolio_dataframe = portfolio_data
@@ -101,14 +98,12 @@ class PortfolioTab:
     def clear_bottom_text(self):
         """
         Clears the text at the bottom of the GUI.
-
-        Parameters
-        ----------
-        None
         """
         for widget in self.bottom_text_frame.winfo_children():
             widget.destroy()
 
-
     def update_tab(self):
+        """
+        Method used by GUI to update tab components.
+        """
         pass

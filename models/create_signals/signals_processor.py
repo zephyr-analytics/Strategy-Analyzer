@@ -3,17 +3,20 @@ Abstract module for processing trading signals.
 """
 
 from abc import ABC, abstractmethod
+
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 import utilities as utilities
+from models.models_data import ModelsData
+
 
 class SignalsProcessor(ABC):
     """
     Abstract base class for creating portfolio signals.
     """
 
-    def __init__(self, models_data):
+    def __init__(self, models_data: ModelsData):
         """
         Initializes the SignalProcessor class.
 

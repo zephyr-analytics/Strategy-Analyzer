@@ -18,15 +18,13 @@ class PortfolioAnalyzer(ctk.CTk):
         self.title("Portfolio Analyzer")
         self.geometry("1200x800")
 
-        data_models = ModelsData()
-        self.data_models = data_models
+        models_data = ModelsData()
+        self.data_models = models_data
 
-        data_portfolios = PortfolioData()
-        self.data_portfolios = data_portfolios
+        portfolio_data = PortfolioData()
+        self.data_portfolios = portfolio_data
 
-        # Variables for binding to GUI
         self.bold_font = ctk.CTkFont(size=12, weight="bold", family="Arial")
-
         self.create_widgets()
 
     def create_widgets(self):
@@ -56,7 +54,7 @@ class PortfolioAnalyzer(ctk.CTk):
         self.testing_tab = TestingTab(testing_tab_frame, models_data=self.data_models)
 
         portfolio_tab_frame = self.high_level_tab_control.add("Portfolio Management")
-        self.portfolio_tab = PortfolioTab(portfolio_tab_frame, portfolios_data=self.data_portfolios)
+        self.portfolio_tab = PortfolioTab(portfolio_tab_frame, portfolio_data=self.data_portfolios)
 
         # Set initial tab
         self.high_level_tab_control.set("Initial Testing Setup")
