@@ -40,7 +40,6 @@ class BacktestingProcessor(ABC):
     _data : DataFrame or None
         DataFrame to store the adjusted closing prices of the assets.
     """
-    # TODO this needs to become backtesting processor, and sma backtesting needs to be become apart of it.
     def __init__(self, data_models: ModelsData):
         self.data_models = data_models
 

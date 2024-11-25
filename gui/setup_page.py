@@ -1,3 +1,7 @@
+"""
+Module for creating the setup page.
+"""
+
 import customtkinter as ctk
 
 import utilities as utilities
