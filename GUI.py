@@ -45,6 +45,9 @@ class PortfolioAnalyzer(ctk.CTk):
         self.high_level_tab_control = ctk.CTkTabview(center_frame, command=self.on_tab_switch)
         self.high_level_tab_control.pack(expand=1, fill="both")
 
+        economic_tab_frame = self.high_level_tab_control.add("Economics")
+        self.economic_tab = EconomicTab(economic_tab_frame)
+
         # Add Initial Testing Setup Tab
         setup_tab_frame = self.high_level_tab_control.add("Initial Testing Setup")
         self.setup_tab = SetupTab(setup_tab_frame, models_data=self.data_models)
@@ -57,7 +60,7 @@ class PortfolioAnalyzer(ctk.CTk):
         self.portfolio_tab = PortfolioTab(portfolio_tab_frame, portfolio_data=self.data_portfolios)
 
         # Set initial tab
-        self.high_level_tab_control.set("Initial Testing Setup")
+        self.high_level_tab_control.set("Economics")
 
     def on_tab_switch(self):
         """
