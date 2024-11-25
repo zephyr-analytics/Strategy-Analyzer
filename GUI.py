@@ -42,7 +42,17 @@ class PortfolioAnalyzer(ctk.CTk):
         center_frame.grid(row=0, column=1, rowspan=1, sticky="nsew")
 
         # High-Level Tab Control
-        self.high_level_tab_control = ctk.CTkTabview(center_frame, command=self.on_tab_switch)
+        self.high_level_tab_control = ctk.CTkTabview(
+            center_frame,
+            border_color="#edeaea",
+            fg_color="#edeaea",
+            segmented_button_fg_color="#edeaea",
+            segmented_button_unselected_color="#bb8fce",
+            segmented_button_selected_color="#8e44ad",
+            text_color="#000000",
+            segmented_button_selected_hover_color="#8e44ad",
+            command=self.on_tab_switch
+        )
         self.high_level_tab_control.pack(expand=1, fill="both")
 
         economic_tab_frame = self.high_level_tab_control.add("Economics")

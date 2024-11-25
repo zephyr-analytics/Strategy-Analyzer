@@ -1,4 +1,6 @@
-
+"""
+Module for creating the testing page.
+"""
 
 import customtkinter as ctk
 import os
