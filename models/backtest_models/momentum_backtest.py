@@ -226,14 +226,14 @@ class BacktestMomentumPortfolio(BacktestingProcessor):
             portfolio_values.append(new_portfolio_value)
             portfolio_returns.append(month_return)
 
-        placeholder_weights = {asset: 0.0 for asset in all_adjusted_weights[0].keys()}
-        all_adjusted_weights = all_adjusted_weights + [placeholder_weights]
+        # placeholder_weights = {asset: 0.0 for asset in all_adjusted_weights[0].keys()}
+        # all_adjusted_weights = all_adjusted_weights + [placeholder_weights]
 
         self.data_models.adjusted_weights = pd.Series(
             all_adjusted_weights,
             index=pd.date_range(
                 start=self.start_date,
-                periods=len(portfolio_values),
+                periods=len(all_adjusted_weights),
                 freq=freq
             )
         )
