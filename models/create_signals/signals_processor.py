@@ -36,6 +36,7 @@ class SignalsProcessor(ABC):
         self.output_filename = models_data.weights_filename
         self.weights_filename = models_data.weights_filename
         self.num_assets = models_data.num_assets_to_select
+        self.processing_type = self.data_models.processing_type
 
 
     def process(self):
@@ -112,4 +113,11 @@ class SignalsProcessor(ABC):
             ]
         )
 
-        utilities.save_html(fig, filename, self.weights_filename, self.output_filename, self.num_assets)
+        utilities.save_html(
+            fig,
+            filename=filename,
+            weights_filename=self.weights_filename,
+            output_filename=self.output_filename,
+            processing_type=self.processing_type,
+            num_assets=self.num_assets
+        )

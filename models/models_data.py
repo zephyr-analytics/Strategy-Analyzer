@@ -41,6 +41,8 @@ class ModelsData:
         self._num_assets_to_select = 1
         self._standard_deviation = None
         self._out_of_market_tickers = {}
+        self._processing_type = str
+        self._benchmark_asset = ""
 
 
     @property
@@ -666,3 +668,45 @@ class ModelsData:
             value (dict): A dictionary containing the asset weights.
         """
         self._out_of_market_tickers = value
+
+
+    @property
+    def processing_type(self):
+        """
+        Gets the processing type.
+
+        Returns:
+            str: String representing the processing type.
+        """
+        return self._processing_type
+
+    @processing_type.setter
+    def processing_type(self, value):
+        """
+        Sets the processing type.
+
+        Args:
+            value (str): String representing the processing type.
+        """
+        self._processing_type = value
+
+
+    @property
+    def benchmark_asset(self):
+        """
+        Gets the benchmark_asset.
+
+        Returns:
+            str: String representing the benchmark_asset.
+        """
+        return self._benchmark_asset
+
+    @benchmark_asset.setter
+    def benchmark_asset(self, value):
+        """
+        Sets the benchmark_asset.
+
+        Args:
+            value (str): String representing the benchmark_asset.
+        """
+        self._benchmark_asset = value

@@ -3,7 +3,6 @@ Utilities module for loading and processing data.
 """
 
 import os
-import pathlib as Path
 
 from datetime import datetime
 from tkinter import filedialog
@@ -109,7 +108,7 @@ def strip_csv_extension(filename):
     return os.path.splitext(filename)[0]
 
 
-def save_html(fig, filename, weights_filename, output_filename, num_assets):
+def save_html(fig, filename, weights_filename, output_filename, processing_type, num_assets):
     """
     Save the HTML file to the 'artifacts' directory within the current working directory.
 
@@ -123,36 +122,35 @@ def save_html(fig, filename, weights_filename, output_filename, num_assets):
     """
     current_directory = os.getcwd()
     current_date = datetime.now().strftime("%Y-%m-%d")
-    artifacts_directory = os.path.join(current_directory, 'artifacts', f"{weights_filename}")
+    artifacts_directory = os.path.join(current_directory, 'artifacts', "plots", f"{weights_filename}")
     os.makedirs(artifacts_directory, exist_ok=True)
-    if num_assets != None:
-        file_path = os.path.join(artifacts_directory, f"{output_filename}_{current_date}_{num_assets}_{filename}.html")
-        fig.write_html(file_path)
-    else:
-        file_path = os.path.join(artifacts_directory, f"{output_filename}_{current_date}_{filename}.html")
-        fig.write_html(file_path)
+
+    file_path = os.path.join(artifacts_directory, f"{output_filename}_{current_date}_{processing_type}_assets{num_assets}_{filename}.html")
+    fig.write_html(file_path)
 
 
-def save_dataframe_to_csv(data, path, file_name):
+def save_dataframe_to_csv(data, output_filename, processing_type, num_assets):
     """
-    Saves a pandas DataFrame to a CSV file at the specified path with the given file name.
+    Saves a pandas DataFrame to a CSV file in a structured directory with metadata in the file name.
 
     Parameters:
-        data (pd.DataFrame or any): The data to save. If not a DataFrame, an attempt will be made to convert it to one.
-        path (Path or str): The directory path where the file will be saved.
-        file_name (str): The name of the file (including the .csv extension).
+        data (pd.DataFrame): The DataFrame to save.
+        output_filename (str): A descriptor for the output file.
+        trading_frequency (str): The trading frequency to include in the file name.
+        num_assets_to_select (int): The number of assets to include in the file name.
 
     Returns:
-        Path: The full path of the saved file.
+        str: The full path of the saved file.
     """
-    if not isinstance(path, str):
-        raise ValueError("Path must be a string.")
+    if not isinstance(data, pd.DataFrame):
+        raise ValueError("Data must be a pandas DataFrame.")
 
-    # Create the directory if it doesn't exist
-    if not os.path.exists(path):
-        os.makedirs(path)
+    current_directory = os.getcwd()
+    current_date = datetime.now().strftime("%Y-%m-%d")
+    artifacts_directory = os.path.join(current_directory, "artifacts", "data", f"{output_filename}")
+    os.makedirs(artifacts_directory, exist_ok=True)
 
-    full_path = os.path.join(path, file_name)
-
-    # Save the DataFrame to the CSV file
+    full_path = os.path.join(artifacts_directory, f"{output_filename}_{current_date}_{processing_type}_assets{num_assets}.csv")
+    
     data.to_csv(full_path, index=True)
+

@@ -1,3 +1,7 @@
+"""
+Module for creating the portfolio page.
+"""
+
 import customtkinter as ctk
 import utilities as utilities
 from portfolio_management.portfolio_data import PortfolioData
