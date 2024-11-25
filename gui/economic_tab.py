@@ -134,6 +134,7 @@ class EconomicTab:
             "DGS1MO", "DGS3MO", "DGS6MO", "DGS1", "DGS2",
             "DGS3", "DGS5", "DGS7", "DGS10", "DGS20", "DGS30"
         ]
+        # TODO the date settings do not look correct.
         start_date = date - datetime.timedelta(days=7)
         end_date = date
         try:
