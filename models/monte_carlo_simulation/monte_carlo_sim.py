@@ -45,6 +45,7 @@ class MonteCarloSimulation:
         self.annual_volatility = data_models.annual_volatility
         self.average_annual_return = data_models.average_annual_return
         self.portfolio_returns = data_models.portfolio_returns
+        self.initial_portfolio_value = data_models.initial_portfolio_value
 
 
     def process(self):
@@ -65,13 +66,12 @@ class MonteCarloSimulation:
         DataFrame
             DataFrame containing the simulated portfolio values.
         """
-        initial_portfolio_value = 10000
-
         simulation_results = np.zeros((self.simulation_horizon + 1, self.num_simulations))
-        simulation_results[0] = initial_portfolio_value
+        simulation_results[0] = self.initial_portfolio_value
 
         for t in range(1, self.simulation_horizon + 1):
-            # TODO needs to be connected to data from running backtest first.
+            # TODO this now needs to take into account adding more month each month.
+            # TODO this needs to take into account taxes based on a yearly basis.
             random_returns = np.random.normal(self.average_annual_return, self.annual_volatility, self.num_simulations)
             simulation_results[t] = simulation_results[t - 1] * (1 + random_returns)
 

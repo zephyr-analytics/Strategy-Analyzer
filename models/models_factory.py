@@ -99,6 +99,8 @@ class ModelsFactory:
         """
         if not self.data_models.assets_weights:
             return "Please load asset weights file."
+        backtest = SmaBacktestPortfolio(self.data_models)
+        backtest.process()
         monte_carlo = MonteCarloSimulation(self.data_models)
         monte_carlo.process()
         return "SMA simulation completed and plots saved."
