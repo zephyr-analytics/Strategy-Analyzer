@@ -69,6 +69,7 @@ class MonteCarloSimulation:
         simulation_results[0] = initial_portfolio_value
 
         for t in range(1, self.simulation_horizon + 1):
+            # TODO needs to be connected to data from running backtest first.
             random_returns = np.random.normal(self.average_annual_return, self.annual_volatility, self.num_simulations)
             simulation_results[t] = simulation_results[t - 1] * (1 + random_returns)
 
