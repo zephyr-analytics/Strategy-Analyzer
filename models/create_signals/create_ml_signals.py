@@ -7,6 +7,8 @@ import pandas as pd
 from plotly.subplots import make_subplots
 from scipy.cluster.hierarchy import linkage, dendrogram, fcluster
 from scipy.spatial.distance import squareform
+
+from models.models_data import ModelsData
 import utilities as utilities
 
 class CreateMLSignals:
@@ -14,7 +16,7 @@ class CreateMLSignals:
     Processor for creating portfolio signals based on momentum and clustering.
     """
 
-    def __init__(self, models_data, data):
+    def __init__(self, models_data: ModelsData, data):
         """
         Initializes the CreateSignals class.
 

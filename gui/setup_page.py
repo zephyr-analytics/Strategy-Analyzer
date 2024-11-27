@@ -5,18 +5,20 @@ Module for creating the setup page.
 import customtkinter as ctk
 
 import utilities as utilities
+from models.models_data import ModelsData
 
-# TODO Selected assets and weights are not being displayed.
+
 class SetupTab:
     """
     Handles the layout and functionality of the Initial Testing Setup parent.
     """
 
-    def __init__(self, parent, models_data):
+    def __init__(self, parent, models_data: ModelsData):
         self.data_models = models_data
 
         self.parent = parent
         self.bold_font = ctk.CTkFont(size=12, weight="bold", family="Arial")
+
         self.start_date_var = ctk.StringVar(value=self.data_models.start_date)
         self.end_date_var = ctk.StringVar(value=self.data_models.end_date)
         self.cash_ticker_var = ctk.StringVar(value=self.data_models.cash_ticker)
@@ -27,7 +29,9 @@ class SetupTab:
         self.num_simulations_var = ctk.StringVar(value=self.data_models.num_simulations)
         self.simulation_horizon_entry_var = ctk.StringVar(value=self.data_models.simulation_horizon)
         self.benchmark_asset_entry_var = ctk.StringVar(value=self.data_models.benchmark_asset)
-        # TODO add addition portfolio contributions
+        self.contribution_entry_var = ctk.StringVar(value=self.data_models.contribution)
+        self.contribution_frequency_var = ctk.StringVar(value=self.data_models.contribution_frequency)
+        # TODO this needs to be added to the UI.
         self.theme_mode_var = ctk.StringVar(value=self.data_models.theme_mode)
         self.initial_portfolio_value_var = ctk.StringVar(
             value=self.data_models._initial_portfolio_value
@@ -184,13 +188,30 @@ class SetupTab:
         monte_carlo_frame.grid_columnconfigure(1, weight=1)
         ctk.CTkLabel(monte_carlo_frame, text="Monte Carlo Settings", font=self.bold_font).grid(row=0, column=0, columnspan=2, pady=5)
 
-        ctk.CTkLabel(monte_carlo_frame, text="Simulation Horizon:", font=self.bold_font).grid(row=1, column=0, sticky="e", padx=5)
-        ctk.CTkEntry(monte_carlo_frame, textvariable=self.simulation_horizon_entry_var).grid(row=1, column=1, sticky="ew", padx=5)
+        ctk.CTkLabel(monte_carlo_frame, text="Simulation Horizon:", font=self.bold_font).grid(row=0, column=0, sticky="e", padx=5)
+        ctk.CTkEntry(monte_carlo_frame, textvariable=self.simulation_horizon_entry_var).grid(row=0, column=1, sticky="ew", padx=5)
         self.simulation_horizon_entry_var.trace_add("write", self.update_simulation_horizon)
 
-        ctk.CTkLabel(monte_carlo_frame, text="Number Simulations To Run:", font=self.bold_font).grid(row=2, column=0, sticky="e", padx=5)
-        ctk.CTkEntry(monte_carlo_frame, textvariable=self.num_simulations_var).grid(row=2, column=1, sticky="ew", padx=5)
+        ctk.CTkLabel(monte_carlo_frame, text="Number Simulations To Run:", font=self.bold_font).grid(row=0, column=2, sticky="e", padx=5)
+        ctk.CTkEntry(monte_carlo_frame, textvariable=self.num_simulations_var).grid(row=0, column=3, sticky="ew", padx=5)
         self.num_simulations_var.trace_add("write", self.update_num_simulations)
+
+        ctk.CTkLabel(monte_carlo_frame, text="Contribution:", font=self.bold_font).grid(row=1, column=0, sticky="e", padx=5)
+        ctk.CTkEntry(monte_carlo_frame, textvariable=self.contribution_entry_var).grid(row=1, column=1, sticky="ew", padx=5)
+        self.contribution_entry_var.trace_add("write", self.update_contribution)
+
+        ctk.CTkLabel(monte_carlo_frame, text="Contribution Frequency:", font=self.bold_font).grid(row=1, column=2, sticky="e", padx=5)
+        contribution_freq = ["Monthly", "Quarterly", "Yearly"]
+        ctk.CTkOptionMenu(
+            monte_carlo_frame,
+            values=contribution_freq,
+            fg_color="#bb8fce",
+            text_color="#000000",
+            button_color="#8e44ad",
+            button_hover_color="#8e44ad",
+            variable=self.contribution_frequency_var
+        ).grid(row=1, column=3, sticky="ew", padx=5)
+        self.contribution_frequency_var.trace_add("write", self.update_contribution_frequency)
 
         # Footer Section
         footer_frame = ctk.CTkFrame(parent, fg_color="transparent")
@@ -434,6 +455,30 @@ class SetupTab:
         """
         _ = args
         self.data_models.num_assets_to_select = str(self.num_assets_to_select_entry_var.get())
+
+    def update_contribution(self, *args):
+        """
+        Updates the contribution in the data model based on the entry box.
+
+        Parameters
+        ----------
+        *args : tuple
+            Additional arguments passed by the trace method.
+        """
+        _ = args
+        self.data_models.contribution = int(self.contribution_entry_var.get())
+
+    def update_contribution_frequency(self, *args):
+        """
+        Updates the contribution frequency in the data model based on the entry box.
+
+        Parameters
+        ----------
+        *args : tuple
+            Additional arguments passed by the trace method.
+        """
+        _ = args
+        self.data_models.contribution_frequency = str(self.contribution_frequency_var.get())
 
 
     def update_tab(self):

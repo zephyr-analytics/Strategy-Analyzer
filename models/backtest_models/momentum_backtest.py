@@ -123,10 +123,11 @@ class BacktestMomentumPortfolio(BacktestingProcessor):
         dict
             Dictionary of adjusted asset weights.
         """
-        num_assets = len(selected_assets)
-        equal_weight = 1 / num_assets
-        adjusted_weights = {asset: equal_weight for asset in selected_assets['Asset']}
+        trading_assets = selected_assets[selected_assets['Asset'] != self.threshold_asset]
 
+        num_assets = len(trading_assets)
+        equal_weight = 1 / num_assets
+        adjusted_weights = {asset: equal_weight for asset in trading_assets['Asset']}
 
         def is_below_sma(ticker: str):
             """
@@ -141,7 +142,6 @@ class BacktestMomentumPortfolio(BacktestingProcessor):
             sma = self._data.loc[:current_date, ticker].rolling(window=self.sma_period).mean().iloc[-1]
             return price < sma
 
-
         def allocate_to_safe_asset():
             """
             Allocates weights to a safe asset (cash or bond).
@@ -150,22 +150,19 @@ class BacktestMomentumPortfolio(BacktestingProcessor):
                 return {self.cash_ticker: 1.0}
             if self.bond_ticker:
                 return {self.bond_ticker: 1.0}
-            return {self.cash_ticker: 1.0}  # If no bond ticker, always allocate to cash.
+            return {self.cash_ticker: 1.0}
 
-
-        # Check threshold asset logic
         if self.threshold_asset and is_below_sma(self.threshold_asset):
             return allocate_to_safe_asset()
 
         for ticker in list(adjusted_weights.keys()):
             if is_below_sma(ticker):
-                safe_asset = self.cash_ticker  # Default to cash if no bond ticker is provided.
+                safe_asset = self.cash_ticker
                 if self.bond_ticker and not is_below_sma(self.bond_ticker):
                     safe_asset = self.bond_ticker
                 adjusted_weights[safe_asset] = adjusted_weights.get(safe_asset, 0) + adjusted_weights[ticker]
                 adjusted_weights[ticker] = 0
 
-        # Ensure minimum number of assets are selected
         actual_assets_count = sum(1 for weight in adjusted_weights.values() if weight > 0)
         if actual_assets_count < self.num_assets_to_select:
             fill_asset = self.cash_ticker
@@ -174,7 +171,6 @@ class BacktestMomentumPortfolio(BacktestingProcessor):
             fill_weight = (self.num_assets_to_select - actual_assets_count) / self.num_assets_to_select
             adjusted_weights[fill_asset] = adjusted_weights.get(fill_asset, 0) + fill_weight
 
-        # Normalize weights to ensure they sum to 1
         total_weight = sum(adjusted_weights.values())
         adjusted_weights = {ticker: weight / total_weight for ticker, weight in adjusted_weights.items()}
 
@@ -207,6 +203,7 @@ class BacktestMomentumPortfolio(BacktestingProcessor):
 
             # Calculate momentum
             momentum = self.calculate_momentum(last_date_current_month)
+            momentum = momentum.drop(self.threshold_asset, errors='ignore')
             
             # Select assets based on momentum
             selected_assets = pd.DataFrame({'Asset': momentum.nlargest(self.num_assets_to_select).index, 'Momentum': momentum.nlargest(self.num_assets_to_select).values})
@@ -226,14 +223,11 @@ class BacktestMomentumPortfolio(BacktestingProcessor):
             portfolio_values.append(new_portfolio_value)
             portfolio_returns.append(month_return)
 
-        placeholder_weights = {asset: 0.0 for asset in all_adjusted_weights[0].keys()}
-        all_adjusted_weights = all_adjusted_weights + [placeholder_weights]
-
         self.data_models.adjusted_weights = pd.Series(
             all_adjusted_weights,
             index=pd.date_range(
                 start=self.start_date,
-                periods=len(portfolio_values),
+                periods=len(all_adjusted_weights),
                 freq=freq
             )
         )
