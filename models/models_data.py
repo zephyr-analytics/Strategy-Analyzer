@@ -741,7 +741,7 @@ class ModelsData:
         Gets the contribution frequency.
 
         Returns:
-            int: Integer representing the contribution frequency.
+            str: String representing the contribution frequency.
         """
         return self._contribution_frequency
 
@@ -751,6 +751,6 @@ class ModelsData:
         Sets the contribution frequency.
 
         Args:
-            value (int): Integer representing the contribution frequency.
+            value (str): String representing the contribution frequency.
         """
         self._contribution_frequency = value

@@ -188,13 +188,21 @@ class SetupTab:
         monte_carlo_frame.grid_columnconfigure(1, weight=1)
         ctk.CTkLabel(monte_carlo_frame, text="Monte Carlo Settings", font=self.bold_font).grid(row=0, column=0, columnspan=2, pady=5)
 
-        ctk.CTkLabel(monte_carlo_frame, text="Simulation Horizon:", font=self.bold_font).grid(row=1, column=0, sticky="e", padx=5)
-        ctk.CTkEntry(monte_carlo_frame, textvariable=self.simulation_horizon_entry_var).grid(row=1, column=1, sticky="ew", padx=5)
+        ctk.CTkLabel(monte_carlo_frame, text="Simulation Horizon:", font=self.bold_font).grid(row=0, column=0, sticky="e", padx=5)
+        ctk.CTkEntry(monte_carlo_frame, textvariable=self.simulation_horizon_entry_var).grid(row=0, column=1, sticky="ew", padx=5)
         self.simulation_horizon_entry_var.trace_add("write", self.update_simulation_horizon)
 
-        ctk.CTkLabel(monte_carlo_frame, text="Number Simulations To Run:", font=self.bold_font).grid(row=2, column=0, sticky="e", padx=5)
-        ctk.CTkEntry(monte_carlo_frame, textvariable=self.num_simulations_var).grid(row=2, column=1, sticky="ew", padx=5)
+        ctk.CTkLabel(monte_carlo_frame, text="Number Simulations To Run:", font=self.bold_font).grid(row=0, column=2, sticky="e", padx=5)
+        ctk.CTkEntry(monte_carlo_frame, textvariable=self.num_simulations_var).grid(row=0, column=3, sticky="ew", padx=5)
         self.num_simulations_var.trace_add("write", self.update_num_simulations)
+
+        ctk.CTkLabel(monte_carlo_frame, text="Contribution:", font=self.bold_font).grid(row=1, column=0, sticky="e", padx=5)
+        ctk.CTkEntry(monte_carlo_frame, textvariable=self.contribution_entry_var).grid(row=1, column=1, sticky="ew", padx=5)
+        self.contribution_entry_var.trace_add("write", self.update_contribution)
+
+        ctk.CTkLabel(monte_carlo_frame, text="Contribution Frequency:", font=self.bold_font).grid(row=1, column=2, sticky="e", padx=5)
+        ctk.CTkEntry(monte_carlo_frame, textvariable=self.contribution_frequency_entry_var).grid(row=1, column=3, sticky="ew", padx=5)
+        self.contribution_frequency_entry_var.trace_add("write", self.update_contribution_frequency)
 
         # Footer Section
         footer_frame = ctk.CTkFrame(parent, fg_color="transparent")
@@ -449,7 +457,7 @@ class SetupTab:
             Additional arguments passed by the trace method.
         """
         _ = args
-        self.data_models.contribution = str(self.contribution_entry_var.get())
+        self.data_models.contribution = int(self.contribution_entry_var.get())
 
     def update_contribution_frequency(self, *args):
         """
@@ -461,7 +469,7 @@ class SetupTab:
             Additional arguments passed by the trace method.
         """
         _ = args
-        self.data_models.contribution_frequency = int(self.contribution_frequency_entry_var.get())
+        self.data_models.contribution_frequency = str(self.contribution_frequency_entry_var.get())
 
 
     def update_tab(self):

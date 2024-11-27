@@ -46,6 +46,8 @@ class MonteCarloSimulation:
         self.average_annual_return = data_models.average_annual_return
         self.portfolio_returns = data_models.portfolio_returns
         self.initial_portfolio_value = data_models.initial_portfolio_value
+        self.contribution = data_models.contribution
+        self.contribution_frequency = data_models.contribution_frequency
 
 
     def process(self):
@@ -78,12 +80,12 @@ class MonteCarloSimulation:
         simulation_results[0] = self.initial_portfolio_value
 
         # Contribution multiplier based on frequency
-        if contribution_frequency == "monthly":
-            contribution = contribution*12
-        elif contribution_frequency == "quarterly":
-            contribution = contribution*4
-        elif contribution_frequency == "yearly":
-            contribution = contribution
+        if self.contribution_frequency == "monthly":
+            contribution = self.contribution*12
+        elif self.contribution_frequency == "quarterly":
+            contribution = self.contribution*4
+        elif self.contribution_frequency == "yearly":
+            contribution = self.contribution
         else:
             raise ValueError("Invalid contribution frequency. Choose from 'monthly', 'quarterly', 'yearly'.")
 
