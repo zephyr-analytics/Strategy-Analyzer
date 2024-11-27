@@ -43,6 +43,8 @@ class ModelsData:
         self._out_of_market_tickers = {}
         self._processing_type = str
         self._benchmark_asset = ""
+        self._contribution = None
+        self._contribution_frequency = None
 
 
     @property
@@ -710,3 +712,45 @@ class ModelsData:
             value (str): String representing the benchmark_asset.
         """
         self._benchmark_asset = value
+
+
+    @property
+    def contribution(self):
+        """
+        Gets the contribution.
+
+        Returns:
+            str: Integer representing the contribution.
+        """
+        return self._contribution
+
+    @contribution.setter
+    def contribution(self, value):
+        """
+        Sets the contribution.
+
+        Args:
+            value (str): Integer representing the contribution.
+        """
+        self._contribution = value
+
+
+    @property
+    def contribution_frequency(self):
+        """
+        Gets the contribution frequency.
+
+        Returns:
+            str: Integer representing the contribution frequency.
+        """
+        return self._contribution_frequency
+
+    @contribution_frequency.setter
+    def contribution_frequency(self, value):
+        """
+        Sets the contribution frequency.
+
+        Args:
+            value (str): Integer representing the contribution frequency.
+        """
+        self._contribution_frequency = value

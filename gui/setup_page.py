@@ -5,14 +5,15 @@ Module for creating the setup page.
 import customtkinter as ctk
 
 import utilities as utilities
+from models.models_data import ModelsData
 
-# TODO Selected assets and weights are not being displayed.
+
 class SetupTab:
     """
     Handles the layout and functionality of the Initial Testing Setup parent.
     """
 
-    def __init__(self, parent, models_data):
+    def __init__(self, parent, models_data: ModelsData):
         self.data_models = models_data
 
         self.parent = parent
