@@ -59,7 +59,7 @@ class MonteCarloSimulation:
         results_processor.plot_monte_carlo_simulation(simulation_results, self.simulation_horizon, self.output_filename)
 
 
-    def run_simulation(self, contribution=250, contribution_frequency="monthly"):
+    def run_simulation(self):
         """
         Runs the Monte Carlo simulation with optional contributions, accommodating annual simulation periods.
 
@@ -80,11 +80,11 @@ class MonteCarloSimulation:
         simulation_results[0] = self.initial_portfolio_value
 
         # Contribution multiplier based on frequency
-        if self.contribution_frequency == "monthly":
+        if self.contribution_frequency == "Monthly":
             contribution = self.contribution*12
-        elif self.contribution_frequency == "quarterly":
+        elif self.contribution_frequency == "Quarterly":
             contribution = self.contribution*4
-        elif self.contribution_frequency == "yearly":
+        elif self.contribution_frequency == "Yearly":
             contribution = self.contribution
         else:
             raise ValueError("Invalid contribution frequency. Choose from 'monthly', 'quarterly', 'yearly'.")

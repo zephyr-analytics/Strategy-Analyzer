@@ -30,7 +30,7 @@ class SetupTab:
         self.simulation_horizon_entry_var = ctk.StringVar(value=self.data_models.simulation_horizon)
         self.benchmark_asset_entry_var = ctk.StringVar(value=self.data_models.benchmark_asset)
         self.contribution_entry_var = ctk.StringVar(value=self.data_models.contribution)
-        self.contribution_frequency_entry_var = ctk.StringVar(value=self.data_models.contribution_frequency)
+        self.contribution_frequency_var = ctk.StringVar(value=self.data_models.contribution_frequency)
         # TODO this needs to be added to the UI.
         self.theme_mode_var = ctk.StringVar(value=self.data_models.theme_mode)
         self.initial_portfolio_value_var = ctk.StringVar(
@@ -201,8 +201,17 @@ class SetupTab:
         self.contribution_entry_var.trace_add("write", self.update_contribution)
 
         ctk.CTkLabel(monte_carlo_frame, text="Contribution Frequency:", font=self.bold_font).grid(row=1, column=2, sticky="e", padx=5)
-        ctk.CTkEntry(monte_carlo_frame, textvariable=self.contribution_frequency_entry_var).grid(row=1, column=3, sticky="ew", padx=5)
-        self.contribution_frequency_entry_var.trace_add("write", self.update_contribution_frequency)
+        contribution_freq = ["Monthly", "Quarterly", "Yearly"]
+        ctk.CTkOptionMenu(
+            monte_carlo_frame,
+            values=contribution_freq,
+            fg_color="#bb8fce",
+            text_color="#000000",
+            button_color="#8e44ad",
+            button_hover_color="#8e44ad",
+            variable=self.contribution_frequency_var
+        ).grid(row=1, column=3, sticky="ew", padx=5)
+        self.contribution_frequency_var.trace_add("write", self.update_contribution_frequency)
 
         # Footer Section
         footer_frame = ctk.CTkFrame(parent, fg_color="transparent")
@@ -469,7 +478,7 @@ class SetupTab:
             Additional arguments passed by the trace method.
         """
         _ = args
-        self.data_models.contribution_frequency = str(self.contribution_frequency_entry_var.get())
+        self.data_models.contribution_frequency = str(self.contribution_frequency_var.get())
 
 
     def update_tab(self):
