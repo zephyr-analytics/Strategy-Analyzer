@@ -47,7 +47,7 @@ class ModelsFactory:
             (Models.SMA, Runs.SIMULATION): self._run_sma_simulation,
             (Models.MOMENTUM, Runs.BACKTEST): self._run_momentum_backtest,
             (Models.MOMENTUM, Runs.SIGNALS): self._run_momentum_signals,
-            (Models.MOMENTUM, Runs.SIGNALS): self._run_momentum_simulation,
+            (Models.MOMENTUM, Runs.SIMULATION): self._run_momentum_simulation,
             (Models.MACHINE_LEARNING, Runs.BACKTEST): self._run_machine_learning_backtest,
             (Models.IN_AND_OUT_OF_MARKET, Runs.BACKTEST): self._run_in_and_out_of_market_backtest,
             (Models.IN_AND_OUT_OF_MARKET, Runs.SIGNALS): self._run_in_and_out_of_market_signals,
