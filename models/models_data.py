@@ -720,7 +720,7 @@ class ModelsData:
         Gets the contribution.
 
         Returns:
-            str: Integer representing the contribution.
+            int: Integer representing the contribution.
         """
         return self._contribution
 
@@ -730,7 +730,7 @@ class ModelsData:
         Sets the contribution.
 
         Args:
-            value (str): Integer representing the contribution.
+            value (int): Integer representing the contribution.
         """
         self._contribution = value
 
@@ -741,7 +741,7 @@ class ModelsData:
         Gets the contribution frequency.
 
         Returns:
-            str: Integer representing the contribution frequency.
+            int: Integer representing the contribution frequency.
         """
         return self._contribution_frequency
 
@@ -751,6 +751,6 @@ class ModelsData:
         Sets the contribution frequency.
 
         Args:
-            value (str): Integer representing the contribution frequency.
+            value (int): Integer representing the contribution frequency.
         """
         self._contribution_frequency = value

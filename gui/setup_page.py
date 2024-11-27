@@ -18,6 +18,7 @@ class SetupTab:
 
         self.parent = parent
         self.bold_font = ctk.CTkFont(size=12, weight="bold", family="Arial")
+
         self.start_date_var = ctk.StringVar(value=self.data_models.start_date)
         self.end_date_var = ctk.StringVar(value=self.data_models.end_date)
         self.cash_ticker_var = ctk.StringVar(value=self.data_models.cash_ticker)
@@ -28,7 +29,9 @@ class SetupTab:
         self.num_simulations_var = ctk.StringVar(value=self.data_models.num_simulations)
         self.simulation_horizon_entry_var = ctk.StringVar(value=self.data_models.simulation_horizon)
         self.benchmark_asset_entry_var = ctk.StringVar(value=self.data_models.benchmark_asset)
-        # TODO add addition portfolio contributions
+        self.contribution_entry_var = ctk.StringVar(value=self.data_models.contribution)
+        self.contribution_frequency_entry_var = ctk.StringVar(value=self.data_models.contribution_frequency)
+        # TODO this needs to be added to the UI.
         self.theme_mode_var = ctk.StringVar(value=self.data_models.theme_mode)
         self.initial_portfolio_value_var = ctk.StringVar(
             value=self.data_models._initial_portfolio_value
@@ -435,6 +438,30 @@ class SetupTab:
         """
         _ = args
         self.data_models.num_assets_to_select = str(self.num_assets_to_select_entry_var.get())
+
+    def update_contribution(self, *args):
+        """
+        Updates the contribution in the data model based on the entry box.
+
+        Parameters
+        ----------
+        *args : tuple
+            Additional arguments passed by the trace method.
+        """
+        _ = args
+        self.data_models.contribution = str(self.contribution_entry_var.get())
+
+    def update_contribution_frequency(self, *args):
+        """
+        Updates the contribution frequency in the data model based on the entry box.
+
+        Parameters
+        ----------
+        *args : tuple
+            Additional arguments passed by the trace method.
+        """
+        _ = args
+        self.data_models.contribution_frequency = int(self.contribution_frequency_entry_var.get())
 
 
     def update_tab(self):
