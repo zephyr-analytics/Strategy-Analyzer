@@ -47,6 +47,7 @@ class ModelsFactory:
             (Models.SMA, Runs.SIMULATION): self._run_sma_simulation,
             (Models.MOMENTUM, Runs.BACKTEST): self._run_momentum_backtest,
             (Models.MOMENTUM, Runs.SIGNALS): self._run_momentum_signals,
+            (Models.MOMENTUM, Runs.SIGNALS): self._run_momentum_simulation,
             (Models.MACHINE_LEARNING, Runs.BACKTEST): self._run_machine_learning_backtest,
             (Models.IN_AND_OUT_OF_MARKET, Runs.BACKTEST): self._run_in_and_out_of_market_backtest,
             (Models.IN_AND_OUT_OF_MARKET, Runs.SIGNALS): self._run_in_and_out_of_market_signals,
@@ -134,6 +135,23 @@ class ModelsFactory:
         create_signals = CreateMomentumSignals(self.data_models)
         create_signals.process()
         return f"Momentum signals generated for {self.data_models.end_date}."
+    
+    def _run_momentum_simulation(self)-> str:
+        """
+        Executes the momentum Monte Carlo simulation process.
+
+        Returns
+        -------
+        str
+            Message indicating the outcome of the momentum simulation.
+        """
+        if not self.data_models.assets_weights:
+            return "Please load asset weights file."
+        backtest = BacktestMomentumPortfolio(self.data_models)
+        backtest.process()
+        monte_carlo = MonteCarloSimulation(self.data_models)
+        monte_carlo.process()
+        return "Momentum simulation completed and plots saved."
 
     def _run_machine_learning_backtest(self) -> str:
         """
