@@ -75,7 +75,8 @@ class SetupTab:
             anchor="center"
         ).grid(row=1, column=0, pady=10, sticky="ew")
 
-        # Data Settings Section
+
+        # Data Settings
         data_frame = ctk.CTkFrame(parent, fg_color="#f5f5f5")
         data_frame.pack(fill="x", pady=10, padx=10)
         ctk.CTkLabel(data_frame, text="Data Settings", font=self.bold_font).grid(row=0, column=0, columnspan=4, sticky="ew", pady=5)
@@ -136,7 +137,8 @@ class SetupTab:
             command=self.load_weights_and_update).grid(row=5, column=1, sticky="w", padx=5
         )
 
-        # SMA Settings Section
+
+        # SMA Settings
         sma_frame = ctk.CTkFrame(parent, fg_color="#f5f5f5")
         sma_frame.pack(fill="x", pady=10, padx=10)
         ctk.CTkLabel(sma_frame, text="SMA Settings", font=self.bold_font).grid(row=0, column=0, columnspan=4, sticky="ew", pady=5)
@@ -159,7 +161,7 @@ class SetupTab:
         self.sma_window_var.trace_add("write", self.update_sma_window)
 
 
-        # Momentum Settings Section
+        # Momentum Settings
         momentum_frame = ctk.CTkFrame(parent, fg_color="#f5f5f5")
         momentum_frame.pack(fill="x", pady=10, padx=10)
         ctk.CTkLabel(momentum_frame, text="Momentum Settings", font=self.bold_font).grid(row=0, column=0, columnspan=4, sticky="ew", pady=5)
@@ -186,6 +188,8 @@ class SetupTab:
             command=self.load_out_of_market_weights_and_update).grid(row=3, column=1, sticky="w", padx=5
         )
 
+
+        # Monte Carlo Settings
         monte_carlo_frame = ctk.CTkFrame(parent, fg_color="#f5f5f5")
         monte_carlo_frame.pack(fill="x", pady=10, padx=10)
         ctk.CTkLabel(monte_carlo_frame, text="Monte Carlo Settings", font=self.bold_font).grid(row=0, column=0, columnspan=4, sticky="ew", pady=5)
