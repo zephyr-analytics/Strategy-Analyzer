@@ -64,6 +64,15 @@ class EconomicTab:
         self.error_label = ctk.CTkLabel(parent, text="", text_color="red", font=("Arial", 12))
         self.error_label.pack(pady=5)
 
+        footer_frame = ctk.CTkFrame(parent, fg_color="transparent")
+        footer_frame.pack(fill="x", pady=20)
+        copyright_label = ctk.CTkLabel(
+            footer_frame,
+            text="© Zephyr Analytics 2024",
+            font=ctk.CTkFont(size=12)
+        )
+        copyright_label.pack()
+
 
     def fetch_economic_data(self, series_id):
         """
