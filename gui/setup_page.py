@@ -226,12 +226,11 @@ class SetupTab:
         ).grid(row=2, column=3, sticky="w", padx=5)
         self.contribution_frequency_var.trace_add("write", self.update_contribution_frequency)
 
+
+        self.bottom_text_frame.pack(padx=5, pady=5)
         # Footer Section
         footer_frame = ctk.CTkFrame(parent, fg_color="transparent")
         footer_frame.pack(fill="x", pady=20)
-
-        self.bottom_text_frame.pack(padx=5, pady=5)
-
         # Add copyright info
         copyright_label = ctk.CTkLabel(
             footer_frame,
