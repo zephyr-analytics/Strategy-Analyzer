@@ -3,6 +3,7 @@ from gui import *
 from models.models_data import ModelsData
 from portfolio_management.portfolio_data import PortfolioData
 
+import utilities as utilities
 
 class PortfolioAnalyzer(ctk.CTk):
     """
@@ -21,7 +22,10 @@ class PortfolioAnalyzer(ctk.CTk):
         self.data_portfolios = portfolio_data
 
         self.bold_font = ctk.CTkFont(size=12, weight="bold", family="Arial")
-        self.iconbitmap("images/Zephyr Analytics-Clipped.ico")
+
+        icon_path = utilities.resource_path("images/Zephyr Analytics-Clipped.ico")
+        self.iconbitmap(icon_path)
+
         # Display acknowledgment popup
         self.show_acknowledgment_popup()
 

@@ -1,6 +1,9 @@
 import customtkinter as ctk
 from PIL import Image, ImageTk
 
+import utilities as utilities
+
+
 class AcknowledgmentPopup(ctk.CTkToplevel):
     """
     A popup window that requires the user to acknowledge before proceeding.
@@ -86,7 +89,8 @@ class AcknowledgmentPopup(ctk.CTkToplevel):
         Adds an image to the top of the popup and ensures it is larger.
         """
         # Load the image using Pillow
-        image_path = "images/Zephyr Analytics-01.png"  # Replace with the actual path to your image
+        
+        image_path = utilities.resource_path("images/Zephyr Analytics-01.png")
         image = Image.open(image_path)
         image = image.resize((500, 400), Image.Resampling.LANCZOS)  # Resize to make it larger
 
