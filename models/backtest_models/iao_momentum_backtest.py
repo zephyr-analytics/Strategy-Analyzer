@@ -101,7 +101,7 @@ class BacktestInAndOutMomentumPortfolio(BacktestingProcessor):
         self._data, message = utilities.fetch_data(all_tickers, self.start_date, self.end_date)
         print(f"Data was updated for common start dates:\n\n {message}")
 
-        self._out_of_market_data, message = utilities.fetch_out_of_market_data(self.out_of_market_tickers, self.start_date, self.end_date)
+        self._out_of_market_data = utilities.fetch_out_of_market_data(self.out_of_market_tickers, self.start_date, self.end_date)
         print(f"Data was updated for common start dates:\n\n {message}")
 
         # Calculate momentum for both in-market and out-of-market assets
@@ -234,7 +234,6 @@ class BacktestInAndOutMomentumPortfolio(BacktestingProcessor):
         # Normalize weights to ensure they sum to 1
         total_weight = sum(adjusted_weights.values())
         adjusted_weights = {ticker: weight / total_weight for ticker, weight in adjusted_weights.items()}
-        print("Running out of market momentum processor.")
         print(f'{current_date}: Adjusted Weights: {adjusted_weights}')
         return adjusted_weights
 
@@ -243,12 +242,13 @@ class BacktestInAndOutMomentumPortfolio(BacktestingProcessor):
         """
         Runs the backtest by calculating portfolio values and returns over time.
         """
-        # Merge in-market and out-of-market data
+        # TODO this only handles instances where num_assets will be the number of out of market assets to select.
         combined_data = pd.concat([self._data, self._out_of_market_data], axis=1).fillna(method='ffill')
 
         monthly_dates = pd.date_range(start=self.start_date, end=self.end_date, freq='M')
         portfolio_values = [self.initial_portfolio_value]
         portfolio_returns = []
+        all_adjusted_weights = []
 
         if self.trading_frequency == 'Monthly':
             step = 1
@@ -263,32 +263,32 @@ class BacktestInAndOutMomentumPortfolio(BacktestingProcessor):
             current_date = monthly_dates[i]
             next_date = monthly_dates[min(i + step, len(monthly_dates) - 1)]
             last_date_current_month = combined_data.index[combined_data.index.get_loc(current_date, method='pad')]
-
-            # Calculate momentum for both in-market and out-of-market assets
             in_market_momentum, out_of_market_momentum = self.calculate_momentum(last_date_current_month)
-
-            # Select top assets based on momentum
             selected_assets = pd.DataFrame({'Asset': in_market_momentum.nlargest(self.num_assets_to_select).index,
                                             'Momentum': in_market_momentum.nlargest(self.num_assets_to_select).values})
             selected_out_of_market_assets = pd.DataFrame({'Asset': out_of_market_momentum.nlargest(self.num_assets_to_select).index,
                                                         'Momentum': out_of_market_momentum.nlargest(self.num_assets_to_select).values})
-
-            # Adjust weights based on selected assets and SMA
             adjusted_weights = self.adjust_weights(last_date_current_month, selected_assets, selected_out_of_market_assets)
-
             previous_value = portfolio_values[-1]
             month_end_data = combined_data.loc[last_date_current_month]
             last_date_next_month = combined_data.index[combined_data.index.get_loc(next_date, method='pad')]
             next_month_end_data = combined_data.loc[last_date_next_month]
             monthly_returns = (next_month_end_data / month_end_data) - 1
-
-            # Calculate the weighted portfolio return for the month
             month_return = sum([monthly_returns[ticker] * weight for ticker, weight in adjusted_weights.items() if ticker in monthly_returns])
             new_portfolio_value = previous_value * (1 + month_return)
+
+            all_adjusted_weights.append(adjusted_weights)            
             portfolio_values.append(new_portfolio_value)
             portfolio_returns.append(month_return)
 
-        self.data_models.adjusted_weights = adjusted_weights
+        self.data_models.adjusted_weights = pd.Series(
+            all_adjusted_weights,
+            index=pd.date_range(
+                start=self.start_date,
+                periods=len(all_adjusted_weights),
+                freq=freq
+            )
+        )
         self.data_models.portfolio_values = pd.Series(
             portfolio_values,
             index=pd.date_range(

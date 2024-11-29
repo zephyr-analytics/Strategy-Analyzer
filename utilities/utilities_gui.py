@@ -1,6 +1,8 @@
 """
 Utilities module for helper methods of GUI.
 """
+import os
+import sys
 
 from PIL import Image, ImageOps, ImageDraw
 
@@ -24,8 +26,21 @@ def round_corners(image, radius):
     return rounded_image
 
 
-def update_trading_frequency(data_models, trading_frequency):
+def resource_path(relative_path: str) -> str:
     """
-    Updates the trading frequency in the data model.
+    Get the absolute path to a resource.
+    
+    This method works both when running as a standalone script and when bundled with PyInstaller.
+
+    Args:
+        relative_path (str): The relative path to the resource file.
+
+    Returns:
+        str: The absolute path to the resource.
     """
-    data_models.trading_frequency = trading_frequency
+    try:
+        base_path = sys._MEIPASS
+    except AttributeError:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
