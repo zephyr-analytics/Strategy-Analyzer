@@ -39,7 +39,7 @@ def fetch_data(all_tickers, start_date, end_date):
     common_start_date = original_start_dates.max()
 
     trimmed_assets = original_start_dates[original_start_dates < common_start_date].index.tolist()
-
+    
     trimmed_data = data.loc[common_start_date:].dropna(how='any', axis=0)
 
     message = (

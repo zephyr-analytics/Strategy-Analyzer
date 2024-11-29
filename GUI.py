@@ -1,12 +1,9 @@
-"""
-Module for managing GUI and initialization.
-"""
-
 import customtkinter as ctk
-
 from gui import *
 from models.models_data import ModelsData
 from portfolio_management.portfolio_data import PortfolioData
+
+import utilities as utilities
 
 class PortfolioAnalyzer(ctk.CTk):
     """
@@ -16,7 +13,7 @@ class PortfolioAnalyzer(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.title("Portfolio Analyzer")
-        self.geometry("1200x800")
+        self.geometry("1920x1080")
 
         models_data = ModelsData()
         self.data_models = models_data
@@ -25,7 +22,20 @@ class PortfolioAnalyzer(ctk.CTk):
         self.data_portfolios = portfolio_data
 
         self.bold_font = ctk.CTkFont(size=12, weight="bold", family="Arial")
+
+        icon_path = utilities.resource_path("images/Zephyr Analytics-Clipped.ico")
+        self.iconbitmap(icon_path)
+
+        # Display acknowledgment popup
+        self.show_acknowledgment_popup()
+
         self.create_widgets()
+
+    def show_acknowledgment_popup(self):
+        """
+        Shows the acknowledgment popup and disables the main window until acknowledged.
+        """
+        AcknowledgmentPopup(self)
 
     def create_widgets(self):
         """
@@ -55,8 +65,9 @@ class PortfolioAnalyzer(ctk.CTk):
         )
         self.high_level_tab_control.pack(expand=1, fill="both")
 
-        economic_tab_frame = self.high_level_tab_control.add("Economics")
-        self.economic_tab = EconomicTab(economic_tab_frame)
+        # # Add Economics Tab
+        # economic_tab_frame = self.high_level_tab_control.add("Economics")
+        # self.economic_tab = EconomicTab(economic_tab_frame)
 
         # Add Initial Testing Setup Tab
         setup_tab_frame = self.high_level_tab_control.add("Initial Testing Setup")
@@ -66,11 +77,12 @@ class PortfolioAnalyzer(ctk.CTk):
         testing_tab_frame = self.high_level_tab_control.add("Testing")
         self.testing_tab = TestingTab(testing_tab_frame, models_data=self.data_models)
 
-        portfolio_tab_frame = self.high_level_tab_control.add("Portfolio Management")
-        self.portfolio_tab = PortfolioTab(portfolio_tab_frame, portfolio_data=self.data_portfolios)
+        # # Add Portfolio Management Tab
+        # portfolio_tab_frame = self.high_level_tab_control.add("Portfolio Management")
+        # self.portfolio_tab = PortfolioTab(portfolio_tab_frame, portfolio_data=self.data_portfolios)
 
         # Set initial tab
-        self.high_level_tab_control.set("Economics")
+        self.high_level_tab_control.set("Initial Testing Setup")
 
     def on_tab_switch(self):
         """
@@ -78,7 +90,9 @@ class PortfolioAnalyzer(ctk.CTk):
         Determines the active tab and calls the update_tab method of the respective tab.
         """
         active_tab = self.high_level_tab_control.get()
-        if active_tab == "Initial Testing Setup":
+        if active_tab == "Economics":
+            self.economic_tab.update_tab()
+        elif active_tab == "Initial Testing Setup":
             self.setup_tab.update_tab()
         elif active_tab == "Testing":
             self.testing_tab.update_tab()
