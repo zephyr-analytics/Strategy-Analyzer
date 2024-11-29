@@ -7,13 +7,22 @@
 This application is designed for comprehensive portfolio analysis. Backtesting is incororated to demostrate how the portfolio and trading parameters
 have performed historically. Monte Carlo Simualation has been introduced for being able to model how it will perform moving forward in time. 
 
-## Features:
-## **Backtesting**: Perform backtests on static portfolios with customizable parameters like trading frequency, SMA window, and weighting strategy.
-### Simple Moving Avergae:
-### Momentum:
+### Features
 
-- **Monte Carlo Simulation**: Run simulations to project future portfolio values based on historical data.
-- **Signal Generation**: Generate and visualize trading signals based on moving averages and asset weights.
+#### **Backtesting**  
+Evaluate portfolio performance with flexible parameters such as trading frequency, SMA windows, and asset weighting strategies.
+
+#### **Simple Moving Average (SMA)**  
+Use SMA-based strategies to guide asset selection and trading decisions by analyzing price trends over time.
+
+#### **Momentum**  
+Incorporate momentum strategies to identify high-performing assets based on historical returns and optimize portfolio composition.
+
+#### **Monte Carlo Simulation**  
+Simulate potential future portfolio outcomes using historical data, accounting for different scenarios and risk metrics.
+
+#### **Signal Generation**  
+Generate trading signals and visualize market opportunities through automated moving average and weight-based analyses. 
 
 ## Inputs
 
