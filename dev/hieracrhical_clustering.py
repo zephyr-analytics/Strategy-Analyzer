@@ -3,13 +3,14 @@ import pandas as pd
 import numpy as np
 from scipy.cluster.hierarchy import linkage, fcluster, dendrogram
 from scipy.spatial.distance import pdist, squareform
+import matplotlib.pyplot as plt
 
 class ClusteringPortfolio:
     """
     A class to construct a portfolio using hierarchical clustering, momentum, and equal weighting of selected assets.
     """
 
-    def __init__(self, tickers, start_date, end_date, max_distance, num_assets):
+    def __init__(self, tickers, start_date, end_date, max_distance):
         """
         Initialize the EqualWeightPortfolio class.
         """
@@ -19,7 +20,19 @@ class ClusteringPortfolio:
         self.data = None
         self.returns = None
         self.max_distance = max_distance
-        self.num_assets = num_assets
+
+
+    def process(self):
+        """
+        Encapsulates the entire process of data fetching, filtering, clustering, asset selection,
+        and plotting the portfolio allocation.
+        """
+        self.fetch_data()
+        momentum = self.calculate_momentum()
+        filtered_assets = self.filter_assets_by_sma()
+        clusters = self.perform_clustering(filtered_assets)
+        selected_assets = self.select_assets(filtered_assets, clusters, momentum)
+        self.plot_portfolio_allocation(selected_assets)
 
 
     def fetch_data(self):
@@ -57,7 +70,6 @@ class ClusteringPortfolio:
         plt.figure(figsize=(20, 10))
         dendro = dendrogram(Z, labels=distance_matrix.columns)
 
-        # Add labels to the dendrogram
         plt.title('Hierarchical Clustering of Assets')
         plt.xlabel('Assets')
         plt.ylabel('Distance')
@@ -71,14 +83,29 @@ class ClusteringPortfolio:
 
     def select_assets(self, filtered_assets, clusters, momentum):
         """
-        Select the top 2 assets with the highest momentum from each cluster.
-        If more than 4 assets are selected, drop BIL and SHV if present.
+        Select the top-performing asset with the highest momentum from each cluster.
+        If no assets are available in a cluster, allocate to safe assets.
         """
-        clustered_assets = pd.DataFrame({'Asset': filtered_assets, 'Cluster': clusters, 'Momentum': momentum[filtered_assets]})
-        selected_assets = clustered_assets.groupby('Cluster').apply(lambda x: x.nlargest(self.num_assets, 'Momentum')).reset_index(drop=True)
-        
-        if len(selected_assets) > 2:
-            selected_assets = selected_assets[~selected_assets['Asset'].isin(['SGOV', 'SHV'])]
+        safe_assets = ['SHV']
+
+        clustered_assets = pd.DataFrame({
+            'Asset': filtered_assets,
+            'Cluster': clusters,
+            'Momentum': momentum[filtered_assets]
+        })
+
+        selected_assets = clustered_assets.loc[clustered_assets.groupby('Cluster')['Momentum'].idxmax()].reset_index(drop=True)
+
+        for cluster in set(clusters):
+            if cluster not in selected_assets['Cluster'].values:
+                safe_asset = next((asset for asset in safe_assets if asset in filtered_assets), None)
+                if safe_asset:
+                    selected_assets = pd.concat([
+                        selected_assets,
+                        pd.DataFrame({'Asset': [safe_asset], 'Cluster': [cluster], 'Momentum': [momentum[safe_asset]]})
+                    ], ignore_index=True)
+        selected_assets = selected_assets.drop_duplicates(subset='Asset').reset_index(drop=True)
+
         return selected_assets
 
 
@@ -93,25 +120,13 @@ class ClusteringPortfolio:
         plt.show()
 
 
-    def process(self):
-        """
-        Encapsulates the entire process of data fetching, filtering, clustering, asset selection,
-        and plotting the portfolio allocation.
-        """
-        self.fetch_data()
-        momentum = self.calculate_momentum()
-        filtered_assets = self.filter_assets_by_sma()
-        clusters = self.perform_clustering(filtered_assets)
-        selected_assets = self.select_assets(filtered_assets, clusters, momentum)
-        self.plot_portfolio_allocation(selected_assets)
-
-
 if __name__ == "__main__":
 
-    tickers = ['VGSH', 'VCSH', 'GOVT', 'LQD'
+    tickers = ['GOVT', 'LQD', "BND", "BNDX", "EMB",
                'GLD', 'DBC',
                'VOX', 'VCR', 'VDC', 'VDE', 'VFH', 'VHT', 'VIS', 'VGT', 'VAW', 'VNQ', 'VPU',
                'DIA', 'QQQ', 'SPY']
 
-    portfolio = ClusteringPortfolio(tickers=tickers, start_date='2018-01-01', end_date='2024-09-01', max_distance=0.5, num_assets=5)
+# Decreasing max_distance will create a more diverse portfolio, increasing max_distance will makes less diverse.
+    portfolio = ClusteringPortfolio(tickers=tickers, start_date='2018-01-01', end_date='2023-11-30', max_distance=0.5)
     portfolio.process()
