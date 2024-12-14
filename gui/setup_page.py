@@ -2,6 +2,9 @@
 Module for creating the setup page.
 """
 
+import tkinter as tk
+from datetime import datetime
+
 import customtkinter as ctk
 
 import utilities as utilities
@@ -90,8 +93,9 @@ class SetupTab:
         self.initial_portfolio_value_var.trace_add("write", self.update_initial_portfolio_value)
 
         ctk.CTkLabel(data_frame, text="Start Date:", font=self.bold_font).grid(row=2, column=0, padx=5, sticky="e")
-        ctk.CTkEntry(data_frame, textvariable=self.start_date_var).grid(row=2, column=1, padx=5, sticky="w")
-        self.start_date_var.trace_add("write", self.update_start_date)
+        start_date_entry = ctk.CTkEntry(data_frame, textvariable=self.start_date_var)
+        start_date_entry.grid(row=2, column=1, padx=5, sticky="w")
+        start_date_entry.bind("<FocusOut>", self.update_start_date)
 
         ctk.CTkLabel(data_frame, text="End Date:", font=self.bold_font).grid(row=2, column=2, padx=5, sticky="e")
         ctk.CTkEntry(data_frame, textvariable=self.end_date_var).grid(row=2, column=3, padx=5, sticky="w")
@@ -300,17 +304,38 @@ class SetupTab:
         self.clear_bottom_text()
         self.data_models.out_of_market_tickers, self.file_name = utilities.load_weights()
 
+
     def update_start_date(self, *args):
         """
-        Updates the start date in the data model.
-
-        Parameters
-        ----------
-        *args : tuple
-            Additional arguments passed by the trace method.
+        Validates the start date format when the user moves focus away.
         """
         _ = args
-        self.data_models.start_date = self.start_date_var.get()
+        date_input = self.start_date_var.get()
+        try:
+            # Verify if the date is in YYYY-MM-DD format
+            datetime.strptime(date_input, "%Y-%m-%d")
+        except ValueError:
+            # Show a customtkinter popup if the format is invalid
+            self.show_error_popup()
+
+    def show_error_popup(self):
+        """
+        Displays a popup error message for invalid date format.
+        """
+        popup = ctk.CTkToplevel(self.parent)
+        popup.title("Error")
+        popup.geometry("300x150")
+
+        label = ctk.CTkLabel(
+            popup,
+            text="Invalid Date Format\nThe start date must be in the format YYYY-MM-DD.",
+            wraplength=250,
+        )
+        label.pack(pady=20)
+
+        button = ctk.CTkButton(popup, text="OK", command=popup.destroy)
+        button.pack(pady=10)
+
 
     def update_end_date(self, *args):
         """
