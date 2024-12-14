@@ -98,8 +98,9 @@ class SetupTab:
         start_date_entry.bind("<FocusOut>", self.update_start_date)
 
         ctk.CTkLabel(data_frame, text="End Date:", font=self.bold_font).grid(row=2, column=2, padx=5, sticky="e")
-        ctk.CTkEntry(data_frame, textvariable=self.end_date_var).grid(row=2, column=3, padx=5, sticky="w")
-        self.end_date_var.trace_add("write", self.update_end_date)
+        end_date_entry = ctk.CTkEntry(data_frame, textvariable=self.end_date_var)
+        end_date_entry.grid(row=2, column=3, padx=5, sticky="w")
+        end_date_entry.bind("<FocusOut>", self.update_end_date)
 
         ctk.CTkLabel(data_frame, text="Cash Ticker:", font=self.bold_font).grid(row=3, column=0, sticky="e", padx=5)
         ctk.CTkEntry(data_frame, textvariable=self.cash_ticker_var).grid(row=3, column=1, sticky="w", padx=5)
@@ -304,42 +305,22 @@ class SetupTab:
         self.clear_bottom_text()
         self.data_models.out_of_market_tickers, self.file_name = utilities.load_weights()
 
-
     def update_start_date(self, *args):
         """
         Validates the start date format when the user moves focus away.
         """
         _ = args
-        date_input = self.start_date_var.get()
+        start_date_input = self.start_date_var.get()
         try:
-            # Verify if the date is in YYYY-MM-DD format
-            datetime.strptime(date_input, "%Y-%m-%d")
+            datetime.strptime(start_date_input, "%Y-%m-%d")
+            self.data_models.start_date = start_date_input
         except ValueError:
-            # Show a customtkinter popup if the format is invalid
-            self.show_error_popup()
-
-    def show_error_popup(self):
-        """
-        Displays a popup error message for invalid date format.
-        """
-        popup = ctk.CTkToplevel(self.parent)
-        popup.title("Error")
-        popup.geometry("300x150")
-
-        label = ctk.CTkLabel(
-            popup,
-            text="Invalid Date Format\nThe start date must be in the format YYYY-MM-DD.",
-            wraplength=250,
-        )
-        label.pack(pady=20)
-
-        button = ctk.CTkButton(popup, text="OK", command=popup.destroy)
-        button.pack(pady=10)
-
+            message = "Invalid Date Format\nThe start date must be in the format YYYY-MM-DD."
+            self.show_error_popup(message=message)
 
     def update_end_date(self, *args):
         """
-        Updates the end date in the data model.
+        Updates the end date in the data model and checks that it is greater than the start date.
 
         Parameters
         ----------
@@ -347,7 +328,20 @@ class SetupTab:
             Additional arguments passed by the trace method.
         """
         _ = args
-        self.data_models.end_date = self.end_date_var.get()
+        end_date_input = self.end_date_var.get()
+        try:
+            end_date = datetime.strptime(end_date_input, "%Y-%m-%d")
+            if hasattr(self.data_models, 'start_date') and self.data_models.start_date:
+                start_date = datetime.strptime(self.data_models.start_date, "%Y-%m-%d")
+                if end_date <= start_date:
+                    message = "The end date must be greater than the start date."
+                    self.show_error_popup(message=message)
+                    return None
+
+            self.data_models.end_date = end_date_input
+        except ValueError:
+            message = "Invalid Date Format\nThe end date must be in the format YYYY-MM-DD."
+            self.show_error_popup(message=message)
 
     def update_cash_ticker(self, *args):
         """
@@ -517,6 +511,34 @@ class SetupTab:
         _ = args
         self.data_models.contribution_frequency = str(self.contribution_frequency_var.get())
 
+    def show_error_popup(self, message):
+        """
+        Displays a popup error message for failed validation checks.
+
+        Parameters
+        ----------
+        message : str
+            String representing the error message to display.
+        """
+        popup = ctk.CTkToplevel(self.parent)
+        popup.title("Error")
+        popup.geometry("300x150")
+
+        label = ctk.CTkLabel(
+            popup,
+            text=f"{message}",
+            wraplength=250,
+        )
+        label.pack(pady=20)
+
+        button = ctk.CTkButton(
+            popup,
+            text="OK",
+            fg_color="#bb8fce",
+            text_color="#000000",
+            hover_color="#8e44ad",command=popup.destroy
+        )
+        button.pack(pady=10)
 
     def update_tab(self):
         """
