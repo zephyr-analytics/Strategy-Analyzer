@@ -37,7 +37,7 @@ class ModelsData:
         self._cvar = None
         self._annual_volatility = None
         self._max_distance = 1.5
-        self._threshold_asset = ""
+        self._sma_threshold_asset = ""
         self._num_assets_to_select = 1
         self._standard_deviation = None
         self._out_of_market_tickers = {}
@@ -589,24 +589,24 @@ class ModelsData:
 
 
     @property
-    def threshold_asset(self):
+    def sma_threshold_asset(self):
         """
-        Gets the threshold asset value used for portfolio management.
+        Gets the sma threshold asset value used for portfolio management.
 
         Returns:
-            str: The threshold asset as a string.
+            str: The sam threshold asset as a string.
         """
-        return self._threshold_asset
+        return self._sma_threshold_asset
 
-    @threshold_asset.setter
-    def threshold_asset(self, value):
+    @sma_threshold_asset.setter
+    def sma_threshold_asset(self, value):
         """
-        Sets the threshold asset value used for portfolio management.
+        Sets the sma threshold asset value used for portfolio management.
 
         Args:
-            value (str): The asset ticker symbol to be set as the threshold asset.
+            value (str): The asset ticker symbol to be set as the sma threshold asset.
         """
-        self._threshold_asset = value
+        self._sma_threshold_asset = value
 
 
     @property

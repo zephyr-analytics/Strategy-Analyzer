@@ -53,23 +53,6 @@ class SmaBacktestPortfolio(BacktestingProcessor):
             An instance of the ModelsData class containing all relevant parameters and data for backtesting.
         """
         super().__init__(data_models=data_models)
-        # self.data_models = data_models
-
-        # self.assets_weights = data_models.assets_weights
-        # self.start_date = data_models.start_date
-        # self.end_date = data_models.end_date
-        # self.trading_frequency = data_models.trading_frequency
-        # self.output_filename = data_models.weights_filename
-        # self.rebalance_threshold = 0.02
-        # self.threshold_asset = str(data_models.threshold_asset)
-        # self.weighting_strategy = data_models.weighting_strategy
-        # self.sma_period = int(data_models.sma_window)
-        # self.bond_ticker = str(data_models.bond_ticker)
-        # self.cash_ticker = str(data_models.cash_ticker)
-        # self.initial_portfolio_value = int(data_models.initial_portfolio_value)
-
-        # # Class-defined attributes
-        # self._data = None
 
 
     def process(self):

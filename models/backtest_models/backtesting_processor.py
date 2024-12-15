@@ -55,7 +55,7 @@ class BacktestingProcessor(ABC):
         self.cash_ticker = str(data_models.cash_ticker)
         self.initial_portfolio_value = int(data_models.initial_portfolio_value)
         self.num_assets_to_select = int(data_models.num_assets_to_select)
-        self.threshold_asset = str(data_models.threshold_asset)
+        self.threshold_asset = str(data_models.sma_threshold_asset)
         self.processing_type = data_models.processing_type
 
         self._data = None

@@ -76,7 +76,7 @@ class BacktestInAndOutMomentumPortfolio(BacktestingProcessor):
         self.cash_ticker = data_models.cash_ticker
         self.initial_portfolio_value = int(data_models.initial_portfolio_value)
         self.num_assets_to_select = int(data_models.num_assets_to_select)
-        self.threshold_asset = str(data_models.threshold_asset)
+        self.threshold_asset = str(data_models.sma_threshold_asset)
         self.out_of_market_tickers = data_models.out_of_market_tickers
 
         # Class-defined attributes

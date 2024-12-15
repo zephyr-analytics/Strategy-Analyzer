@@ -39,7 +39,7 @@ class SetupTab:
         self.initial_portfolio_value_var = ctk.StringVar(
             value=self.data_models._initial_portfolio_value
         )
-        self.threshold_asset_entry_var = ctk.StringVar(value=self.data_models.threshold_asset)
+        self.sma_threshold_asset_entry_var = ctk.StringVar(value=self.data_models.threshold_asset)
         self.num_assets_to_select_entry_var = ctk.StringVar(
             value=self.data_models.num_assets_to_select
         )
@@ -110,10 +110,6 @@ class SetupTab:
         ctk.CTkEntry(data_frame, textvariable=self.bond_ticker_var).grid(row=3, column=3, sticky="w", padx=5)
         self.bond_ticker_var.trace_add("write", self.update_bond_ticker)
 
-        ctk.CTkLabel(data_frame, text="Threshold Asset:", font=self.bold_font).grid(row=4, column=0, sticky="e", padx=5)
-        ctk.CTkEntry(data_frame, textvariable=self.threshold_asset_entry_var).grid(row=4, column=1, sticky="w", padx=5)
-        self.threshold_asset_entry_var.trace_add("write", self.update_threshold_asset)
-
         ctk.CTkLabel(data_frame, text="Benchmark Asset:", font=self.bold_font).grid(row=4, column=2, sticky="e", padx=5)
         ctk.CTkEntry(data_frame, textvariable=self.benchmark_asset_entry_var).grid(row=4, column=3, sticky="w", padx=5)
         self.benchmark_asset_entry_var.trace_add("write", self.update_benchmark_asset)
@@ -167,6 +163,10 @@ class SetupTab:
             variable=self.sma_window_var
         ).grid(row=1, column=1, sticky="w", padx=5)
         self.sma_window_var.trace_add("write", self.update_sma_window)
+
+        ctk.CTkLabel(sma_frame, text="SMA Threshold Asset:", font=self.bold_font).grid(row=1, column=2, sticky="e", padx=5)
+        ctk.CTkEntry(sma_frame, textvariable=self.sma_threshold_asset_entry_var).grid(row=1, column=3, sticky="w", padx=5)
+        self.sma_threshold_asset_entry_var.trace_add("write", self.update_threshold_asset)
 
 
         # Momentum Settings
@@ -352,8 +352,14 @@ class SetupTab:
         *args : tuple
             Additional arguments passed by the trace method.
         """
+        # TODO This needs to finsihed.
         _ = args
         self.data_models.cash_ticker = self.cash_ticker_var.get()
+        try:
+            cash_ticker = None
+        except ValueError:
+            message = ""
+            self.show_error_popup(message=message)
 
     def update_bond_ticker(self, *args):
         """
@@ -461,7 +467,7 @@ class SetupTab:
             Additional arguments passed by the trace method.
         """
         _ = args
-        self.data_models.threshold_asset = str(self.threshold_asset_entry_var.get())
+        self.data_models.sma_threshold_asset = str(self.sma_threshold_asset_entry_var.get())
 
     def update_benchmark_asset(self, *args):
         """
