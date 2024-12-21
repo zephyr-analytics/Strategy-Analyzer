@@ -2,9 +2,6 @@
 Module for creating the setup page.
 """
 
-import tkinter as tk
-from datetime import datetime
-
 import customtkinter as ctk
 
 import utilities as utilities
@@ -39,11 +36,11 @@ class SetupTab:
         self.initial_portfolio_value_var = ctk.StringVar(
             value=self.data_models._initial_portfolio_value
         )
-        self.sma_threshold_asset_entry_var = ctk.StringVar(value=self.data_models.threshold_asset)
+        self.sma_threshold_asset_entry_var = ctk.StringVar(value=self.data_models.sma_threshold_asset)
         self.num_assets_to_select_entry_var = ctk.StringVar(
             value=self.data_models.num_assets_to_select
         )
-
+        self.mom_threshold_asset_entry_var = ctk.StringVar()
         self.bold_font = ctk.CTkFont(size=12, weight="bold", family="Arial")
         self.bottom_text_frame = ctk.CTkFrame(self.parent, fg_color="transparent")
         self.create_initial_testing_tab(self.parent)
@@ -93,14 +90,12 @@ class SetupTab:
         self.initial_portfolio_value_var.trace_add("write", self.update_initial_portfolio_value)
 
         ctk.CTkLabel(data_frame, text="Start Date:", font=self.bold_font).grid(row=2, column=0, padx=5, sticky="e")
-        start_date_entry = ctk.CTkEntry(data_frame, textvariable=self.start_date_var)
-        start_date_entry.grid(row=2, column=1, padx=5, sticky="w")
-        start_date_entry.bind("<FocusOut>", self.update_start_date)
+        ctk.CTkEntry(data_frame, textvariable=self.start_date_var).grid(row=2, column=1, padx=5, sticky="w")
+        self.start_date_var.trace_add("write", self.update_start_date)
 
         ctk.CTkLabel(data_frame, text="End Date:", font=self.bold_font).grid(row=2, column=2, padx=5, sticky="e")
-        end_date_entry = ctk.CTkEntry(data_frame, textvariable=self.end_date_var)
-        end_date_entry.grid(row=2, column=3, padx=5, sticky="w")
-        end_date_entry.bind("<FocusOut>", self.update_end_date)
+        ctk.CTkEntry(data_frame, textvariable=self.end_date_var).grid(row=2, column=3, padx=5, sticky="w")
+        self.end_date_var.trace_add("write", self.update_end_date)
 
         ctk.CTkLabel(data_frame, text="Cash Ticker:", font=self.bold_font).grid(row=3, column=0, sticky="e", padx=5)
         ctk.CTkEntry(data_frame, textvariable=self.cash_ticker_var).grid(row=3, column=1, sticky="w", padx=5)
@@ -109,6 +104,11 @@ class SetupTab:
         ctk.CTkLabel(data_frame, text="Bond Ticker:", font=self.bold_font).grid(row=3, column=2, sticky="e", padx=5)
         ctk.CTkEntry(data_frame, textvariable=self.bond_ticker_var).grid(row=3, column=3, sticky="w", padx=5)
         self.bond_ticker_var.trace_add("write", self.update_bond_ticker)
+
+        # TODO this becomes MOM threshold asset.
+        # ctk.CTkLabel(data_frame, text="Threshold Asset:", font=self.bold_font).grid(row=4, column=0, sticky="e", padx=5)
+        # ctk.CTkEntry(data_frame, textvariable=self.threshold_asset_entry_var).grid(row=4, column=1, sticky="w", padx=5)
+        # self.threshold_asset_entry_var.trace_add("write", self.update_threshold_asset)
 
         ctk.CTkLabel(data_frame, text="Benchmark Asset:", font=self.bold_font).grid(row=4, column=2, sticky="e", padx=5)
         ctk.CTkEntry(data_frame, textvariable=self.benchmark_asset_entry_var).grid(row=4, column=3, sticky="w", padx=5)
@@ -167,7 +167,6 @@ class SetupTab:
         ctk.CTkLabel(sma_frame, text="SMA Threshold Asset:", font=self.bold_font).grid(row=1, column=2, sticky="e", padx=5)
         ctk.CTkEntry(sma_frame, textvariable=self.sma_threshold_asset_entry_var).grid(row=1, column=3, sticky="w", padx=5)
         self.sma_threshold_asset_entry_var.trace_add("write", self.update_threshold_asset)
-
 
         # Momentum Settings
         momentum_frame = ctk.CTkFrame(parent, fg_color="#f5f5f5")
@@ -307,20 +306,7 @@ class SetupTab:
 
     def update_start_date(self, *args):
         """
-        Validates the start date format when the user moves focus away.
-        """
-        _ = args
-        start_date_input = self.start_date_var.get()
-        try:
-            datetime.strptime(start_date_input, "%Y-%m-%d")
-            self.data_models.start_date = start_date_input
-        except ValueError:
-            message = "Invalid Date Format\nThe start date must be in the format YYYY-MM-DD."
-            self.show_error_popup(message=message)
-
-    def update_end_date(self, *args):
-        """
-        Updates the end date in the data model and checks that it is greater than the start date.
+        Updates the start date in the data model.
 
         Parameters
         ----------
@@ -328,20 +314,19 @@ class SetupTab:
             Additional arguments passed by the trace method.
         """
         _ = args
-        end_date_input = self.end_date_var.get()
-        try:
-            end_date = datetime.strptime(end_date_input, "%Y-%m-%d")
-            if hasattr(self.data_models, 'start_date') and self.data_models.start_date:
-                start_date = datetime.strptime(self.data_models.start_date, "%Y-%m-%d")
-                if end_date <= start_date:
-                    message = "The end date must be greater than the start date."
-                    self.show_error_popup(message=message)
-                    return None
+        self.data_models.start_date = self.start_date_var.get()
 
-            self.data_models.end_date = end_date_input
-        except ValueError:
-            message = "Invalid Date Format\nThe end date must be in the format YYYY-MM-DD."
-            self.show_error_popup(message=message)
+    def update_end_date(self, *args):
+        """
+        Updates the end date in the data model.
+
+        Parameters
+        ----------
+        *args : tuple
+            Additional arguments passed by the trace method.
+        """
+        _ = args
+        self.data_models.end_date = self.end_date_var.get()
 
     def update_cash_ticker(self, *args):
         """
@@ -352,14 +337,8 @@ class SetupTab:
         *args : tuple
             Additional arguments passed by the trace method.
         """
-        # TODO This needs to finsihed.
         _ = args
         self.data_models.cash_ticker = self.cash_ticker_var.get()
-        try:
-            cash_ticker = None
-        except ValueError:
-            message = ""
-            self.show_error_popup(message=message)
 
     def update_bond_ticker(self, *args):
         """
@@ -467,6 +446,18 @@ class SetupTab:
             Additional arguments passed by the trace method.
         """
         _ = args
+        self.data_models.mom_threshold_asset = str(self.mom_threshold_asset_entry_var.get())
+
+    def update_threshold_asset(self, *args):
+        """
+        Updates the threshold asset in the data model based on the entry box.
+
+        Parameters
+        ----------
+        *args : tuple
+            Additional arguments passed by the trace method.
+        """
+        _ = args
         self.data_models.sma_threshold_asset = str(self.sma_threshold_asset_entry_var.get())
 
     def update_benchmark_asset(self, *args):
@@ -517,34 +508,6 @@ class SetupTab:
         _ = args
         self.data_models.contribution_frequency = str(self.contribution_frequency_var.get())
 
-    def show_error_popup(self, message):
-        """
-        Displays a popup error message for failed validation checks.
-
-        Parameters
-        ----------
-        message : str
-            String representing the error message to display.
-        """
-        popup = ctk.CTkToplevel(self.parent)
-        popup.title("Error")
-        popup.geometry("300x150")
-
-        label = ctk.CTkLabel(
-            popup,
-            text=f"{message}",
-            wraplength=250,
-        )
-        label.pack(pady=20)
-
-        button = ctk.CTkButton(
-            popup,
-            text="OK",
-            fg_color="#bb8fce",
-            text_color="#000000",
-            hover_color="#8e44ad",command=popup.destroy
-        )
-        button.pack(pady=10)
 
     def update_tab(self):
         """
