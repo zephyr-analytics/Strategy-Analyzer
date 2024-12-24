@@ -58,6 +58,7 @@ class ParameterTuningProcessor(ABC):
         os.makedirs(artifacts_directory, exist_ok=True)
 
         full_path = os.path.join(artifacts_directory, "sma_parameter_tune.json")
+        results_serializable = {f"SMA_{key[0]}_Freq_{key[1]}": value for key, value in results.items()}
         with open(full_path, 'w') as json_file:
-            json.dump(results, json_file, indent=4)
+            json.dump(results_serializable, json_file, indent=4)
         print(f"Results successfully saved to {full_path}")

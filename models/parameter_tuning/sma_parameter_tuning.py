@@ -27,38 +27,39 @@ class SmaParameterTuning(ParameterTuningProcessor):
 
     def get_portfolio_results(self):
         """
-        Processes different SMA settings, runs backtests, and stores results
-        in a dictionary with SMA values as keys.
+        Processes parameters for tuning and stores results.
         
         Returns
         -------
         dict
-            A dictionary where keys are SMA values, and values are the corresponding
-            backtest results and portfolio statistics.
+            A dictionary of backtest results and portfolio statistics from parameter tuning.
         """
         results = {}
         sma_list = [21, 42, 63, 84, 105, 126, 147, 168, 189, 210]
+        trading_frequencies = ["Monthly", "Bi-Monthly"]
 
         for sma in sma_list:
-            self.data_models.sma_window = sma
+            for frequency in trading_frequencies:
+                self.data_models.sma_window = sma
+                self.data_models.trading_frequency = frequency
 
-            backtest = SmaBacktestPortfolio(self.data_models)
-            backtest.process()
+                backtest = SmaBacktestPortfolio(self.data_models)
+                backtest.process()
 
-            cagr = self.data_models.cagr
-            average_annual_return = self.data_models.average_annual_return
-            max_drawdown = self.data_models.max_drawdown
-            var = self.data_models.var
-            cvar = self.data_models.cvar
-            annual_volatility = self.data_models.annual_volatility
+                cagr = self.data_models.cagr
+                average_annual_return = self.data_models.average_annual_return
+                max_drawdown = self.data_models.max_drawdown
+                var = self.data_models.var
+                cvar = self.data_models.cvar
+                annual_volatility = self.data_models.annual_volatility
 
-            results[sma] = {
-                "cagr": cagr,
-                "average_annual_return": average_annual_return,
-                "max_drawdown": max_drawdown,
-                "var": var,
-                "cvar": cvar,
-                "annual_volatility": annual_volatility
-            }
+                results[(sma, frequency)] = {
+                    "cagr": cagr,
+                    "average_annual_return": average_annual_return,
+                    "max_drawdown": max_drawdown,
+                    "var": var,
+                    "cvar": cvar,
+                    "annual_volatility": annual_volatility
+                }
 
         return results
