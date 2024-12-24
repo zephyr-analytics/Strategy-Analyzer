@@ -6,6 +6,7 @@ from processing_types import *
 from models.create_signals import *
 from models.backtest_models import *
 from models.monte_carlo_simulation import *
+from models.parameter_tuning import *
 from models.models_data import ModelsData
 
 
@@ -51,6 +52,7 @@ class ModelsFactory:
             (Models.MACHINE_LEARNING, Runs.BACKTEST): self._run_machine_learning_backtest,
             (Models.IN_AND_OUT_OF_MARKET, Runs.BACKTEST): self._run_in_and_out_of_market_backtest,
             (Models.IN_AND_OUT_OF_MARKET, Runs.SIGNALS): self._run_in_and_out_of_market_signals,
+            (Models.SMA, Runs.PARAMETER_TUNE): self._run_sma_parameter_tune
         }
 
         method = model_run_map.get((model, run_type))
@@ -201,3 +203,19 @@ class ModelsFactory:
         signals = CreateMomentumInAndOutSignals(self.data_models)
         signals.process()
         return "In and Out of Market signals completed and plots saved."
+
+    def _sma_parameter_tune(self):
+        """
+        Executes the SMA parameter tune processor.
+
+        Returns
+        -------
+        str
+            Message indicating the outcome of the SMA parameter tune generation.
+        """
+        if not self.data_models.assets_weights:
+            return "Please load asset weights file."
+        if not self.data_models.out_of_market_tickers:
+            return "Please load out of market assets file."
+        parameter_tune = SmaParameterTuning(self.data_models)
+        parameter_tune.process()

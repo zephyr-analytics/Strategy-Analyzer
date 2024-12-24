@@ -38,7 +38,7 @@ class SmaParameterTuning(ParameterTuningProcessor):
         """
         results = {}
         sma_list = [21, 42, 63, 84, 105, 126, 147, 168, 189, 210]
-        
+
         for sma in sma_list:
             self.data_models.sma_window = sma
 
