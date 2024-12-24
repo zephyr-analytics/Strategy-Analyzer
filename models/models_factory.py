@@ -52,7 +52,8 @@ class ModelsFactory:
             (Models.MACHINE_LEARNING, Runs.BACKTEST): self._run_machine_learning_backtest,
             (Models.IN_AND_OUT_OF_MARKET, Runs.BACKTEST): self._run_in_and_out_of_market_backtest,
             (Models.IN_AND_OUT_OF_MARKET, Runs.SIGNALS): self._run_in_and_out_of_market_signals,
-            (Models.SMA, Runs.PARAMETER_TUNE): self._run_sma_parameter_tune
+            (Models.SMA, Runs.PARAMETER_TUNE): self._run_sma_parameter_tune,
+            (Models.MOMENTUM, Runs.PARAMETER_TUNE): self._run_momentum_parameter_tune
         }
 
         method = model_run_map.get((model, run_type))
@@ -218,3 +219,12 @@ class ModelsFactory:
         parameter_tune = SmaParameterTuning(self.data_models)
         parameter_tune.process()
         return "SMA parameter tuning completed."
+    
+    def _run_momentum_parameter_tune(self):
+        """
+        """
+        if not self.data_models.assets_weights:
+            return "Please load asset weights file."
+        parameter_tune = MomentumParameterTuning(self.data_models)
+        parameter_tune.process()
+        return "Momentum parameter tuning completed."
