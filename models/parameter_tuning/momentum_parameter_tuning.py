@@ -85,7 +85,7 @@ class MomentumParameterTuning(ParameterTuningProcessor):
             json.dump(results_serializable, json_file, indent=4)
         print(f"Results successfully saved to {full_path}")
 
-    def optimize_portfolio(self, results, return_metric="cagr", risk_metric="max_drawdown"):
+    def optimize_portfolio(self, results, return_metric="average_annual_return", risk_metric="max_drawdown", risk_threshold=0.15):
         """
         Finds the best portfolio from the results dictionary based on the selected return and risk metrics.
 
@@ -112,6 +112,9 @@ class MomentumParameterTuning(ParameterTuningProcessor):
             risk_value = stats.get(risk_metric, None)
 
             if return_value is None or risk_value is None:
+                continue
+
+            if abs(risk_value) > risk_threshold:
                 continue
 
             score = return_value / abs(risk_value)
