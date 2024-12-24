@@ -24,6 +24,7 @@ class SmaParameterTuning(ParameterTuningProcessor):
     def process(self):
         results = self.get_portfolio_results()
         self.persist_results(results=results)
+        self.optimize_portfolio(results=results)
 
     def get_portfolio_results(self):
         """
