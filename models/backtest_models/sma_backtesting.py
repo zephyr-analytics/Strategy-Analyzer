@@ -9,6 +9,7 @@ import utilities as utilities
 from results.results_processor import ResultsProcessor
 import warnings
 
+from data.data_obtain import DataObtainmentProcessor
 from models.models_data import ModelsData
 from models.backtest_models.backtesting_processor import BacktestingProcessor
 
@@ -59,17 +60,8 @@ class SmaBacktestPortfolio(BacktestingProcessor):
         """
         Processes the backtest by fetching data, running the backtest, and generating the plots.
         """
-        all_tickers = list(self.assets_weights.keys()) + [self.cash_ticker]
-
-        if self.threshold_asset != "":
-            all_tickers.append(self.threshold_asset)
-
-        if self.bond_ticker != "":
-            all_tickers.append(self.bond_ticker)
-
-        self._data, message = utilities.fetch_data(all_tickers, self.start_date, self.end_date)
-
-        print(f"Data was updated for common start dates:\n\n {message}")
+        data_processor = DataObtainmentProcessor(models_data=self.data_models)
+        self._data = data_processor.process()
 
         self.run_backtest()
         self._get_portfolio_statistics()
