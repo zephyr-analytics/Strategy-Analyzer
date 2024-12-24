@@ -37,17 +37,16 @@ class ParameterTuningProcessor(ABC):
         Abstract method to generate trading results for all parameters.
         """
         pass
-    
+
     @abstractmethod
-    def persist_results(self, results):
+    def plot_results(self, results):
         """
-        Persists the results dictionary as a JSON file.
         """
         pass
 
     @abstractmethod
-    def optimize_portfolio(self, results, return_metric="cagr", risk_metric="max_drawdown"):
+    def persist_results(self, results):
         """
-        Abstract method for optimizing portfolio based on stats.
+        Persists the results dictionary as a JSON file.
         """
         pass

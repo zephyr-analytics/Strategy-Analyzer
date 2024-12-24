@@ -111,6 +111,16 @@ def save_html(fig, filename, weights_filename, output_filename, processing_type,
     file_path = os.path.join(artifacts_directory, f"{output_filename}_{current_date}_{processing_type}_sma{sma_window}_assets{num_assets}_{filename}.html")
     fig.write_html(file_path)
 
+def save_fig(fig, weights_filename, processing_type):
+    """
+    """
+    current_directory = os.getcwd()
+    current_date = datetime.now().strftime("%Y-%m-%d")
+    artifacts_directory = os.path.join(current_directory, 'artifacts', "plots", f"{weights_filename}")
+    os.makedirs(artifacts_directory, exist_ok=True)
+
+    file_path = os.path.join(artifacts_directory, f"{current_date}_{processing_type}.html")
+    fig.write_html(file_path)
 
 def save_dataframe_to_csv(data, output_filename, processing_type, num_assets):
     """

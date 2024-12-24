@@ -89,42 +89,49 @@ class SmaParameterTuning(ParameterTuningProcessor):
             json.dump(results_serializable, json_file, indent=4)
         print(f"Results successfully saved to {full_path}")
 
-    def optimize_portfolio(self, results, return_metric="cagr", risk_metric="max_drawdown"):
-        """
-        Finds the best portfolio from the results dictionary based on the selected return and risk metrics.
+    # def optimize_portfolio(self, results):
+    #     """
+    #     Finds the best portfolio from the results dictionary based on the selected return and risk metrics.
 
-        Parameters
-        ----------
-        results : dict
-            The dictionary containing SMA backtest results and portfolio statistics.
-        return_metric : str, optional
-            The primary return metric to optimize for (default is "cagr").
-        risk_metric : str, optional
-            The risk metric to consider for optimization (default is "max_drawdown").
+    #     Parameters
+    #     ----------
+    #     results : dict
+    #         The dictionary containing SMA backtest results and portfolio statistics.
+    #     return_metric : str, optional
+    #         The primary return metric to optimize for (default is "cagr").
+    #     risk_metric : str, optional
+    #         The risk metric to consider for optimization (default is "max_drawdown").
 
-        Returns
-        -------
-        tuple
-            The best SMA and trading frequency configuration, along with its statistics.
-        """
-        best_config = None
-        best_score = float('-inf')
-        best_stats = None
+    #     Returns
+    #     -------
+    #     tuple
+    #         The best SMA and trading frequency configuration, along with its statistics.
+    #     """
+    #     return_metric = self.data_models.return_metric
+    #     risk_metric = self.data_models.risk_metric
+    #     risk_tolerance = self.data_models.risk_tolerance
 
-        for (sma, frequency), stats in results.items():
+    #     best_config = None
+    #     best_score = float('-inf')
+    #     best_stats = None
 
-            return_value = stats.get(return_metric, None)
-            risk_value = stats.get(risk_metric, None)
+    #     for (sma, frequency), stats in results.items():
 
-            if return_value is None or risk_value is None:
-                continue
+    #         return_value = stats.get(return_metric, None)
+    #         risk_value = stats.get(risk_metric, None)
 
-            score = return_value / abs(risk_value)
+    #         if return_value is None or risk_value is None:
+    #             continue
 
-            if score > best_score:
-                best_score = score
-                best_config = (sma, frequency)
-                best_stats = stats
-        print(best_config)
-        print(best_stats)
-        return best_config, best_stats
+    #         if abs(risk_value) > risk_tolerance:
+    #             continue
+
+    #         score = return_value / abs(risk_value)
+
+    #         if score > best_score:
+    #             best_score = score
+    #             best_config = (sma, frequency)
+    #             best_stats = stats
+    #     print(best_config)
+    #     print(best_stats)
+    #     return best_config, best_stats

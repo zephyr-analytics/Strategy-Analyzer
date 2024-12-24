@@ -45,6 +45,9 @@ class ModelsData:
         self._benchmark_asset = ""
         self._contribution = None
         self._contribution_frequency = None
+        self._return_metric = None
+        self._risk_metric = None
+        self._risk_tolerance = float(0.10)
 
 
     @property
@@ -754,3 +757,66 @@ class ModelsData:
             value (str): String representing the contribution frequency.
         """
         self._contribution_frequency = value
+
+
+    @property
+    def risk_metric(self):
+        """
+        Gets the contribution.
+
+        Returns:
+            int: Integer representing the contribution.
+        """
+        return self._risk_metric
+
+    @risk_metric.setter
+    def risk_metric(self, value):
+        """
+        Sets the contribution.
+
+        Args:
+            value (int): Integer representing the contribution.
+        """
+        self._risk_metric = value
+
+
+    @property
+    def return_metric(self):
+        """
+        Gets the contribution.
+
+        Returns:
+            int: Integer representing the contribution.
+        """
+        return self._return_metric
+
+    @return_metric.setter
+    def return_metric(self, value):
+        """
+        Sets the contribution.
+
+        Args:
+            value (int): Integer representing the contribution.
+        """
+        self._return_metric = value
+
+
+    @property
+    def risk_tolerance(self):
+        """
+        Gets the contribution.
+
+        Returns:
+            int: Integer representing the contribution.
+        """
+        return self._risk_tolerance
+
+    @risk_tolerance.setter
+    def risk_tolerance(self, value):
+        """
+        Sets the contribution.
+
+        Args:
+            value (int): Integer representing the contribution.
+        """
+        self._risk_tolerance = value
