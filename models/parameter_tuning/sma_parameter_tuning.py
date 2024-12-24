@@ -22,6 +22,10 @@ class SmaParameterTuning(ParameterTuningProcessor):
         super().__init__(models_data)
 
     def process_parameters(self):
+        results = self.get_portfolio_results()
+
+
+    def get_portfolio_results(self):
         """
         Processes different SMA settings, runs backtests, and stores results
         in a dictionary with SMA values as keys.

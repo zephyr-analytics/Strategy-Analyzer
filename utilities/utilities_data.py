@@ -151,6 +151,6 @@ def save_dataframe_to_csv(data, output_filename, processing_type, num_assets):
     os.makedirs(artifacts_directory, exist_ok=True)
 
     full_path = os.path.join(artifacts_directory, f"{output_filename}_{current_date}_{processing_type}_assets{num_assets}.csv")
-    
+
     data.to_csv(full_path, index=True)
 
