@@ -25,6 +25,7 @@ class ParameterTuningProcessor(ABC):
         models_data : object
             An instance of the ModelsData class that holds all necessary attributes.
         """
+        self.data_models = models_data
 
     def process(self):
         """
