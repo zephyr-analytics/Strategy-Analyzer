@@ -204,7 +204,7 @@ class ModelsFactory:
         signals.process()
         return "In and Out of Market signals completed and plots saved."
 
-    def _sma_parameter_tune(self):
+    def _run_sma_parameter_tune(self):
         """
         Executes the SMA parameter tune processor.
 
@@ -215,7 +215,6 @@ class ModelsFactory:
         """
         if not self.data_models.assets_weights:
             return "Please load asset weights file."
-        if not self.data_models.out_of_market_tickers:
-            return "Please load out of market assets file."
         parameter_tune = SmaParameterTuning(self.data_models)
         parameter_tune.process()
+        return "SMA parameter tuning completed."

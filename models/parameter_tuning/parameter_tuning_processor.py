@@ -28,24 +28,19 @@ class ParameterTuningProcessor(ABC):
         """
         self.data_models = models_data
 
+    @abstractmethod
     def process(self):
         """
         Abstract method to process data and generate trading signals.
         """
-        self.process_parameters()
-
-
-    @abstractmethod
-    def process_parameters(self):
-        """
-        Abstract method process.
-        """
+        pass
 
     @abstractmethod
     def get_portfolio_results(self):
         """
         Abstract method to generate trading results for all parameters.
         """
+        pass
 
     def persist_results(self, results):
         """

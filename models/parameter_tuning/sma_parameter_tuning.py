@@ -21,9 +21,9 @@ class SmaParameterTuning(ParameterTuningProcessor):
         """
         super().__init__(models_data)
 
-    def process_parameters(self):
+    def process(self):
         results = self.get_portfolio_results()
-
+        self.persist_results(results=results)
 
     def get_portfolio_results(self):
         """
@@ -42,7 +42,8 @@ class SmaParameterTuning(ParameterTuningProcessor):
         for sma in sma_list:
             self.data_models.sma_window = sma
 
-            backtest_result = SmaBacktestPortfolio(self.data_models)
+            backtest = SmaBacktestPortfolio(self.data_models)
+            backtest.process()
 
             cagr = self.data_models.cagr
             average_annual_return = self.data_models.average_annual_return
@@ -52,7 +53,6 @@ class SmaParameterTuning(ParameterTuningProcessor):
             annual_volatility = self.data_models.annual_volatility
 
             results[sma] = {
-                "backtest_result": backtest_result,
                 "cagr": cagr,
                 "average_annual_return": average_annual_return,
                 "max_drawdown": max_drawdown,
