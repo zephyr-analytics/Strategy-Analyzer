@@ -5,6 +5,9 @@ Module for creating sma based porfolio signals.
 import os
 import json
 
+import plotly.express as px
+
+import utilities as utilities
 from models.parameter_tuning.parameter_tuning_processor import ParameterTuningProcessor
 from models.backtest_models.sma_backtesting import SmaBacktestPortfolio
 
@@ -26,8 +29,8 @@ class SmaParameterTuning(ParameterTuningProcessor):
 
     def process(self):
         results = self.get_portfolio_results()
+        self.plot_results(results=results)
         self.persist_results(results=results)
-        self.optimize_portfolio(results=results)
 
     def get_portfolio_results(self):
         """
@@ -68,6 +71,38 @@ class SmaParameterTuning(ParameterTuningProcessor):
 
         return results
 
+    def plot_results(self, results):
+        """
+        Plot results from the SMA strategy testing.
+        """
+        data = {
+            "SMA_strategy": [
+                f"SMA_{key[0]}_Freq_{key[1]}" for key in results.keys()
+            ],
+            "cagr": [v["cagr"] for v in results.values()],
+            "annual_volatility": [v["annual_volatility"] for v in results.values()],
+            "max_drawdown": [v["max_drawdown"] for v in results.values()],
+            "var": [v["var"] for v in results.values()],
+            "cvar": [v["cvar"] for v in results.values()],
+        }
+
+        data["SMA_length"] = [key.split('_')[1] for key in data["SMA_strategy"]]
+
+        fig = px.scatter(
+            data,
+            x='annual_volatility',
+            y='cagr',
+            color='SMA_length',
+            hover_data=['SMA_strategy', 'max_drawdown', 'var', 'cvar'],
+            labels={
+                "cagr": "Compound Annual Growth Rate",
+                "annual_volatility": "Annual Volatility"
+            },
+            title="Scatter Plot of SMA Strategies"
+        )
+
+        utilities.save_fig(fig, self.data_models.weights_filename, self.data_models.processing_type)
+
     def persist_results(self, results):
         """
         Persists the results dictionary as a JSON file.
@@ -88,50 +123,3 @@ class SmaParameterTuning(ParameterTuningProcessor):
         with open(full_path, 'w') as json_file:
             json.dump(results_serializable, json_file, indent=4)
         print(f"Results successfully saved to {full_path}")
-
-    # def optimize_portfolio(self, results):
-    #     """
-    #     Finds the best portfolio from the results dictionary based on the selected return and risk metrics.
-
-    #     Parameters
-    #     ----------
-    #     results : dict
-    #         The dictionary containing SMA backtest results and portfolio statistics.
-    #     return_metric : str, optional
-    #         The primary return metric to optimize for (default is "cagr").
-    #     risk_metric : str, optional
-    #         The risk metric to consider for optimization (default is "max_drawdown").
-
-    #     Returns
-    #     -------
-    #     tuple
-    #         The best SMA and trading frequency configuration, along with its statistics.
-    #     """
-    #     return_metric = self.data_models.return_metric
-    #     risk_metric = self.data_models.risk_metric
-    #     risk_tolerance = self.data_models.risk_tolerance
-
-    #     best_config = None
-    #     best_score = float('-inf')
-    #     best_stats = None
-
-    #     for (sma, frequency), stats in results.items():
-
-    #         return_value = stats.get(return_metric, None)
-    #         risk_value = stats.get(risk_metric, None)
-
-    #         if return_value is None or risk_value is None:
-    #             continue
-
-    #         if abs(risk_value) > risk_tolerance:
-    #             continue
-
-    #         score = return_value / abs(risk_value)
-
-    #         if score > best_score:
-    #             best_score = score
-    #             best_config = (sma, frequency)
-    #             best_stats = stats
-    #     print(best_config)
-    #     print(best_stats)
-    #     return best_config, best_stats

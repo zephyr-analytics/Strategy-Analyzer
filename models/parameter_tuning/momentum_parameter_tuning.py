@@ -5,7 +5,6 @@ Module for creating sma based porfolio signals.
 import os
 import json
 
-import pandas as pd
 import plotly.express as px
 
 import utilities as utilities
@@ -72,7 +71,6 @@ class MomentumParameterTuning(ParameterTuningProcessor):
         """
         Plot results from the SMA strategy testing.
         """
-        # Prepare data for plotting
         data = {
             "SMA_strategy": [
                 f"SMA_{key[0]}_Freq_{key[1]}_Assets_{key[2]}" for key in results.keys()
@@ -84,10 +82,8 @@ class MomentumParameterTuning(ParameterTuningProcessor):
             "cvar": [v["cvar"] for v in results.values()],
         }
 
-        # Extract SMA length directly from keys for coloring
         data["SMA_length"] = [key.split('_')[1] for key in data["SMA_strategy"]]
 
-        # Create scatter plot using Plotly
         fig = px.scatter(
             data,
             x='annual_volatility',
@@ -101,7 +97,6 @@ class MomentumParameterTuning(ParameterTuningProcessor):
             title="Scatter Plot of SMA Strategies"
         )
 
-        # Save the figure
         utilities.save_fig(fig, self.data_models.weights_filename, self.data_models.processing_type)
 
     def persist_results(self, results):
@@ -117,7 +112,7 @@ class MomentumParameterTuning(ParameterTuningProcessor):
         artifacts_directory = os.path.join(current_directory, "artifacts", "data")
         os.makedirs(artifacts_directory, exist_ok=True)
 
-        full_path = os.path.join(artifacts_directory, "sma_parameter_tune.json")
+        full_path = os.path.join(artifacts_directory, "momentum_parameter_tune.json")
         results_serializable = {
             f"SMA_{key[0]}_Freq_{key[1]}_Assets_{key[2]}": value for key, value in results.items()
         }
