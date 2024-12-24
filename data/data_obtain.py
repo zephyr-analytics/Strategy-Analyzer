@@ -152,7 +152,12 @@ class DataObtainmentProcessor():
     def handle_failed_validation(self):
         """
         """
-        file_path = self.fetch_and_save_data()
+        current_directory = os.getcwd()
+        data_directory = os.path.join(current_directory, "artifacts", "raw")
+        os.makedirs(data_directory, exist_ok=True)
+        full_file_path = os.path.join(data_directory, f"{self.weights_filename}.csv")
+
+        file_path = self.fetch_and_save_data(file_path=full_file_path)
         dataframe = self.read_data(file_path=file_path)
 
         return dataframe
