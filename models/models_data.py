@@ -37,7 +37,7 @@ class ModelsData:
         self._cvar = None
         self._annual_volatility = None
         self._max_distance = 1.5
-        self._threshold_asset = ""
+        self._sma_threshold_asset = ""
         self._num_assets_to_select = 1
         self._standard_deviation = None
         self._out_of_market_tickers = {}
@@ -45,6 +45,9 @@ class ModelsData:
         self._benchmark_asset = ""
         self._contribution = None
         self._contribution_frequency = None
+        self._return_metric = None
+        self._risk_metric = None
+        self._risk_tolerance = float(0.10)
 
 
     @property
@@ -589,24 +592,24 @@ class ModelsData:
 
 
     @property
-    def threshold_asset(self):
+    def sma_threshold_asset(self):
         """
-        Gets the threshold asset value used for portfolio management.
+        Gets the sma threshold asset value used for portfolio management.
 
         Returns:
-            str: The threshold asset as a string.
+            str: The sam threshold asset as a string.
         """
-        return self._threshold_asset
+        return self._sma_threshold_asset
 
-    @threshold_asset.setter
-    def threshold_asset(self, value):
+    @sma_threshold_asset.setter
+    def sma_threshold_asset(self, value):
         """
-        Sets the threshold asset value used for portfolio management.
+        Sets the sma threshold asset value used for portfolio management.
 
         Args:
-            value (str): The asset ticker symbol to be set as the threshold asset.
+            value (str): The asset ticker symbol to be set as the sma threshold asset.
         """
-        self._threshold_asset = value
+        self._sma_threshold_asset = value
 
 
     @property
@@ -754,3 +757,66 @@ class ModelsData:
             value (str): String representing the contribution frequency.
         """
         self._contribution_frequency = value
+
+
+    @property
+    def risk_metric(self):
+        """
+        Gets the contribution.
+
+        Returns:
+            int: Integer representing the contribution.
+        """
+        return self._risk_metric
+
+    @risk_metric.setter
+    def risk_metric(self, value):
+        """
+        Sets the contribution.
+
+        Args:
+            value (int): Integer representing the contribution.
+        """
+        self._risk_metric = value
+
+
+    @property
+    def return_metric(self):
+        """
+        Gets the contribution.
+
+        Returns:
+            int: Integer representing the contribution.
+        """
+        return self._return_metric
+
+    @return_metric.setter
+    def return_metric(self, value):
+        """
+        Sets the contribution.
+
+        Args:
+            value (int): Integer representing the contribution.
+        """
+        self._return_metric = value
+
+
+    @property
+    def risk_tolerance(self):
+        """
+        Gets the contribution.
+
+        Returns:
+            int: Integer representing the contribution.
+        """
+        return self._risk_tolerance
+
+    @risk_tolerance.setter
+    def risk_tolerance(self, value):
+        """
+        Sets the contribution.
+
+        Args:
+            value (int): Integer representing the contribution.
+        """
+        self._risk_tolerance = value

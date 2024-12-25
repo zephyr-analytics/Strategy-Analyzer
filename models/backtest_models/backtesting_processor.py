@@ -15,6 +15,7 @@ import pandas as pd
 import utilities as utilities
 
 from processing_types import *
+from data.data_obtain import DataObtainmentProcessor
 from models.models_data import ModelsData
 from results.results_processor import ResultsProcessor
 
@@ -55,7 +56,7 @@ class BacktestingProcessor(ABC):
         self.cash_ticker = str(data_models.cash_ticker)
         self.initial_portfolio_value = int(data_models.initial_portfolio_value)
         self.num_assets_to_select = int(data_models.num_assets_to_select)
-        self.threshold_asset = str(data_models.threshold_asset)
+        self.threshold_asset = str(data_models.sma_threshold_asset)
         self.processing_type = data_models.processing_type
 
         self._data = None
@@ -146,12 +147,8 @@ class BacktestingProcessor(ABC):
         """
         Calculates the buy-and-hold performance of the portfolio with the same assets and weights over the time frame.
         """
-        all_tickers = list(self.assets_weights.keys())
-        self._bnh_data, message = utilities.fetch_data(
-            all_tickers=all_tickers,
-            start_date=self.start_date,
-            end_date=self.end_date
-        )
+        data_processor = DataObtainmentProcessor(models_data=self.data_models)
+        self._bnh_data = data_processor.process()
 
         portfolio_values = [self.initial_portfolio_value]
         portfolio_returns = []

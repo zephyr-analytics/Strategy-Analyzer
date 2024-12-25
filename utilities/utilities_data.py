@@ -13,8 +13,7 @@ import yfinance as yf
 
 def fetch_data(all_tickers, start_date, end_date):
     """
-    Fetches and trims the adjusted closing prices of the assets to the common earliest date,
-    while providing information about the earliest common start date and trimmed assets.
+    Fetches the adjusted closing prices of the assets within the specified date range.
 
     Parameters
     ----------
@@ -27,27 +26,11 @@ def fetch_data(all_tickers, start_date, end_date):
 
     Returns
     -------
-    tuple
-        A tuple containing:
-        - DataFrame: Trimmed adjusted closing prices of the assets.
-        - str: Message indicating the earliest common start date and the assets causing trimming.
+    DataFrame
+        Adjusted closing prices of the assets.
     """
     data = yf.download(all_tickers, start=start_date, end=end_date)['Adj Close']
-
-    original_start_dates = data.apply(lambda col: col.first_valid_index())
-
-    common_start_date = original_start_dates.max()
-
-    trimmed_assets = original_start_dates[original_start_dates < common_start_date].index.tolist()
-    
-    trimmed_data = data.loc[common_start_date:].dropna(how='any', axis=0)
-
-    message = (
-        f"The earliest common start date is {common_start_date.date()}. "
-        f"Data reduction was caused by these assets: {', '.join(trimmed_assets) if trimmed_assets else 'None'}."
-    )
-    
-    return trimmed_data, message
+    return data
 
 
 def fetch_out_of_market_data(assets_tickers, start_date, end_date):
@@ -108,7 +91,7 @@ def strip_csv_extension(filename):
     return os.path.splitext(filename)[0]
 
 
-def save_html(fig, filename, weights_filename, output_filename, processing_type, num_assets):
+def save_html(fig, filename, weights_filename, output_filename, processing_type, num_assets, sma_window):
     """
     Save the HTML file to the 'artifacts' directory within the current working directory.
 
@@ -125,9 +108,19 @@ def save_html(fig, filename, weights_filename, output_filename, processing_type,
     artifacts_directory = os.path.join(current_directory, 'artifacts', "plots", f"{weights_filename}")
     os.makedirs(artifacts_directory, exist_ok=True)
 
-    file_path = os.path.join(artifacts_directory, f"{output_filename}_{current_date}_{processing_type}_assets{num_assets}_{filename}.html")
+    file_path = os.path.join(artifacts_directory, f"{output_filename}_{current_date}_{processing_type}_sma{sma_window}_assets{num_assets}_{filename}.html")
     fig.write_html(file_path)
 
+def save_fig(fig, weights_filename, processing_type):
+    """
+    """
+    current_directory = os.getcwd()
+    current_date = datetime.now().strftime("%Y-%m-%d")
+    artifacts_directory = os.path.join(current_directory, 'artifacts', "plots", f"{weights_filename}")
+    os.makedirs(artifacts_directory, exist_ok=True)
+
+    file_path = os.path.join(artifacts_directory, f"{current_date}_{processing_type}.html")
+    fig.write_html(file_path)
 
 def save_dataframe_to_csv(data, output_filename, processing_type, num_assets):
     """
@@ -151,6 +144,25 @@ def save_dataframe_to_csv(data, output_filename, processing_type, num_assets):
     os.makedirs(artifacts_directory, exist_ok=True)
 
     full_path = os.path.join(artifacts_directory, f"{output_filename}_{current_date}_{processing_type}_assets{num_assets}.csv")
-    
+
     data.to_csv(full_path, index=True)
 
+
+def write_raw_dataframe_to_csv(dataframe, file_path):
+    """
+    Writes a DataFrame to a .csv file.
+
+    Parameters
+    ----------
+    dataframe : pd.DataFrame
+        The DataFrame to write to a CSV file.
+    file_path : str
+        The file path where the CSV will be saved.
+    include_index : bool, optional, default=True
+        Whether to include the DataFrame index in the CSV file.
+
+    Returns
+    -------
+    None
+    """
+    dataframe.to_csv(file_path, index=True)

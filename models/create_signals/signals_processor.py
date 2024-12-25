@@ -119,5 +119,6 @@ class SignalsProcessor(ABC):
             weights_filename=self.weights_filename,
             output_filename=self.output_filename,
             processing_type=self.processing_type,
-            num_assets=self.num_assets
+            num_assets=self.num_assets,
+            sma_window=self.sma_period
         )
