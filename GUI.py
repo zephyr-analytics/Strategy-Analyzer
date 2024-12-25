@@ -27,7 +27,7 @@ class PortfolioAnalyzer(ctk.CTk):
         self.iconbitmap(icon_path)
 
         # Display acknowledgment popup
-        self.show_acknowledgment_popup()
+        # self.show_acknowledgment_popup()
 
         self.create_widgets()
 

@@ -9,6 +9,7 @@ import utilities as utilities
 from results.results_processor import ResultsProcessor
 import warnings
 
+from data.data_obtain import DataObtainmentProcessor
 from models.models_data import ModelsData
 from models.backtest_models.backtesting_processor import BacktestingProcessor
 
@@ -53,40 +54,14 @@ class SmaBacktestPortfolio(BacktestingProcessor):
             An instance of the ModelsData class containing all relevant parameters and data for backtesting.
         """
         super().__init__(data_models=data_models)
-        # self.data_models = data_models
-
-        # self.assets_weights = data_models.assets_weights
-        # self.start_date = data_models.start_date
-        # self.end_date = data_models.end_date
-        # self.trading_frequency = data_models.trading_frequency
-        # self.output_filename = data_models.weights_filename
-        # self.rebalance_threshold = 0.02
-        # self.threshold_asset = str(data_models.threshold_asset)
-        # self.weighting_strategy = data_models.weighting_strategy
-        # self.sma_period = int(data_models.sma_window)
-        # self.bond_ticker = str(data_models.bond_ticker)
-        # self.cash_ticker = str(data_models.cash_ticker)
-        # self.initial_portfolio_value = int(data_models.initial_portfolio_value)
-
-        # # Class-defined attributes
-        # self._data = None
 
 
     def process(self):
         """
         Processes the backtest by fetching data, running the backtest, and generating the plots.
         """
-        all_tickers = list(self.assets_weights.keys()) + [self.cash_ticker]
-
-        if self.threshold_asset != "":
-            all_tickers.append(self.threshold_asset)
-
-        if self.bond_ticker != "":
-            all_tickers.append(self.bond_ticker)
-
-        self._data, message = utilities.fetch_data(all_tickers, self.start_date, self.end_date)
-
-        print(f"Data was updated for common start dates:\n\n {message}")
+        data_processor = DataObtainmentProcessor(models_data=self.data_models)
+        self._data = data_processor.process()
 
         self.run_backtest()
         self._get_portfolio_statistics()

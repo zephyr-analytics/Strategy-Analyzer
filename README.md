@@ -4,8 +4,9 @@
 ## Additionally, a requirements file is also attached and those may also be necessary to run the application, depending on system environment.
 
 ## Overview
-This application is designed for comprehensive portfolio analysis. Backtesting is incororated to demostrate how the portfolio and trading parameters
-have performed historically. Monte Carlo Simualation has been introduced for being able to model how it will perform moving forward in time. 
+This application is designed for comprehensive portfolio analysis.
+Backtesting is incororated to demostrate how the portfolio and trading parameters have performed historically. 
+Monte Carlo Simualation has been introduced for being able to model how it will perform moving forward in time. 
 
 ### Features
 

@@ -7,6 +7,7 @@ import os
 import threading
 import webbrowser
 
+from models.models_data import ModelsData
 from models.models_factory import ModelsFactory
 from processing_types import *
 import utilities as utilities
@@ -16,7 +17,7 @@ class TestingTab:
     """
     Handles the layout and functionality of the Testing tab.
     """
-    def __init__(self, parent, models_data):
+    def __init__(self, parent, models_data: ModelsData):
         self.data_models = models_data
 
         self.parent = parent
@@ -39,7 +40,6 @@ class TestingTab:
         self.initial_portfolio_value_var = ctk.StringVar(
             value=self.data_models._initial_portfolio_value
         )
-        self.threshold_asset_entry_var = ctk.StringVar(value=self.data_models._threshold_asset)
         self.num_assets_to_select_entry_var = ctk.StringVar(
             value=self.data_models._num_assets_to_select
         )

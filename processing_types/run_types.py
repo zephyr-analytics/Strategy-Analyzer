@@ -8,3 +8,4 @@ class Runs(Enum):
     BACKTEST = "backtest"
     SIGNALS = "signals"
     SIMULATION = "simulation"
+    PARAMETER_TUNE = "parameter_tune"
