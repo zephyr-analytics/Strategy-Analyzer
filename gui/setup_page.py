@@ -155,7 +155,7 @@ class SetupTab:
         sma_frame.grid_columnconfigure(3, weight=1)
 
         ctk.CTkLabel(sma_frame, text="SMA Window (days):", font=self.bold_font).grid(row=1, column=0, sticky="e", padx=5)
-        sma_windows = ["21", "42", "63", "84", "105", "126", "147", "168", "210"]
+        sma_windows = ["21", "42", "63", "84", "105", "126", "147", "168", "189", "210"]
         ctk.CTkOptionMenu(
             sma_frame,
             values=sma_windows,

@@ -8,20 +8,35 @@ import json
 import plotly.express as px
 
 import utilities as utilities
+from models.models_data import ModelsData
 from models.parameter_tuning.parameter_tuning_processor import ParameterTuningProcessor
 from models.backtest_models.momentum_backtest import BacktestMomentumPortfolio
 
 
 class MomentumParameterTuning(ParameterTuningProcessor):
-    def __init__(self, models_data):
+    """
+    Processor for parameter tuning based on the a momentum portfolio.
+    """
+    def __init__(self, models_data: ModelsData):
+        """
+        Initializes the parameter tuning class.
+
+        Parameters
+        ----------
+        models_data : object
+            An instance of the ModelsData class that holds all necessary attributes.
+        """
         super().__init__(models_data)
 
     def process(self):
+        """
+        Method for processing within the momentum parameter tuning class.
+        """
         results = self.get_portfolio_results()
         self.plot_results(results=results)
         self.persist_results(results=results)
 
-    def get_portfolio_results(self):
+    def get_portfolio_results(self) -> dict:
         """
         Processes parameters for tuning and stores results.
 
@@ -67,7 +82,7 @@ class MomentumParameterTuning(ParameterTuningProcessor):
 
         return results
 
-    def plot_results(self, results):
+    def plot_results(self, results: dict):
         """
         Plot results from the SMA strategy testing, including an efficient frontier line 
         based on the provided portfolios.
@@ -134,14 +149,14 @@ class MomentumParameterTuning(ParameterTuningProcessor):
         # Save the figure
         utilities.save_fig(fig, self.data_models.weights_filename, self.data_models.processing_type)
 
-    def persist_results(self, results):
+    def persist_results(self, results: dict):
         """
         Persists the results dictionary as a JSON file.
 
         Parameters
         ----------
         results : dict
-            The dictionary containing SMA backtest results and portfolio statistics.
+            The dictionary containing momentum backtest results and portfolio statistics.
         """
         current_directory = os.getcwd()
         artifacts_directory = os.path.join(current_directory, "artifacts", "data")

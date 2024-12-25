@@ -8,17 +8,18 @@ import json
 import plotly.express as px
 
 import utilities as utilities
+from models.models_data import ModelsData
 from models.parameter_tuning.parameter_tuning_processor import ParameterTuningProcessor
 from models.backtest_models.sma_backtesting import SmaBacktestPortfolio
 
 
 class SmaParameterTuning(ParameterTuningProcessor):
     """
-    Processor for creating portfolio signals using the _run_backtest method.
+    Processor for parameter tuning based on the an SMA portfolio.
     """
-    def __init__(self, models_data):
+    def __init__(self, models_data: ModelsData):
         """
-        Initializes the CreateSignals class.
+        Initializes the parameter tuning class.
 
         Parameters
         ----------
@@ -28,11 +29,14 @@ class SmaParameterTuning(ParameterTuningProcessor):
         super().__init__(models_data)
 
     def process(self):
+        """
+        Method for processing within the sma parameter tuning class.
+        """
         results = self.get_portfolio_results()
         self.plot_results(results=results)
         self.persist_results(results=results)
 
-    def get_portfolio_results(self):
+    def get_portfolio_results(self) -> dict:
         """
         Processes parameters for tuning and stores results.
         
@@ -71,7 +75,7 @@ class SmaParameterTuning(ParameterTuningProcessor):
 
         return results
 
-    def plot_results(self, results):
+    def plot_results(self, results: dict):
         """
         Plot results from the SMA strategy testing.
         """
@@ -103,7 +107,7 @@ class SmaParameterTuning(ParameterTuningProcessor):
 
         utilities.save_fig(fig, self.data_models.weights_filename, self.data_models.processing_type)
 
-    def persist_results(self, results):
+    def persist_results(self, results: dict):
         """
         Persists the results dictionary as a JSON file.
 
@@ -111,8 +115,6 @@ class SmaParameterTuning(ParameterTuningProcessor):
         ----------
         results : dict
             The dictionary containing SMA backtest results and portfolio statistics.
-        file_path : str
-            The path to the JSON file where the results will be saved.
         """
         current_directory = os.getcwd()
         artifacts_directory = os.path.join(current_directory, "artifacts", "data")
