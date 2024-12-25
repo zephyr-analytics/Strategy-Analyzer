@@ -14,7 +14,6 @@ class ModelsFactory:
     """
     Factory class to handle model processing based on the provided enum types.
     """
-
     def __init__(self, data_models: ModelsData):
         """
         Initializes the ModelsFactory with the provided data models.
@@ -138,7 +137,7 @@ class ModelsFactory:
         create_signals = CreateMomentumSignals(self.data_models)
         create_signals.process()
         return f"Momentum signals generated for {self.data_models.end_date}."
-    
+
     def _run_momentum_simulation(self)-> str:
         """
         Executes the momentum Monte Carlo simulation process.
@@ -205,7 +204,7 @@ class ModelsFactory:
         signals.process()
         return "In and Out of Market signals completed and plots saved."
 
-    def _run_sma_parameter_tune(self):
+    def _run_sma_parameter_tune(self) -> str:
         """
         Executes the SMA parameter tune processor.
 
@@ -219,8 +218,8 @@ class ModelsFactory:
         parameter_tune = SmaParameterTuning(self.data_models)
         parameter_tune.process()
         return "SMA parameter tuning completed."
-    
-    def _run_momentum_parameter_tune(self):
+
+    def _run_momentum_parameter_tune(self) -> str:
         """
         """
         if not self.data_models.assets_weights:

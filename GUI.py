@@ -9,7 +9,6 @@ class PortfolioAnalyzer(ctk.CTk):
     """
     A GUI application for running backtests and Monte Carlo simulations on investment portfolios.
     """
-
     def __init__(self):
         super().__init__()
         self.title("Portfolio Analyzer")
