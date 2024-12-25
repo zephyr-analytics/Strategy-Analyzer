@@ -69,8 +69,13 @@ class MomentumParameterTuning(ParameterTuningProcessor):
 
     def plot_results(self, results):
         """
-        Plot results from the SMA strategy testing.
+        Plot results from the SMA strategy testing, including an efficient frontier line 
+        based on the provided portfolios.
         """
+        import numpy as np
+        import plotly.express as px
+
+        # Prepare data
         data = {
             "SMA_strategy": [
                 f"SMA_{key[0]}_Freq_{key[1]}_Assets_{key[2]}" for key in results.keys()
@@ -84,6 +89,26 @@ class MomentumParameterTuning(ParameterTuningProcessor):
 
         data["SMA_length"] = [key.split('_')[1] for key in data["SMA_strategy"]]
 
+        # Convert data to numpy arrays
+        vol = np.array(data["annual_volatility"])
+        cagr = np.array(data["cagr"])
+
+        # Sort points by volatility, and compute efficient frontier
+        sorted_indices = np.argsort(vol)
+        sorted_vol = vol[sorted_indices]
+        sorted_cagr = cagr[sorted_indices]
+
+        efficient_vol = []
+        efficient_cagr = []
+        max_cagr = float('-inf')
+
+        for v, c in zip(sorted_vol, sorted_cagr):
+            if c > max_cagr:
+                efficient_vol.append(v)
+                efficient_cagr.append(c)
+                max_cagr = c
+
+        # Create the scatter plot
         fig = px.scatter(
             data,
             x='annual_volatility',
@@ -97,6 +122,16 @@ class MomentumParameterTuning(ParameterTuningProcessor):
             title="Scatter Plot of SMA Strategies"
         )
 
+        # Add efficient frontier line
+        fig.add_scatter(
+            x=efficient_vol,
+            y=efficient_cagr,
+            mode='lines',
+            name='Efficient Frontier',
+            line=dict(color='red', width=2)
+        )
+
+        # Save the figure
         utilities.save_fig(fig, self.data_models.weights_filename, self.data_models.processing_type)
 
     def persist_results(self, results):
