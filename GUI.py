@@ -65,8 +65,8 @@ class PortfolioAnalyzer(ctk.CTk):
         self.high_level_tab_control.pack(expand=1, fill="both")
 
         # # Add Economics Tab
-        # economic_tab_frame = self.high_level_tab_control.add("Economics")
-        # self.economic_tab = EconomicTab(economic_tab_frame)
+        economic_tab_frame = self.high_level_tab_control.add("Economics")
+        self.economic_tab = EconomicTab(economic_tab_frame)
 
         # Add Initial Testing Setup Tab
         setup_tab_frame = self.high_level_tab_control.add("Initial Testing Setup")
