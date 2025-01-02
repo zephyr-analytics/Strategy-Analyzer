@@ -137,8 +137,8 @@ class BacktestMomentumPortfolio(BacktestingProcessor):
                 String representing ticker symbol.
             """
             price = self._data.loc[:current_date, ticker].iloc[-1]
-            sma = self._data.loc[:current_date, ticker].rolling(window=self.sma_period).mean().iloc[-1]
-            return price < sma
+            ma = self._data.loc[:current_date, ticker].rolling(window=self.ma_period).mean().iloc[-1]
+            return price < ma
 
         adjusted_weights = {}
         total_weight = 0

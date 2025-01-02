@@ -43,7 +43,7 @@ class SmaBacktestPortfolio(BacktestingProcessor):
     _returns : Series
         Series to store the portfolio returns over time.
     """
-# TODO this needs to be properly abstracted.
+
     def __init__(self, data_models: ModelsData):
         """
         Initializes the BacktestStaticPortfolio class with data from ModelsData.
@@ -93,14 +93,11 @@ class SmaBacktestPortfolio(BacktestingProcessor):
         adjusted_weights = self.assets_weights.copy()
 
         for ticker in self.assets_weights.keys():
-            # Check if the current ticker is below its SMA
             if self._data.loc[:current_date, ticker].iloc[-1] < self._data.loc[:current_date, ticker].rolling(window=self.ma_period).mean().iloc[-1]:
-                # Handle the case where bond_ticker is not available
                 if self.bond_ticker == "":
                     adjusted_weights[ticker] = 0
                     adjusted_weights[self.cash_ticker] = adjusted_weights.get(self.cash_ticker, 0) + self.assets_weights[ticker]
                 else:
-                    # Bond ticker exists; check if it's below its SMA
                     if self._data.loc[:current_date, self.bond_ticker].iloc[-1] < self._data.loc[:current_date, self.bond_ticker].rolling(window=self.ma_period).mean().iloc[-1]:
                         adjusted_weights[ticker] = 0
                         adjusted_weights[self.cash_ticker] = adjusted_weights.get(self.cash_ticker, 0) + self.assets_weights[ticker]
@@ -108,7 +105,6 @@ class SmaBacktestPortfolio(BacktestingProcessor):
                         adjusted_weights[ticker] = 0
                         adjusted_weights[self.bond_ticker] = adjusted_weights.get(self.bond_ticker, 0) + self.assets_weights[ticker]
 
-        # Normalize weights to sum to 1
         total_weight = sum(adjusted_weights.values())
         for ticker in adjusted_weights:
             adjusted_weights[ticker] /= total_weight
@@ -121,7 +117,6 @@ class SmaBacktestPortfolio(BacktestingProcessor):
         """
         Runs the backtest by calculating portfolio values and returns over time.
         """
-        # print(self.ma_period, self.cash_ticker, self.bond_ticker)
         monthly_dates = pd.date_range(start=self.start_date, end=self.end_date, freq='M')
         portfolio_values = [self.initial_portfolio_value]
         portfolio_returns = []
@@ -141,7 +136,6 @@ class SmaBacktestPortfolio(BacktestingProcessor):
             next_date = monthly_dates[min(i + step, len(monthly_dates) - 1)]
             last_date_current_month = self._data.index[self._data.index.get_loc(current_date, method='pad')]
             adjusted_weights = self.adjust_weights(last_date_current_month)
-            # adjusted_weights = self._rebalance_portfolio(adjusted_weights)
             previous_value = portfolio_values[-1]
             month_end_data = self._data.loc[last_date_current_month]
             month_start_data = month_end_data
@@ -154,9 +148,6 @@ class SmaBacktestPortfolio(BacktestingProcessor):
             all_adjusted_weights.append(adjusted_weights)
             portfolio_values.append(new_portfolio_value)
             portfolio_returns.append(month_return)
-
-        # placeholder_weights = {asset: 0.0 for asset in all_adjusted_weights[0].keys()}
-        # all_adjusted_weights = all_adjusted_weights + [placeholder_weights]
 
         self.data_models.adjusted_weights = pd.Series(
             all_adjusted_weights,
