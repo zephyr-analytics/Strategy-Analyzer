@@ -25,7 +25,7 @@ class PortfolioAnalyzer(ctk.CTk):
         icon_path = utilities.resource_path("images/Zephyr Analytics-Clipped.ico")
         self.iconbitmap(icon_path)
 
-        self.show_acknowledgment_popup()
+        # self.show_acknowledgment_popup()
 
         self.create_widgets()
 
@@ -46,15 +46,15 @@ class PortfolioAnalyzer(ctk.CTk):
         self.grid_rowconfigure(1, weight=10)
 
         # Central Frame
-        center_frame = ctk.CTkFrame(self, fg_color="#edeaea")
+        center_frame = ctk.CTkFrame(self, fg_color=["#edeaea", "#2b2c2d"])
         center_frame.grid(row=0, column=1, rowspan=1, sticky="nsew")
 
         # High-Level Tab Control
         self.high_level_tab_control = ctk.CTkTabview(
             center_frame,
-            border_color="#edeaea",
-            fg_color="#edeaea",
-            segmented_button_fg_color="#edeaea",
+            border_color=["#edeaea", "#2b2c2d"],
+            fg_color=["#edeaea", "#2b2c2d"],
+            segmented_button_fg_color=["#edeaea", "#2b2c2d"],
             segmented_button_unselected_color="#bb8fce",
             segmented_button_selected_color="#8e44ad",
             text_color="#000000",

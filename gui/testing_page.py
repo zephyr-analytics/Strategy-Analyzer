@@ -30,10 +30,10 @@ class TestingTab:
         """
         Method for creating widgets and packing them to the canvas.
         """
-        center_frame = ctk.CTkFrame(self.parent, fg_color="#edeaea")
+        center_frame = ctk.CTkFrame(self.parent, fg_color=["#edeaea", "#2b2c2d"])
         center_frame.pack()
 
-        self.high_level_tab_control = ctk.CTkTabview(center_frame, fg_color="#edeaea")
+        self.high_level_tab_control = ctk.CTkTabview(center_frame, fg_color=["#edeaea", "#2b2c2d"])
         self.high_level_tab_control.pack(expand=True, fill="both")
 
         self.create_testing_tabs(self.high_level_tab_control)
@@ -66,9 +66,9 @@ class TestingTab:
         """
         self.testing_tab_control = ctk.CTkTabview(
             parent,
-            border_color="#edeaea",
-            fg_color="#edeaea",
-            segmented_button_fg_color="#edeaea",
+            border_color=["#edeaea", "#2b2c2d"],
+            fg_color=["#edeaea", "#2b2c2d"],
+            segmented_button_fg_color=["#edeaea", "#2b2c2d"],
             segmented_button_unselected_color="#bb8fce",
             segmented_button_selected_color="#8e44ad",
             text_color="#000000",
@@ -96,6 +96,7 @@ class TestingTab:
 
         ctk.CTkLabel(
             tab,
+            fg_color="transparent",
             text=f"{tab_name} Testing",
             font=ctk.CTkFont(size=16, weight="bold"),
         ).pack(pady=10)

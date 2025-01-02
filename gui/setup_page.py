@@ -36,7 +36,6 @@ class SetupTab:
         self.return_metric_var = ctk.StringVar(value=self.data_models.return_metric)
         self.ma_type_var = ctk.StringVar()
         # TODO this needs to be added to the UI.
-        self.theme_mode_var = ctk.StringVar(value=self.data_models.theme_mode)
         self.initial_portfolio_value_var = ctk.StringVar(
             value=self.data_models._initial_portfolio_value
         )
@@ -72,10 +71,26 @@ class SetupTab:
             anchor="center"
         ).grid(row=0, column=0, pady=10, sticky="ew")
 
+        self.theme_mode_var = ctk.StringVar(value="Light")
+        self.mode_dropdown = ctk.CTkOptionMenu(
+            parent,
+            fg_color="#bb8fce",
+            text_color="#000000",
+            button_color="#8e44ad",
+            button_hover_color="#8e44ad",
+            values=["Light", "Dark"],
+            variable=self.theme_mode_var,
+            command=self.update_theme_mode
+        )
+        self.mode_dropdown.pack(pady=10)
+
+        # Label for display
+        self.label = ctk.CTkLabel(parent, text="Select a mode from the dropdown")
+        self.label.pack(pady=10)
 
         # Data Settings
         data_frame_rows = 0
-        data_frame = ctk.CTkFrame(parent, fg_color="#f5f5f5")
+        data_frame = ctk.CTkFrame(parent, fg_color="transparent")
         data_frame.pack(fill="x", pady=10, padx=10)
 
         ctk.CTkLabel(data_frame, text="Data Settings", font=self.bold_font).grid(row=data_frame_rows, column=0, columnspan=4, sticky="ew", pady=5)
@@ -125,7 +140,7 @@ class SetupTab:
 
         # Trade Settings
         trade_frame_rows = 0
-        trade_frame = ctk.CTkFrame(parent, fg_color="#f5f5f5")
+        trade_frame = ctk.CTkFrame(parent, fg_color="transparent")
         trade_frame.pack(fill="x", pady=10, padx=10)
         ctk.CTkLabel(trade_frame, text="Trade Settings", font=self.bold_font).grid(row=trade_frame_rows, column=0, columnspan=4, sticky="ew", pady=5)
         trade_frame_rows += 1
@@ -158,7 +173,7 @@ class SetupTab:
 
         # MA Settings
         ma_frame_rows = 0
-        ma_frame = ctk.CTkFrame(parent, fg_color="#f5f5f5")
+        ma_frame = ctk.CTkFrame(parent, fg_color="transparent")
         ma_frame.pack(fill="x", pady=10, padx=10)
         ctk.CTkLabel(ma_frame, text="Moving Average Settings", font=self.bold_font).grid(row=ma_frame_rows, column=0, columnspan=4, sticky="ew", pady=5)
         ma_frame_rows += 1
@@ -205,7 +220,7 @@ class SetupTab:
 
         # Momentum Settings
         momentum_frame_rows = 0
-        momentum_frame = ctk.CTkFrame(parent, fg_color="#f5f5f5")
+        momentum_frame = ctk.CTkFrame(parent, fg_color="transparent")
         momentum_frame.pack(fill="x", pady=10, padx=10)
         ctk.CTkLabel(momentum_frame, text="Momentum Settings", font=self.bold_font).grid(row=momentum_frame_rows, column=0, columnspan=4, sticky="ew", pady=5)
         momentum_frame_rows += 1
@@ -234,11 +249,11 @@ class SetupTab:
             button_color="#8e44ad",
             button_hover_color="#8e44ad",
             variable=self.negative_mom_var
-        ).grid(row=ma_frame_rows, column=1, sticky="w", padx=5)
+        ).grid(row=momentum_frame_rows, column=1, sticky="w", padx=5)
         self.negative_mom_var.trace_add("write", self.update_negative_mom)
 
         # Monte Carlo Settings
-        monte_carlo_frame = ctk.CTkFrame(parent, fg_color="#f5f5f5")
+        monte_carlo_frame = ctk.CTkFrame(parent, fg_color="transparent")
         monte_carlo_frame.pack(fill="x", pady=10, padx=10)
         ctk.CTkLabel(monte_carlo_frame, text="Monte Carlo Settings", font=self.bold_font).grid(row=0, column=0, columnspan=4, sticky="ew", pady=5)
         monte_carlo_frame.grid_columnconfigure(0, weight=1)
@@ -513,6 +528,7 @@ class SetupTab:
             Additional arguments passed by the trace method.
         """
         _ = args
+        ctk.set_appearance_mode(self.theme_mode_var.get())
         self.data_models.theme_mode = self.theme_mode_var.get()
 
     def update_mom_threshold_asset(self, *args):
