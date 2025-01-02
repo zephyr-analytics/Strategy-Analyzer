@@ -49,6 +49,7 @@ class MomentumParameterTuning(ParameterTuningProcessor):
         ma_list = [21, 42, 63, 84, 105, 126, 147, 168, 189, 210]
         num_asset_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
         trading_frequencies = ["Monthly", "Bi-Monthly"]
+        ma_types = ["SMA", "EMA"]
 
         total_assets = len(self.data_models.assets_weights)
 
@@ -57,79 +58,65 @@ class MomentumParameterTuning(ParameterTuningProcessor):
                 for num_assets in num_asset_list:
                     if num_assets > total_assets:
                         break
-                    self.data_models.ma_window = ma
-                    self.data_models.trading_frequency = frequency
-                    self.data_models.num_assets_to_select = num_assets
+                    for ma_type in ma_types:
+                        self.data_models.ma_window = ma
+                        self.data_models.trading_frequency = frequency
+                        self.data_models.num_assets_to_select = num_assets
+                        self.data_models.ma_type = ma_type
 
-                    backtest = BacktestMomentumPortfolio(self.data_models)
-                    backtest.process()
+                        backtest = BacktestMomentumPortfolio(self.data_models)
+                        backtest.process()
 
-                    cagr = self.data_models.cagr
-                    average_annual_return = self.data_models.average_annual_return
-                    max_drawdown = self.data_models.max_drawdown
-                    var = self.data_models.var
-                    cvar = self.data_models.cvar
-                    annual_volatility = self.data_models.annual_volatility
+                        cagr = self.data_models.cagr
+                        average_annual_return = self.data_models.average_annual_return
+                        max_drawdown = self.data_models.max_drawdown
+                        var = self.data_models.var
+                        cvar = self.data_models.cvar
+                        annual_volatility = self.data_models.annual_volatility
 
-                    results[(ma, frequency, num_assets)] = {
-                        "cagr": cagr,
-                        "average_annual_return": average_annual_return,
-                        "max_drawdown": max_drawdown,
-                        "var": var,
-                        "cvar": cvar,
-                        "annual_volatility": annual_volatility
-                    }
+                        results[(ma, frequency, num_assets, ma_type)] = {
+                            "cagr": cagr,
+                            "average_annual_return": average_annual_return,
+                            "max_drawdown": max_drawdown,
+                            "var": var,
+                            "cvar": cvar,
+                            "annual_volatility": annual_volatility
+                        }
 
         return results
 
     def plot_results(self, results: dict):
         """
-        Plot results from the SMA strategy testing, including an efficient frontier line 
-        based on the provided portfolios.
-        """
-        import numpy as np
-        import plotly.express as px
+        Plot results from the momentum strategy testing.
 
-        # Prepare data
+        Parameters
+        ----------
+        results : dict
+            Dictionary of results from parameter tuning.
+        """
         data = {
-            "SMA_strategy": [
-                f"SMA_{key[0]}_Freq_{key[1]}_Assets_{key[2]}" for key in results.keys()
+            "MA_Strategy": [
+                f"MA:{key[0]} Freq:{key[1]} Assets:{key[2]} Type:{key[3]}" for key in results.keys()
             ],
             "cagr": [v["cagr"] for v in results.values()],
             "annual_volatility": [v["annual_volatility"] for v in results.values()],
             "max_drawdown": [v["max_drawdown"] for v in results.values()],
             "var": [v["var"] for v in results.values()],
             "cvar": [v["cvar"] for v in results.values()],
+            "sharpe_ratio": [
+                v["cagr"] / v["annual_volatility"] if v["annual_volatility"] != 0 else None 
+                for v in results.values()
+            ]
         }
 
-        data["SMA_length"] = [key.split('_')[1] for key in data["SMA_strategy"]]
-
-        # Convert data to numpy arrays
-        vol = np.array(data["annual_volatility"])
-        cagr = np.array(data["cagr"])
-
-        # Sort points by volatility, and compute efficient frontier
-        sorted_indices = np.argsort(vol)
-        sorted_vol = vol[sorted_indices]
-        sorted_cagr = cagr[sorted_indices]
-
-        efficient_vol = []
-        efficient_cagr = []
-        max_cagr = float('-inf')
-
-        for v, c in zip(sorted_vol, sorted_cagr):
-            if c > max_cagr:
-                efficient_vol.append(v)
-                efficient_cagr.append(c)
-                max_cagr = c
-
-        # Create the scatter plot
+        trimmed_twilight = px.colors.cyclical.Twilight[1:]
         fig = px.scatter(
             data,
             x='annual_volatility',
             y='cagr',
-            color='SMA_length',
-            hover_data=['SMA_strategy', 'max_drawdown', 'var', 'cvar'],
+            color='sharpe_ratio',
+            color_continuous_scale=trimmed_twilight[::-1],
+            hover_data=['MA_Strategy', 'max_drawdown', 'var', 'cvar'],
             labels={
                 "cagr": "Compound Annual Growth Rate",
                 "annual_volatility": "Annual Volatility"
@@ -137,16 +124,6 @@ class MomentumParameterTuning(ParameterTuningProcessor):
             title="Scatter Plot of Momentum Strategies"
         )
 
-        # Add efficient frontier line
-        fig.add_scatter(
-            x=efficient_vol,
-            y=efficient_cagr,
-            mode='lines',
-            name='Efficient Frontier',
-            line=dict(color='red', width=2)
-        )
-
-        # Save the figure
         utilities.save_fig(fig, self.data_models.weights_filename, self.data_models.processing_type)
 
     def persist_results(self, results: dict):
@@ -164,7 +141,7 @@ class MomentumParameterTuning(ParameterTuningProcessor):
 
         full_path = os.path.join(artifacts_directory, "momentum_parameter_tune.json")
         results_serializable = {
-            f"SMA_{key[0]}_Freq_{key[1]}_Assets_{key[2]}": value for key, value in results.items()
+            f"MA_{key[0]}_Freq_{key[1]}_Assets_{key[2]}": value for key, value in results.items()
         }
         with open(full_path, 'w') as json_file:
             json.dump(results_serializable, json_file, indent=4)
