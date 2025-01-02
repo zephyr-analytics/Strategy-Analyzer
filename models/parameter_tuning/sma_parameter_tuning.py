@@ -114,7 +114,20 @@ class SmaParameterTuning(ParameterTuningProcessor):
                 "cagr": "Compound Annual Growth Rate",
                 "annual_volatility": "Annual Volatility"
             },
-            title="Scatter Plot of MA Strategies"
+            title="Possible MA Strategies"
+        )
+        fig.update_layout(
+            annotations=[
+                dict(
+                    xref='paper', yref='paper', x=0.5, y=0.2,
+                    text="© Zephyr Analytics",
+                    showarrow=False,
+                    font=dict(size=80, color="#f8f9f9"),
+                    xanchor='center',
+                    yanchor='bottom',
+                    opacity=0.5
+                )
+            ]
         )
 
         utilities.save_fig(fig, self.data_models.weights_filename, self.data_models.processing_type)

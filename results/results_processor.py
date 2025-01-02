@@ -306,7 +306,6 @@ class ResultsProcessor:
             yaxis_title='Portfolio Value ($)',
             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
             annotations=[
-                # Watermark annotation
                 dict(
                     xref='paper', yref='paper', x=0.5, y=0.2,
                     text="© Zephyr Analytics",
@@ -319,7 +318,6 @@ class ResultsProcessor:
             ]
         )
 
-        # Save the plot as an HTML file
         utilities.save_html(fig, filename, self.weights_filename, self.output_filename, self.processing_type, self.num_assets, self.ma_window)
 
 
