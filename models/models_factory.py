@@ -48,7 +48,6 @@ class ModelsFactory:
             (Models.MOMENTUM, Runs.BACKTEST): self._run_momentum_backtest,
             (Models.MOMENTUM, Runs.SIGNALS): self._run_momentum_signals,
             (Models.MOMENTUM, Runs.SIMULATION): self._run_momentum_simulation,
-            (Models.MACHINE_LEARNING, Runs.BACKTEST): self._run_machine_learning_backtest,
             (Models.IN_AND_OUT_OF_MARKET, Runs.BACKTEST): self._run_in_and_out_of_market_backtest,
             (Models.IN_AND_OUT_OF_MARKET, Runs.SIGNALS): self._run_in_and_out_of_market_signals,
             (Models.SMA, Runs.PARAMETER_TUNE): self._run_sma_parameter_tune,
@@ -154,21 +153,6 @@ class ModelsFactory:
         monte_carlo = MonteCarloSimulation(self.data_models)
         monte_carlo.process()
         return "Momentum simulation completed and plots saved."
-
-    def _run_machine_learning_backtest(self) -> str:
-        """
-        Executes the machine learning backtest process.
-
-        Returns
-        -------
-        str
-            Message indicating the outcome of the machine learning backtest.
-        """
-        if not self.data_models.assets_weights:
-            return "Please load asset weights file."
-        backtest = BacktestClusteringPortfolio(self.data_models)
-        backtest.process()
-        return "Machine learning backtest completed and plots saved."
 
     def _run_in_and_out_of_market_backtest(self) -> str:
         """
