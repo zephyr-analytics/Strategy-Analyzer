@@ -23,7 +23,7 @@ class DataObtainmentProcessor():
         self.asset_weights = self.data_models.assets_weights
         self.cash_ticker = self.data_models.cash_ticker
         self.bond_ticker = self.data_models.bond_ticker
-        self.sma_threshold_asset = self.data_models.sma_threshold_asset
+        self.ma_threshold_asset = self.data_models.ma_threshold_asset
 
     def process(self):
         """
@@ -64,8 +64,8 @@ class DataObtainmentProcessor():
             str: The path to the saved file.
         """
         all_tickers = list(self.asset_weights.keys()) + [self.cash_ticker]
-        if self.sma_threshold_asset:
-            all_tickers.append(self.sma_threshold_asset)
+        if self.ma_threshold_asset:
+            all_tickers.append(self.ma_threshold_asset)
         if self.bond_ticker:
             all_tickers.append(self.bond_ticker)
 
@@ -115,8 +115,8 @@ class DataObtainmentProcessor():
             The validated DataFrame if all conditions are met
         """
         all_tickers = list(self.asset_weights.keys()) + [self.cash_ticker]
-        if self.sma_threshold_asset:
-            all_tickers.append(self.sma_threshold_asset)
+        if self.ma_threshold_asset:
+            all_tickers.append(self.ma_threshold_asset)
         if self.bond_ticker:
             all_tickers.append(self.bond_ticker)
 

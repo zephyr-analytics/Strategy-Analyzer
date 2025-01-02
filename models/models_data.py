@@ -22,7 +22,7 @@ class ModelsData:
         self._initial_portfolio_value = 10000
         self._num_simulations = 1000
         self._simulation_horizon = 10
-        self._sma_window = "21"
+        self._ma_window = "21"
         self._start_date = "2010-01-01"
         self._theme_mode = "Light"
         self._trading_frequency = "Monthly"
@@ -37,7 +37,7 @@ class ModelsData:
         self._cvar = None
         self._annual_volatility = None
         self._max_distance = 1.5
-        self._sma_threshold_asset = ""
+        self._ma_threshold_asset = ""
         self._num_assets_to_select = 1
         self._standard_deviation = None
         self._out_of_market_tickers = {}
@@ -261,24 +261,24 @@ class ModelsData:
 
 
     @property
-    def sma_window(self):
+    def ma_window(self):
         """
         Gets the SMA (Simple Moving Average) window for the backtest or simulation.
 
         Returns:
             int: The SMA window in days.
         """
-        return self._sma_window
+        return self._ma_window
 
-    @sma_window.setter
-    def sma_window(self, value):
+    @ma_window.setter
+    def ma_window(self, value):
         """
         Sets the SMA (Simple Moving Average) window for the backtest or simulation.
 
         Args:
             value (int): The SMA window in days.
         """
-        self._sma_window = value
+        self._ma_window = value
 
 
     @property
@@ -592,24 +592,24 @@ class ModelsData:
 
 
     @property
-    def sma_threshold_asset(self):
+    def ma_threshold_asset(self):
         """
         Gets the sma threshold asset value used for portfolio management.
 
         Returns:
             str: The sam threshold asset as a string.
         """
-        return self._sma_threshold_asset
+        return self._ma_threshold_asset
 
-    @sma_threshold_asset.setter
-    def sma_threshold_asset(self, value):
+    @ma_threshold_asset.setter
+    def ma_threshold_asset(self, value):
         """
         Sets the sma threshold asset value used for portfolio management.
 
         Args:
             value (str): The asset ticker symbol to be set as the sma threshold asset.
         """
-        self._sma_threshold_asset = value
+        self._ma_threshold_asset = value
 
 
     @property

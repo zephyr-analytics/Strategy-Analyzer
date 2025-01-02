@@ -28,7 +28,7 @@ class SmaBacktestPortfolio(BacktestingProcessor):
         The start date for the backtest.
     end_date : str
         The end date for the backtest.
-    sma_period : int
+    ma_period : int
         The period for calculating the Simple Moving Average (SMA). Default is 168.
     bond_ticker : str
         The ticker symbol for the bond asset. Default is 'BND'.
@@ -90,33 +90,18 @@ class SmaBacktestPortfolio(BacktestingProcessor):
         dict
             Dictionary of adjusted asset weights.
         """
-        # if self.weighting_strategy == 'Use File Weights':
-        #     adjusted_weights = self.assets_weights.copy()
-        # elif self.weighting_strategy == 'Equal Weight':
-        #     adjusted_weights = utilities.equal_weighting(self.assets_weights)
-        # elif self.weighting_strategy == 'Risk Contribution':
-        #     adjusted_weights = utilities.risk_contribution_weighting(self._data.cov(), self.assets_weights)
-        # elif self.weighting_strategy == 'Min Volatility':
-        #     weights = utilities.min_volatility_weighting(self._data.cov())
-        #     adjusted_weights = dict(zip(self.assets_weights.keys(), weights))
-        # elif self.weighting_strategy == 'Max Sharpe':
-        #     returns = self._data.pct_change().mean()
-        #     weights = utilities.max_sharpe_ratio_weighting(self._data.cov(), returns)
-        #     adjusted_weights = dict(zip(self.assets_weights.keys(), weights))
-        # else:
-        #     raise ValueError("Invalid weighting strategy")
         adjusted_weights = self.assets_weights.copy()
 
         for ticker in self.assets_weights.keys():
             # Check if the current ticker is below its SMA
-            if self._data.loc[:current_date, ticker].iloc[-1] < self._data.loc[:current_date, ticker].rolling(window=self.sma_period).mean().iloc[-1]:
+            if self._data.loc[:current_date, ticker].iloc[-1] < self._data.loc[:current_date, ticker].rolling(window=self.ma_period).mean().iloc[-1]:
                 # Handle the case where bond_ticker is not available
                 if self.bond_ticker == "":
                     adjusted_weights[ticker] = 0
                     adjusted_weights[self.cash_ticker] = adjusted_weights.get(self.cash_ticker, 0) + self.assets_weights[ticker]
                 else:
                     # Bond ticker exists; check if it's below its SMA
-                    if self._data.loc[:current_date, self.bond_ticker].iloc[-1] < self._data.loc[:current_date, self.bond_ticker].rolling(window=self.sma_period).mean().iloc[-1]:
+                    if self._data.loc[:current_date, self.bond_ticker].iloc[-1] < self._data.loc[:current_date, self.bond_ticker].rolling(window=self.ma_period).mean().iloc[-1]:
                         adjusted_weights[ticker] = 0
                         adjusted_weights[self.cash_ticker] = adjusted_weights.get(self.cash_ticker, 0) + self.assets_weights[ticker]
                     else:
@@ -136,7 +121,7 @@ class SmaBacktestPortfolio(BacktestingProcessor):
         """
         Runs the backtest by calculating portfolio values and returns over time.
         """
-        # print(self.sma_period, self.cash_ticker, self.bond_ticker)
+        # print(self.ma_period, self.cash_ticker, self.bond_ticker)
         monthly_dates = pd.date_range(start=self.start_date, end=self.end_date, freq='M')
         portfolio_values = [self.initial_portfolio_value]
         portfolio_returns = []

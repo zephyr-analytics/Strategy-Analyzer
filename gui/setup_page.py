@@ -25,7 +25,7 @@ class SetupTab:
         self.bond_ticker_var = ctk.StringVar(value=self.data_models.bond_ticker)
         self.trading_frequency_var = ctk.StringVar(value=self.data_models.trading_frequency)
         self.weighting_strategy_var = ctk.StringVar(value=self.data_models.weighting_strategy)
-        self.sma_window_var = ctk.StringVar(value=self.data_models.sma_window)
+        self.ma_window_var = ctk.StringVar()
         self.num_simulations_var = ctk.StringVar(value=self.data_models.num_simulations)
         self.simulation_horizon_entry_var = ctk.StringVar(value=self.data_models.simulation_horizon)
         self.benchmark_asset_entry_var = ctk.StringVar(value=self.data_models.benchmark_asset)
@@ -39,7 +39,7 @@ class SetupTab:
         self.initial_portfolio_value_var = ctk.StringVar(
             value=self.data_models._initial_portfolio_value
         )
-        self.sma_threshold_asset_entry_var = ctk.StringVar(value=self.data_models.sma_threshold_asset)
+        self.ma_threshold_asset_entry_var = ctk.StringVar()
         self.num_assets_to_select_entry_var = ctk.StringVar(
             value=self.data_models.num_assets_to_select
         )
@@ -72,77 +72,75 @@ class SetupTab:
 
 
         # Data Settings
+        data_frame_rows = 0
         data_frame = ctk.CTkFrame(parent, fg_color="#f5f5f5")
         data_frame.pack(fill="x", pady=10, padx=10)
-        ctk.CTkLabel(data_frame, text="Data Settings", font=self.bold_font).grid(row=0, column=0, columnspan=4, sticky="ew", pady=5)
+
+        ctk.CTkLabel(data_frame, text="Data Settings", font=self.bold_font).grid(row=data_frame_rows, column=0, columnspan=4, sticky="ew", pady=5)
+        data_frame_rows += 1
+
+        ctk.CTkLabel(data_frame, text="Setup the initial portfolio composition.", font=self.bold_font).grid(row=data_frame_rows, column=0, columnspan=4, sticky="ew", pady=5)
+        data_frame_rows += 1
+
         data_frame.grid_columnconfigure(0, weight=1)
         data_frame.grid_columnconfigure(1, weight=1)
         data_frame.grid_columnconfigure(2, weight=1)
         data_frame.grid_columnconfigure(3, weight=1)
 
-        ctk.CTkLabel(data_frame, text="Initial Portfolio Value:", font=self.bold_font).grid(row=1, column=0, padx=5, sticky="e")
-        ctk.CTkEntry(data_frame, textvariable=self.initial_portfolio_value_var).grid(row=1, column=1, padx=5, sticky="w")
+        # Add widgets dynamically and update row counter
+        ctk.CTkLabel(data_frame, text="Initial Portfolio Value:", font=self.bold_font).grid(row=data_frame_rows, column=0, padx=5, sticky="e")
+        ctk.CTkEntry(data_frame, textvariable=self.initial_portfolio_value_var).grid(row=data_frame_rows, column=1, padx=5, sticky="w")
         self.initial_portfolio_value_var.trace_add("write", self.update_initial_portfolio_value)
+        data_frame_rows += 1
 
-        ctk.CTkLabel(
-            data_frame,
-            text="Select In Market Assets:",
-            font=self.bold_font).grid(row=2, column=0, sticky="e", padx=5
-        )
-        ctk.CTkButton(
-            data_frame,
-            text="Select Asset Weights File",
-            fg_color="#bb8fce",
-            text_color="#000000",
-            hover_color="#8e44ad",
-            command=self.load_weights_and_update).grid(row=2, column=1, sticky="w", padx=5
-        )
+        ctk.CTkLabel(data_frame, text="Select In Market Assets:", font=self.bold_font).grid(row=data_frame_rows, column=0, sticky="e", padx=5)
+        ctk.CTkButton(data_frame, text="Select Asset Weights File", fg_color="#bb8fce", text_color="#000000",
+                    hover_color="#8e44ad", command=self.load_weights_and_update).grid(row=data_frame_rows, column=1, sticky="w", padx=5)
 
-        ctk.CTkLabel(
-            data_frame,
-            text="Select Out of Market Assets:",
-            font=self.bold_font).grid(row=2, column=2, sticky="e", padx=5
-        )
-        ctk.CTkButton(
-            data_frame,
-            text="Select Asset Weights File",
-            fg_color="#bb8fce",
-            text_color="#000000",
-            hover_color="#8e44ad",
-            command=self.load_out_of_market_weights_and_update).grid(row=2, column=3, sticky="w", padx=5
-        )
+        ctk.CTkLabel(data_frame, text="Select Out of Market Assets:", font=self.bold_font).grid(row=data_frame_rows, column=2, sticky="e", padx=5)
+        ctk.CTkButton(data_frame, text="Select Asset Weights File", fg_color="#bb8fce", text_color="#000000",
+                    hover_color="#8e44ad", command=self.load_out_of_market_weights_and_update).grid(row=data_frame_rows, column=3, sticky="w", padx=5)
+        data_frame_rows += 1
 
-        ctk.CTkLabel(data_frame, text="Start Date:", font=self.bold_font).grid(row=3, column=0, padx=5, sticky="e")
-        ctk.CTkEntry(data_frame, textvariable=self.start_date_var).grid(row=3, column=1, padx=5, sticky="w")
+        ctk.CTkLabel(data_frame, text="Start Date:", font=self.bold_font).grid(row=data_frame_rows, column=0, padx=5, sticky="e")
+        ctk.CTkEntry(data_frame, textvariable=self.start_date_var).grid(row=data_frame_rows, column=1, padx=5, sticky="w")
         self.start_date_var.trace_add("write", self.update_start_date)
 
-        ctk.CTkLabel(data_frame, text="End Date:", font=self.bold_font).grid(row=3, column=2, padx=5, sticky="e")
-        ctk.CTkEntry(data_frame, textvariable=self.end_date_var).grid(row=3, column=3, padx=5, sticky="w")
+        ctk.CTkLabel(data_frame, text="End Date:", font=self.bold_font).grid(row=data_frame_rows, column=2, padx=5, sticky="e")
+        ctk.CTkEntry(data_frame, textvariable=self.end_date_var).grid(row=data_frame_rows, column=3, padx=5, sticky="w")
         self.end_date_var.trace_add("write", self.update_end_date)
+        data_frame_rows += 1
 
-        ctk.CTkLabel(data_frame, text="Cash Ticker:", font=self.bold_font).grid(row=4, column=0, sticky="e", padx=5)
-        ctk.CTkEntry(data_frame, textvariable=self.cash_ticker_var).grid(row=4, column=1, sticky="w", padx=5)
+        ctk.CTkLabel(data_frame, text="Cash Ticker:", font=self.bold_font).grid(row=data_frame_rows, column=0, sticky="e", padx=5)
+        ctk.CTkEntry(data_frame, textvariable=self.cash_ticker_var).grid(row=data_frame_rows, column=1, sticky="w", padx=5)
         self.cash_ticker_var.trace_add("write", self.update_cash_ticker)
 
-        ctk.CTkLabel(data_frame, text="Bond Ticker:", font=self.bold_font).grid(row=4, column=2, sticky="e", padx=5)
-        ctk.CTkEntry(data_frame, textvariable=self.bond_ticker_var).grid(row=4, column=3, sticky="w", padx=5)
+        ctk.CTkLabel(data_frame, text="Bond Ticker:", font=self.bold_font).grid(row=data_frame_rows, column=2, sticky="e", padx=5)
+        ctk.CTkEntry(data_frame, textvariable=self.bond_ticker_var).grid(row=data_frame_rows, column=3, sticky="w", padx=5)
         self.bond_ticker_var.trace_add("write", self.update_bond_ticker)
+        data_frame_rows += 1
 
 
         # Trade Settings
+        trade_frame_rows = 0
         trade_frame = ctk.CTkFrame(parent, fg_color="#f5f5f5")
         trade_frame.pack(fill="x", pady=10, padx=10)
-        ctk.CTkLabel(trade_frame, text="Trade Settings", font=self.bold_font).grid(row=0, column=0, columnspan=4, sticky="ew", pady=5)
+        ctk.CTkLabel(trade_frame, text="Trade Settings", font=self.bold_font).grid(row=trade_frame_rows, column=0, columnspan=4, sticky="ew", pady=5)
+        trade_frame_rows += 1
+
+        ctk.CTkLabel(trade_frame, text="Sets the trading parameters of the trading model.", font=self.bold_font).grid(row=trade_frame_rows, column=0, columnspan=4, sticky="ew", pady=5)
+        trade_frame_rows += 1
+
         trade_frame.grid_columnconfigure(0, weight=1)
         trade_frame.grid_columnconfigure(1, weight=1)
         trade_frame.grid_columnconfigure(2, weight=1)
         trade_frame.grid_columnconfigure(3, weight=1)
 
-        ctk.CTkLabel(trade_frame, text="Benchmark Asset:", font=self.bold_font).grid(row=1, column=0, sticky="e", padx=5)
-        ctk.CTkEntry(trade_frame, textvariable=self.benchmark_asset_entry_var).grid(row=1, column=1, sticky="w", padx=5)
+        ctk.CTkLabel(trade_frame, text="Benchmark Asset:", font=self.bold_font).grid(row=trade_frame_rows, column=0, sticky="e", padx=5)
+        ctk.CTkEntry(trade_frame, textvariable=self.benchmark_asset_entry_var).grid(row=trade_frame_rows, column=1, sticky="w", padx=5)
         self.benchmark_asset_entry_var.trace_add("write", self.update_benchmark_asset)
 
-        ctk.CTkLabel(trade_frame, text="Trading Frequency:", font=self.bold_font).grid(row=1, column=2, sticky="e", padx=5)
+        ctk.CTkLabel(trade_frame, text="Trading Frequency:", font=self.bold_font).grid(row=trade_frame_rows, column=2, sticky="e", padx=5)
         trading_options = ["Monthly", "Bi-Monthly"]
         ctk.CTkOptionMenu(
             trade_frame,
@@ -152,35 +150,41 @@ class SetupTab:
             button_color="#8e44ad",
             button_hover_color="#8e44ad",
             variable=self.trading_frequency_var
-        ).grid(row=1, column=3, sticky="w", padx=5)
+        ).grid(row=trade_frame_rows, column=3, sticky="w", padx=5)
         self.trading_frequency_var.trace_add("write", self.update_trading_frequency)
 
 
-        # SMA Settings
-        sma_frame = ctk.CTkFrame(parent, fg_color="#f5f5f5")
-        sma_frame.pack(fill="x", pady=10, padx=10)
-        ctk.CTkLabel(sma_frame, text="Moving Average Settings", font=self.bold_font).grid(row=0, column=0, columnspan=4, sticky="ew", pady=5)
-        sma_frame.grid_columnconfigure(0, weight=1)
-        sma_frame.grid_columnconfigure(1, weight=1)
-        sma_frame.grid_columnconfigure(2, weight=1)
-        sma_frame.grid_columnconfigure(3, weight=1)
+        # MA Settings
+        ma_frame_rows = 0
+        ma_frame = ctk.CTkFrame(parent, fg_color="#f5f5f5")
+        ma_frame.pack(fill="x", pady=10, padx=10)
+        ctk.CTkLabel(ma_frame, text="Moving Average Settings", font=self.bold_font).grid(row=ma_frame_rows, column=0, columnspan=4, sticky="ew", pady=5)
+        ma_frame_rows += 1
 
-        ctk.CTkLabel(sma_frame, text="Moving Average Window (days):", font=self.bold_font).grid(row=1, column=0, sticky="e", padx=5)
+        ctk.CTkLabel(ma_frame, text="Sets the moving average parameters of the trading model.", font=self.bold_font).grid(row=ma_frame_rows, column=0, columnspan=4, sticky="ew", pady=5)
+        ma_frame_rows += 1
+
+        ma_frame.grid_columnconfigure(0, weight=1)
+        ma_frame.grid_columnconfigure(1, weight=1)
+        ma_frame.grid_columnconfigure(2, weight=1)
+        ma_frame.grid_columnconfigure(3, weight=1)
+
+        ctk.CTkLabel(ma_frame, text="Moving Average Window (days):", font=self.bold_font).grid(row=ma_frame_rows, column=0, sticky="e", padx=5)
         sma_windows = ["21", "42", "63", "84", "105", "126", "147", "168", "189", "210"]
         ctk.CTkOptionMenu(
-            sma_frame,
+            ma_frame,
             values=sma_windows,
             fg_color="#bb8fce",
             text_color="#000000",
             button_color="#8e44ad",
             button_hover_color="#8e44ad",
-            variable=self.sma_window_var
-        ).grid(row=1, column=1, sticky="w", padx=5)
-        self.sma_window_var.trace_add("write", self.update_sma_window)
+            variable=self.ma_window_var
+        ).grid(row=ma_frame_rows, column=1, sticky="w", padx=5)
+        self.ma_window_var.trace_add("write", self.update_ma_window)
 
-        ctk.CTkLabel(sma_frame, text="Moving Average Threshold Asset:", font=self.bold_font).grid(row=1, column=2, sticky="e", padx=5)
-        ctk.CTkEntry(sma_frame, textvariable=self.sma_threshold_asset_entry_var).grid(row=1, column=3, sticky="w", padx=5)
-        self.sma_threshold_asset_entry_var.trace_add("write", self.update_threshold_asset)
+        ctk.CTkLabel(ma_frame, text="Moving Average Threshold Asset:", font=self.bold_font).grid(row=ma_frame_rows, column=2, sticky="e", padx=5)
+        ctk.CTkEntry(ma_frame, textvariable=self.ma_threshold_asset_entry_var).grid(row=ma_frame_rows, column=3, sticky="w", padx=5)
+        self.ma_threshold_asset_entry_var.trace_add("write", self.update_threshold_asset)
 
 
         # Momentum Settings
@@ -420,7 +424,7 @@ class SetupTab:
         _ = args
         self.data_models.weighting_strategy = self.weighting_strategy_var.get()
 
-    def update_sma_window(self, *args):
+    def update_ma_window(self, *args):
         """
         Updates the SMA window in the data model.
 
@@ -430,7 +434,7 @@ class SetupTab:
             Additional arguments passed by the trace method.
         """
         _ = args
-        self.data_models.sma_window = self.sma_window_var.get()
+        self.data_models.ma_window = self.ma_window_var.get()
 
     def update_num_simulations(self, *args):
         """
@@ -502,7 +506,7 @@ class SetupTab:
             Additional arguments passed by the trace method.
         """
         _ = args
-        self.data_models.sma_threshold_asset = str(self.sma_threshold_asset_entry_var.get())
+        self.data_models.ma_threshold_asset = str(self.ma_threshold_asset_entry_var.get())
 
     def update_benchmark_asset(self, *args):
         """

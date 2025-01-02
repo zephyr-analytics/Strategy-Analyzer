@@ -41,7 +41,7 @@ class ResultsProcessor:
         self.num_assets = data_models.num_assets_to_select
         self.trading_frequency = data_models.trading_frequency
         self.processing_type = data_models.processing_type
-        self.sma_window = data_models.sma_window
+        self.ma_window = data_models.ma_window
 
 
     def plot_portfolio_value(self, filename='portfolio_value'):
@@ -153,7 +153,7 @@ class ResultsProcessor:
             )
         )
 
-        utilities.save_html(fig, filename, self.weights_filename, self.output_filename, self.processing_type, self.num_assets, self.sma_window)
+        utilities.save_html(fig, filename, self.weights_filename, self.output_filename, self.processing_type, self.num_assets, self.ma_window)
 
 
     def plot_var_cvar(self, confidence_level=0.95, filename='var_cvar'):
@@ -245,7 +245,7 @@ class ResultsProcessor:
                 )
             ]
         )
-        utilities.save_html(fig, filename, self.weights_filename, self.output_filename, self.processing_type, self.num_assets, self.sma_window)
+        utilities.save_html(fig, filename, self.weights_filename, self.output_filename, self.processing_type, self.num_assets, self.ma_window)
 
 
     def plot_monte_carlo_simulation(
@@ -320,7 +320,7 @@ class ResultsProcessor:
         )
 
         # Save the plot as an HTML file
-        utilities.save_html(fig, filename, self.weights_filename, self.output_filename, self.processing_type, self.num_assets, self.sma_window)
+        utilities.save_html(fig, filename, self.weights_filename, self.output_filename, self.processing_type, self.num_assets, self.ma_window)
 
 
     def plot_returns_heatmaps(self, filename='returns_heatmap'):
@@ -426,4 +426,4 @@ class ResultsProcessor:
         )
 
         # Save the plot as an HTML file
-        utilities.save_html(fig, filename, self.weights_filename, self.output_filename, self.processing_type, self.num_assets, self.sma_window)
+        utilities.save_html(fig, filename, self.weights_filename, self.output_filename, self.processing_type, self.num_assets, self.ma_window)

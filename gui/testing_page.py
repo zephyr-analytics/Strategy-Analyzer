@@ -31,7 +31,7 @@ class TestingTab:
         self.bond_ticker_var = ctk.StringVar(value=self.data_models.bond_ticker)
         self.trading_frequency_var = ctk.StringVar(value=self.data_models.trading_frequency)
         self.weighting_strategy_var = ctk.StringVar(value=self.data_models.weighting_strategy)
-        self.sma_window_var = ctk.StringVar(value=self.data_models.sma_window)
+        self.sma_window_var = ctk.StringVar(value=self.data_models.ma_window)
         self.num_simulations_var = ctk.StringVar(value=self.data_models.num_simulations)
         self.simulation_horizon_entry_var = ctk.StringVar(value=self.data_models.simulation_horizon)
         # TODO add benchmark asset
@@ -207,7 +207,7 @@ class TestingTab:
             result = factory.run(model, run_type)
             self.parent.after(0, lambda: self.display_result(result))
         finally:
-            self.get_all_plot_files()
+            pass
 
 
     def change_theme(self, selected_theme):
