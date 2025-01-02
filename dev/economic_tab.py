@@ -17,61 +17,66 @@ class EconomicTab:
         self.parent = parent
         self.configure_widgets(self.parent)
         self.update_economic_data()
-        self.update_plot()
 
 
     def configure_widgets(self, parent):
-        """
-        Configures the widgets and layout for the EconomicTab using customtkinter.
-        """
-        self.header_frame = ctk.CTkFrame(parent)
-        self.header_frame.pack(fill="x", pady=10)
+            """
+            Configures the widgets and layout for the EconomicTab using customtkinter.
+            """
+            self.header_frame = ctk.CTkFrame(parent)
+            self.header_frame.pack(fill="x", pady=10)
 
-        self.current_row = ctk.CTkFrame(self.header_frame, fg_color="transparent")
-        self.current_row.pack(fill="x", pady=2)
-        self.previous_row = ctk.CTkFrame(self.header_frame, fg_color="transparent")
-        self.previous_row.pack(fill="x", pady=2)
+            self.current_row = ctk.CTkFrame(self.header_frame, fg_color="transparent")
+            self.current_row.pack(fill="x", pady=2)
+            self.previous_row = ctk.CTkFrame(self.header_frame, fg_color="transparent")
+            self.previous_row.pack(fill="x", pady=2)
 
-        self.data_fields = {"current": {}, "previous": {}}
-        self.economic_metrics = {
-            "GDP": "GDP",
-            "Unemployment Rate": "UNRATE",
-            "Initial Jobless Claims": "ICSA",
-            "Inflation Rate": "STICKCPIM159SFRBATL",
-            "Federal Funds Rate": "FEDFUNDS",
-        }
+            self.data_fields = {"current": {}, "previous": {}}
+            self.economic_metrics = {
+                "GDP": "GDP",
+                "Unemployment Rate": "UNRATE",
+                "Initial Jobless Claims": "ICSA",
+                "Inflation Rate": "STICKCPIM159SFRBATL",
+                "Federal Funds Rate": "FEDFUNDS",
+            }
 
-        self.opposite_scale_metrics = {"Unemployment Rate", "Initial Jobless Claims", "Inflation Rate"}
+            self.opposite_scale_metrics = {"Unemployment Rate", "Initial Jobless Claims", "Inflation Rate"}
 
-        for metric, series_id in self.economic_metrics.items():
-            c_label = ctk.CTkLabel(self.current_row, text=f"{metric} (Current):", font=("Arial", 16, "bold"))
-            c_value_label = ctk.CTkLabel(self.current_row, text="Loading...", font=("Arial", 16, "bold"))
-            c_label.pack(side="left", padx=(10, 5))
-            c_value_label.pack(side="left", padx=(0, 20))
-            self.data_fields["current"][metric] = c_value_label
+            for metric, series_id in self.economic_metrics.items():
+                c_label = ctk.CTkLabel(self.current_row, text=f"{metric} (Current):", font=("Arial", 16, "bold"))
+                c_value_label = ctk.CTkLabel(self.current_row, text="Loading...", font=("Arial", 16, "bold"))
+                c_label.pack(side="left", padx=(10, 5))
+                c_value_label.pack(side="left", padx=(0, 20))
+                self.data_fields["current"][metric] = c_value_label
 
-            p_label = ctk.CTkLabel(self.previous_row, text=f"{metric} (Previous):", font=("Arial", 16, "italic"))
-            p_value_label = ctk.CTkLabel(self.previous_row, text="Loading...", font=("Arial", 16, "italic"))
-            p_label.pack(side="left", padx=(10, 5))
-            p_value_label.pack(side="left", padx=(0, 20))
-            self.data_fields["previous"][metric] = p_value_label
+                p_label = ctk.CTkLabel(self.previous_row, text=f"{metric} (Previous):", font=("Arial", 16, "italic"))
+                p_value_label = ctk.CTkLabel(self.previous_row, text="Loading...", font=("Arial", 16, "italic"))
+                p_label.pack(side="left", padx=(10, 5))
+                p_value_label.pack(side="left", padx=(0, 20))
+                self.data_fields["previous"][metric] = p_value_label
 
-        self.fig, self.ax = plt.subplots(figsize=(6, 4))
-        self.canvas = FigureCanvasTkAgg(self.fig, master=parent)
-        self.canvas_widget = self.canvas.get_tk_widget()
-        self.canvas_widget.pack(pady=20)
+            self.fig, self.ax = plt.subplots(figsize=(6, 4))
+            self.canvas = FigureCanvasTkAgg(self.fig, master=parent)
+            self.canvas_widget = self.canvas.get_tk_widget()
+            self.canvas_widget.pack(pady=20)
 
-        self.error_label = ctk.CTkLabel(parent, text="", text_color="red", font=("Arial", 12))
-        self.error_label.pack(pady=5)
+            self.error_label = ctk.CTkLabel(parent, text="", text_color="red", font=("Arial", 12))
+            self.error_label.pack(pady=5)
 
-        footer_frame = ctk.CTkFrame(parent, fg_color="transparent")
-        footer_frame.pack(fill="x", pady=20)
-        copyright_label = ctk.CTkLabel(
-            footer_frame,
-            text="© Zephyr Analytics 2024",
-            font=ctk.CTkFont(size=12)
-        )
-        copyright_label.pack()
+            # Add button to trigger yield curve plot
+            self.plot_button = ctk.CTkButton(
+                parent, text="Plot Yield Curve", command=self.update_plot, font=("Arial", 14, "bold")
+            )
+            self.plot_button.pack(pady=10)
+
+            footer_frame = ctk.CTkFrame(parent, fg_color="transparent")
+            footer_frame.pack(fill="x", pady=20)
+            copyright_label = ctk.CTkLabel(
+                footer_frame,
+                text="© Zephyr Analytics 2025",
+                font=ctk.CTkFont(size=12)
+            )
+            copyright_label.pack()
 
 
     def fetch_economic_data(self, series_id):
@@ -210,3 +215,7 @@ class EconomicTab:
             self.plot_yield_curve(yield_data)
         except Exception as e:
             self.error_label.configure(text=f"Error: {str(e)}")
+
+
+    def update_tab(self):
+        pass

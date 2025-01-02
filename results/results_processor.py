@@ -41,7 +41,7 @@ class ResultsProcessor:
         self.num_assets = data_models.num_assets_to_select
         self.trading_frequency = data_models.trading_frequency
         self.processing_type = data_models.processing_type
-        self.sma_window = data_models.sma_window
+        self.ma_window = data_models.ma_window
 
 
     def plot_portfolio_value(self, filename='portfolio_value'):
@@ -153,7 +153,7 @@ class ResultsProcessor:
             )
         )
 
-        utilities.save_html(fig, filename, self.weights_filename, self.output_filename, self.processing_type, self.num_assets, self.sma_window)
+        utilities.save_html(fig, filename, self.weights_filename, self.output_filename, self.processing_type, self.num_assets, self.ma_window)
 
 
     def plot_var_cvar(self, confidence_level=0.95, filename='var_cvar'):
@@ -245,7 +245,7 @@ class ResultsProcessor:
                 )
             ]
         )
-        utilities.save_html(fig, filename, self.weights_filename, self.output_filename, self.processing_type, self.num_assets, self.sma_window)
+        utilities.save_html(fig, filename, self.weights_filename, self.output_filename, self.processing_type, self.num_assets, self.ma_window)
 
 
     def plot_monte_carlo_simulation(
@@ -306,7 +306,6 @@ class ResultsProcessor:
             yaxis_title='Portfolio Value ($)',
             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
             annotations=[
-                # Watermark annotation
                 dict(
                     xref='paper', yref='paper', x=0.5, y=0.2,
                     text="© Zephyr Analytics",
@@ -319,8 +318,7 @@ class ResultsProcessor:
             ]
         )
 
-        # Save the plot as an HTML file
-        utilities.save_html(fig, filename, self.weights_filename, self.output_filename, self.processing_type, self.num_assets, self.sma_window)
+        utilities.save_html(fig, filename, self.weights_filename, self.output_filename, self.processing_type, self.num_assets, self.ma_window)
 
 
     def plot_returns_heatmaps(self, filename='returns_heatmap'):
@@ -336,7 +334,6 @@ class ResultsProcessor:
         monthly_returns = self.portfolio_returns.resample('M').sum()
         yearly_returns = self.portfolio_returns.resample('Y').sum()
         monthly_returns.index = monthly_returns.index + pd.DateOffset(months=1)
-        # yearly_returns.index = yearly_returns.index + pd.DateOffset(months=1)
         monthly_returns_df = monthly_returns.to_frame(name='Monthly Return')
         monthly_returns_df['Monthly Return'] *= 100
         monthly_returns_df['Year'] = monthly_returns_df.index.year
@@ -347,6 +344,13 @@ class ResultsProcessor:
         yearly_returns_df['Yearly Return'] *= 100
         yearly_returns_df['Year'] = yearly_returns_df.index.year
         yearly_returns_df = yearly_returns_df.sort_values('Year')
+
+        all_returns = np.concatenate([
+            monthly_heatmap_data.values.flatten(),
+            yearly_returns_df['Yearly Return'].values
+        ])
+        zmin, zmax = np.nanmin(all_returns), np.nanmax(all_returns)
+
         fig = sp.make_subplots(
             rows=2, cols=1,
             subplot_titles=("Monthly Returns Heatmap", "Yearly Returns Heatmap"),
@@ -354,12 +358,19 @@ class ResultsProcessor:
             row_heights=[0.75, 0.25],
             vertical_spacing=0.1
         )
+
         fig.add_trace(go.Heatmap(
             z=monthly_heatmap_data.values,
             x=['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
             y=monthly_heatmap_data.index,
-            colorscale='RdYlGn',
-            colorbar=dict(title="Color Scale", tickformat=".2%"),
+            colorscale=[
+                [0.0, 'red'],
+                [(0 - zmin) / (zmax - zmin), 'white'],
+                [1.0, 'green']
+            ],
+            zmin=zmin,
+            zmax=zmax,
+            showscale=False,
         ), row=1, col=1)
         monthly_annotations = []
         for i in range(monthly_heatmap_data.shape[0]):
@@ -370,19 +381,9 @@ class ResultsProcessor:
                         dict(
                             text=f"{value:.2f}%",
                             x=[
-                                'Jan',
-                                'Feb',
-                                'Mar',
-                                'Apr',
-                                'May',
-                                'Jun',
-                                'Jul',
-                                'Aug',
-                                'Sep',
-                                'Oct',
-                                'Nov',
-                                'Dec'
-                                ][j],
+                                'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                                'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+                            ][j],
                             y=monthly_heatmap_data.index[i],
                             xref='x1',
                             yref='y1',
@@ -394,7 +395,13 @@ class ResultsProcessor:
             z=[yearly_returns_df['Yearly Return'].values],
             x=yearly_returns_df['Year'],
             y=["Yearly Returns"],
-            colorscale='RdYlGn',
+            colorscale=[
+                [0.0, 'red'],
+                [(0 - zmin) / (zmax - zmin), 'white'],
+                [1.0, 'green']
+            ],
+            zmin=zmin,
+            zmax=zmax,
             showscale=False,
         ), row=2, col=1)
         yearly_annotations = []
@@ -425,5 +432,4 @@ class ResultsProcessor:
             ]
         )
 
-        # Save the plot as an HTML file
-        utilities.save_html(fig, filename, self.weights_filename, self.output_filename, self.processing_type, self.num_assets, self.sma_window)
+        utilities.save_html(fig, filename, self.weights_filename, self.output_filename, self.processing_type, self.num_assets, self.ma_window)

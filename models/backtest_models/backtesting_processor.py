@@ -51,13 +51,14 @@ class BacktestingProcessor(ABC):
         self.output_filename = data_models.weights_filename
         self.rebalance_threshold = 0.02
         self.weighting_strategy = data_models.weighting_strategy
-        self.sma_period = int(data_models.sma_window)
+        self.ma_period = int(data_models.ma_window)
         self.bond_ticker = str(data_models.bond_ticker)
         self.cash_ticker = str(data_models.cash_ticker)
         self.initial_portfolio_value = int(data_models.initial_portfolio_value)
         self.num_assets_to_select = int(data_models.num_assets_to_select)
-        self.threshold_asset = str(data_models.sma_threshold_asset)
+        self.threshold_asset = str(data_models.ma_threshold_asset)
         self.processing_type = data_models.processing_type
+        self.ma_type = data_models.ma_type
 
         self._data = None
         self._momentum_data = None

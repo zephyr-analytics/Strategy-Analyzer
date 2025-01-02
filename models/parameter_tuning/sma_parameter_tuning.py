@@ -8,17 +8,18 @@ import json
 import plotly.express as px
 
 import utilities as utilities
+from models.models_data import ModelsData
 from models.parameter_tuning.parameter_tuning_processor import ParameterTuningProcessor
 from models.backtest_models.sma_backtesting import SmaBacktestPortfolio
 
 
 class SmaParameterTuning(ParameterTuningProcessor):
     """
-    Processor for creating portfolio signals using the _run_backtest method.
+    Processor for parameter tuning based on the an SMA portfolio.
     """
-    def __init__(self, models_data):
+    def __init__(self, models_data: ModelsData):
         """
-        Initializes the CreateSignals class.
+        Initializes the parameter tuning class.
 
         Parameters
         ----------
@@ -28,82 +29,110 @@ class SmaParameterTuning(ParameterTuningProcessor):
         super().__init__(models_data)
 
     def process(self):
+        """
+        Method for processing within the sma parameter tuning class.
+        """
         results = self.get_portfolio_results()
         self.plot_results(results=results)
         self.persist_results(results=results)
 
-    def get_portfolio_results(self):
+    def get_portfolio_results(self) -> dict:
         """
         Processes parameters for tuning and stores results.
-        
+
         Returns
         -------
         dict
             A dictionary of backtest results and portfolio statistics from parameter tuning.
         """
         results = {}
-        sma_list = [21, 42, 63, 84, 105, 126, 147, 168, 189, 210]
+        ma_list = [21, 42, 63, 84, 105, 126, 147, 168, 189, 210]
         trading_frequencies = ["Monthly", "Bi-Monthly"]
+        ma_types = ["SMA", "EMA"]
 
-        for sma in sma_list:
+        for ma in ma_list:
             for frequency in trading_frequencies:
-                self.data_models.sma_window = sma
-                self.data_models.trading_frequency = frequency
+                for ma_type in ma_types:
+                    self.data_models.ma_window = ma
+                    self.data_models.trading_frequency = frequency
+                    self.data_models.ma_type = ma_type
 
-                backtest = SmaBacktestPortfolio(self.data_models)
-                backtest.process()
+                    backtest = SmaBacktestPortfolio(self.data_models)
+                    backtest.process()
 
-                cagr = self.data_models.cagr
-                average_annual_return = self.data_models.average_annual_return
-                max_drawdown = self.data_models.max_drawdown
-                var = self.data_models.var
-                cvar = self.data_models.cvar
-                annual_volatility = self.data_models.annual_volatility
+                    cagr = self.data_models.cagr
+                    average_annual_return = self.data_models.average_annual_return
+                    max_drawdown = self.data_models.max_drawdown
+                    var = self.data_models.var
+                    cvar = self.data_models.cvar
+                    annual_volatility = self.data_models.annual_volatility
 
-                results[(sma, frequency)] = {
-                    "cagr": cagr,
-                    "average_annual_return": average_annual_return,
-                    "max_drawdown": max_drawdown,
-                    "var": var,
-                    "cvar": cvar,
-                    "annual_volatility": annual_volatility
-                }
+                    results[(ma, frequency, ma_type)] = {
+                        "cagr": cagr,
+                        "average_annual_return": average_annual_return,
+                        "max_drawdown": max_drawdown,
+                        "var": var,
+                        "cvar": cvar,
+                        "annual_volatility": annual_volatility
+                    }
 
         return results
 
-    def plot_results(self, results):
+    def plot_results(self, results: dict):
         """
-        Plot results from the SMA strategy testing.
+        Plot results from the MA strategy testing.
+
+        Parameters
+        ----------
+        results : dict
+            Dictionary of results from parameter tuning.
         """
         data = {
-            "SMA_strategy": [
-                f"SMA_{key[0]}_Freq_{key[1]}" for key in results.keys()
+            "MA_Strategy": [
+                f"MA:{key[0]} Freq:{key[1]} Type:{key[2]}" for key in results.keys()
             ],
             "cagr": [v["cagr"] for v in results.values()],
             "annual_volatility": [v["annual_volatility"] for v in results.values()],
             "max_drawdown": [v["max_drawdown"] for v in results.values()],
             "var": [v["var"] for v in results.values()],
             "cvar": [v["cvar"] for v in results.values()],
+            "sharpe_ratio": [
+                v["cagr"] / v["annual_volatility"] if v["annual_volatility"] != 0 else None 
+                for v in results.values()
+            ]
         }
 
-        data["SMA_length"] = [key.split('_')[1] for key in data["SMA_strategy"]]
-
+        trimmed_twilight = px.colors.cyclical.Twilight[1:]
         fig = px.scatter(
             data,
             x='annual_volatility',
             y='cagr',
-            color='SMA_length',
-            hover_data=['SMA_strategy', 'max_drawdown', 'var', 'cvar'],
+            color='sharpe_ratio',
+            color_continuous_scale=trimmed_twilight[::-1],
+            hover_data=['MA_Strategy', 'max_drawdown', 'var', 'cvar'],
             labels={
                 "cagr": "Compound Annual Growth Rate",
                 "annual_volatility": "Annual Volatility"
             },
-            title="Scatter Plot of SMA Strategies"
+            title="Possible MA Strategies"
+        )
+        fig.update_layout(
+            annotations=[
+                dict(
+                    xref='paper', yref='paper', x=0.5, y=0.2,
+                    text="© Zephyr Analytics",
+                    showarrow=False,
+                    font=dict(size=80, color="#f8f9f9"),
+                    xanchor='center',
+                    yanchor='bottom',
+                    opacity=0.5
+                )
+            ]
         )
 
         utilities.save_fig(fig, self.data_models.weights_filename, self.data_models.processing_type)
 
-    def persist_results(self, results):
+    def persist_results(self, results: dict):
         """
         Persists the results dictionary as a JSON file.
 
@@ -111,15 +140,13 @@ class SmaParameterTuning(ParameterTuningProcessor):
         ----------
         results : dict
             The dictionary containing SMA backtest results and portfolio statistics.
-        file_path : str
-            The path to the JSON file where the results will be saved.
         """
         current_directory = os.getcwd()
         artifacts_directory = os.path.join(current_directory, "artifacts", "data")
         os.makedirs(artifacts_directory, exist_ok=True)
 
         full_path = os.path.join(artifacts_directory, "sma_parameter_tune.json")
-        results_serializable = {f"SMA_{key[0]}_Freq_{key[1]}": value for key, value in results.items()}
+        results_serializable = {f"MA_{key[0]}_Freq_{key[1]}": value for key, value in results.items()}
         with open(full_path, 'w') as json_file:
             json.dump(results_serializable, json_file, indent=4)
         print(f"Results successfully saved to {full_path}")

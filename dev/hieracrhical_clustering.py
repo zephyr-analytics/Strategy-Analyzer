@@ -128,5 +128,5 @@ if __name__ == "__main__":
                'DIA', 'QQQ', 'SPY']
 
 # Decreasing max_distance will create a more diverse portfolio, increasing max_distance will makes less diverse.
-    portfolio = ClusteringPortfolio(tickers=tickers, start_date='2018-01-01', end_date='2023-11-30', max_distance=0.5)
+    portfolio = ClusteringPortfolio(tickers=tickers, start_date='2020-01-01', end_date='2024-12-27', max_distance=0.5)
     portfolio.process()
