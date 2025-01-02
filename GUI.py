@@ -1,7 +1,6 @@
 import customtkinter as ctk
 from gui import *
 from models.models_data import ModelsData
-from portfolio_management.portfolio_data import PortfolioData
 
 import utilities as utilities
 
@@ -17,15 +16,11 @@ class PortfolioAnalyzer(ctk.CTk):
         models_data = ModelsData()
         self.data_models = models_data
 
-        portfolio_data = PortfolioData()
-        self.data_portfolios = portfolio_data
-
         self.bold_font = ctk.CTkFont(size=12, weight="bold", family="Arial")
 
         icon_path = utilities.resource_path("images/Zephyr Analytics-Clipped.ico")
         self.iconbitmap(icon_path)
 
-        # Display acknowledgment popup
         # self.show_acknowledgment_popup()
 
         self.create_widgets()
@@ -76,10 +71,6 @@ class PortfolioAnalyzer(ctk.CTk):
         testing_tab_frame = self.high_level_tab_control.add("Testing")
         self.testing_tab = TestingTab(testing_tab_frame, models_data=self.data_models)
 
-        # # Add Portfolio Management Tab
-        # portfolio_tab_frame = self.high_level_tab_control.add("Portfolio Management")
-        # self.portfolio_tab = PortfolioTab(portfolio_tab_frame, portfolio_data=self.data_portfolios)
-
         # Set initial tab
         self.high_level_tab_control.set("Initial Testing Setup")
 
@@ -95,8 +86,6 @@ class PortfolioAnalyzer(ctk.CTk):
             self.setup_tab.update_tab()
         elif active_tab == "Testing":
             self.testing_tab.update_tab()
-        # elif active_tab == "Portfolio Management":
-        #     self.portfolio_tab.update_tab()
 
 
 if __name__ == "__main__":
