@@ -366,8 +366,8 @@ class SetupTab:
         self.bottom_text = ctk.CTkLabel(
             self.bottom_text_frame,
             text=f"Loaded Assets and Weights from: \n\n{self.data_models.weights_filename}:\n{assets_text}",
-            text_color="blue",
-            fg_color="#edeaea"
+            font=self.bold_font,
+            fg_color="transparent"
         )
         self.bottom_text.pack(pady=5)
 
