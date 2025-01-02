@@ -73,7 +73,7 @@ class EconomicTab:
             footer_frame.pack(fill="x", pady=20)
             copyright_label = ctk.CTkLabel(
                 footer_frame,
-                text="© Zephyr Analytics 2024",
+                text="© Zephyr Analytics 2025",
                 font=ctk.CTkFont(size=12)
             )
             copyright_label.pack()

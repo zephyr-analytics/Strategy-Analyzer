@@ -76,7 +76,7 @@ class TestingTab:
         # Add copyright info
         copyright_label = ctk.CTkLabel(
             self.parent,
-            text="© Zephyr Analytics 2024",
+            text="© Zephyr Analytics 2025",
             font=ctk.CTkFont(size=12)
         )
         copyright_label.pack()
@@ -158,68 +158,6 @@ class TestingTab:
             hover_color="#8e44ad",
             command=lambda: self.execute_task_for_tab(tab_name),
         ).pack(pady=10)
-
-        ctk.CTkLabel(
-            tab,
-            text="Select Plot:",
-            font=ctk.CTkFont(size=14),
-        ).pack(pady=10)
-
-# TODO this is still broken plots do not up nor when changing selection does button 
-# function change what plot is populated within the webbroswer.
-
-        plot_files = self.get_all_plot_files()
-        self.plot_var = ctk.StringVar(value=plot_files[0] if plot_files else "No plots available")
-        plot_dropdown = ctk.CTkOptionMenu(
-            tab,
-            fg_color="#bb8fce",
-            text_color="#000000",
-            button_color="#8e44ad",
-            button_hover_color="#8e44ad",
-            values=plot_files if plot_files else ["No plots available"],
-            variable=self.plot_var,
-        )
-        plot_dropdown.pack(pady=10)
-
-        ctk.CTkButton(
-            tab,
-            text="Display Plot",
-            fg_color="#bb8fce",
-            text_color="#000000",
-            hover_color="#8e44ad",
-            command=self.update_plot_display,
-        ).pack(pady=10)
-
-
-    def get_all_plot_files(self):
-        """
-        Fetch all .html plot files from all subdirectories in the artifacts folder.
-        Returns a list of paths relative to the artifacts directory.
-        """
-        if not os.path.exists(self.artifacts_directory):
-            os.makedirs(self.artifacts_directory)
-
-        plot_files = []
-        for root, _, files in os.walk(self.artifacts_directory):
-            for file in files:
-                if file.endswith(".html"):
-                    rel_path = os.path.relpath(os.path.join(root, file), self.artifacts_directory)
-                    plot_files.append(rel_path)
-        return plot_files
-
-
-    def update_plot_display(self):
-        """
-        Opens the selected plot in the default web browser.
-        """
-        selected_plot = self.plot_var.get()
-        file_path = os.path.join(self.artifacts_directory, selected_plot)
-
-        if not os.path.exists(file_path):
-            self.display_result(f"File not found: {file_path}")
-            return
-
-        webbrowser.open(f"file://{file_path}")
 
 
     def execute_task_for_tab(self, tab_name):

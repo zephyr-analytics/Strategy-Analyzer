@@ -93,11 +93,11 @@ class BacktestMomentumPortfolio(BacktestingProcessor):
         momentum_12m = (self._momentum_data.loc[:current_date].iloc[-252:] + 1).prod() - 1
         return (momentum_3m + momentum_6m + momentum_9m + momentum_12m) / 4
 
-
     def adjust_weights(
             self,
             current_date: datetime,
             selected_assets: pd.DataFrame,
+            filter_negative_momentum: bool = True,
             selected_out_of_market_assets=None
         ) -> dict:
         """
@@ -109,6 +109,8 @@ class BacktestMomentumPortfolio(BacktestingProcessor):
             The current date for which the weights are being adjusted.
         selected_assets : DataFrame
             DataFrame of selected assets and their weights.
+        filter_negative_momentum : bool, optional
+            Whether to filter out assets with negative momentum. Default is True.
 
         Returns
         -------
@@ -117,9 +119,13 @@ class BacktestMomentumPortfolio(BacktestingProcessor):
         """
         trading_assets = selected_assets[selected_assets['Asset'] != self.threshold_asset]
 
-        num_assets = len(trading_assets)
-        equal_weight = 1 / num_assets
-        adjusted_weights = {asset: equal_weight for asset in trading_assets['Asset']}
+        def get_replacement_asset():
+            """
+            Determines the replacement asset (cash or bond) based on SMA.
+            """
+            if self.bond_ticker and not is_below_sma(self.bond_ticker):
+                return self.bond_ticker
+            return self.cash_ticker
 
         def is_below_sma(ticker: str):
             """
@@ -134,41 +140,27 @@ class BacktestMomentumPortfolio(BacktestingProcessor):
             sma = self._data.loc[:current_date, ticker].rolling(window=self.sma_period).mean().iloc[-1]
             return price < sma
 
-        def allocate_to_safe_asset():
-            """
-            Allocates weights to a safe asset (cash or bond).
-            """
-            if self.bond_ticker and is_below_sma(self.bond_ticker):
-                return {self.cash_ticker: 1.0}
-            if self.bond_ticker:
-                return {self.bond_ticker: 1.0}
-            return {self.cash_ticker: 1.0}
+        adjusted_weights = {}
+        total_weight = 0
 
-        if self.threshold_asset and is_below_sma(self.threshold_asset):
-            return allocate_to_safe_asset()
+        for _, row in trading_assets.iterrows():
+            asset = row['Asset']
+            momentum = row['Momentum']
 
-        for ticker in list(adjusted_weights.keys()):
-            if is_below_sma(ticker):
-                safe_asset = self.cash_ticker
-                if self.bond_ticker and not is_below_sma(self.bond_ticker):
-                    safe_asset = self.bond_ticker
-                adjusted_weights[safe_asset] = adjusted_weights.get(safe_asset, 0) + adjusted_weights[ticker]
-                adjusted_weights[ticker] = 0
+            # Apply conditional logic for filtering negative momentum
+            if (filter_negative_momentum and momentum <= 0) or is_below_sma(asset):
+                replacement_asset = get_replacement_asset()
+                adjusted_weights[replacement_asset] = adjusted_weights.get(replacement_asset, 0) + 1
+            else:
+                adjusted_weights[asset] = adjusted_weights.get(asset, 0) + 1
 
-        actual_assets_count = sum(1 for weight in adjusted_weights.values() if weight > 0)
-        if actual_assets_count < self.num_assets_to_select:
-            fill_asset = self.cash_ticker
-            if self.bond_ticker and not is_below_sma(self.bond_ticker):
-                fill_asset = self.bond_ticker
-            fill_weight = (self.num_assets_to_select - actual_assets_count) / self.num_assets_to_select
-            adjusted_weights[fill_asset] = adjusted_weights.get(fill_asset, 0) + fill_weight
+            total_weight += 1
 
-        total_weight = sum(adjusted_weights.values())
+        # Normalize weights
         adjusted_weights = {ticker: weight / total_weight for ticker, weight in adjusted_weights.items()}
 
         print(f'{current_date}: Weights: {adjusted_weights}')
         return adjusted_weights
-
 
     def run_backtest(self):
         """

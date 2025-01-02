@@ -14,10 +14,10 @@ class ModelsData:
         """
         self._assets_weights = {}
         self._adjusted_weights = {}
-        self._bond_ticker = "BND"
+        self._bond_ticker = ""
         self._buy_and_hold_values = pd.Series
         self._buy_and_hold_returns = pd.Series
-        self._cash_ticker = "SGOV"
+        self._cash_ticker = "SHV"
         self._end_date = datetime.today().strftime('%Y-%m-%d')
         self._initial_portfolio_value = 10000
         self._num_simulations = 1000

@@ -65,8 +65,8 @@ class PortfolioAnalyzer(ctk.CTk):
         self.high_level_tab_control.pack(expand=1, fill="both")
 
         # # Add Economics Tab
-        economic_tab_frame = self.high_level_tab_control.add("Economics")
-        self.economic_tab = EconomicTab(economic_tab_frame)
+        # economic_tab_frame = self.high_level_tab_control.add("Economics")
+        # self.economic_tab = EconomicTab(economic_tab_frame)
 
         # Add Initial Testing Setup Tab
         setup_tab_frame = self.high_level_tab_control.add("Initial Testing Setup")
@@ -89,14 +89,14 @@ class PortfolioAnalyzer(ctk.CTk):
         Determines the active tab and calls the update_tab method of the respective tab.
         """
         active_tab = self.high_level_tab_control.get()
-        if active_tab == "Economics":
-            self.economic_tab.update_tab()
-        elif active_tab == "Initial Testing Setup":
+        # if active_tab == "Economics":
+        #     self.economic_tab.update_tab()
+        if active_tab == "Initial Testing Setup":
             self.setup_tab.update_tab()
         elif active_tab == "Testing":
             self.testing_tab.update_tab()
-        elif active_tab == "Portfolio Management":
-            self.portfolio_tab.update_tab()
+        # elif active_tab == "Portfolio Management":
+        #     self.portfolio_tab.update_tab()
 
 
 if __name__ == "__main__":
