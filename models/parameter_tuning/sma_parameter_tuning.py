@@ -80,8 +80,8 @@ class SmaParameterTuning(ParameterTuningProcessor):
         Plot results from the SMA strategy testing.
         """
         data = {
-            "SMA_strategy": [
-                f"SMA_{key[0]}_Freq_{key[1]}" for key in results.keys()
+            "MA_strategy": [
+                f"MA_{key[0]}_Freq_{key[1]}" for key in results.keys()
             ],
             "cagr": [v["cagr"] for v in results.values()],
             "annual_volatility": [v["annual_volatility"] for v in results.values()],
@@ -90,19 +90,19 @@ class SmaParameterTuning(ParameterTuningProcessor):
             "cvar": [v["cvar"] for v in results.values()],
         }
 
-        data["SMA_length"] = [key.split('_')[1] for key in data["SMA_strategy"]]
+        data["MA_Length"] = [key.split('_')[1] for key in data["MA_strategy"]]
 
         fig = px.scatter(
             data,
             x='annual_volatility',
             y='cagr',
-            color='SMA_length',
-            hover_data=['SMA_strategy', 'max_drawdown', 'var', 'cvar'],
+            color='MA_Length',
+            hover_data=['MA_strategy', 'max_drawdown', 'var', 'cvar'],
             labels={
                 "cagr": "Compound Annual Growth Rate",
                 "annual_volatility": "Annual Volatility"
             },
-            title="Scatter Plot of SMA Strategies"
+            title="Scatter Plot of MA Strategies"
         )
 
         utilities.save_fig(fig, self.data_models.weights_filename, self.data_models.processing_type)

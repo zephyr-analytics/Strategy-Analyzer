@@ -645,7 +645,7 @@ class SetupTab:
             Additional arguments passed by the trace method.
         """
         _ = args
-        self.data_models.ma_type = bool(self.ma_type_var.get())
+        self.data_models.ma_type = str(self.ma_type_var.get())
 
     def update_tab(self):
         """

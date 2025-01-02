@@ -49,7 +49,7 @@ class ModelsData:
         self._risk_metric = None
         self._risk_tolerance = float(0.10)
         self._negative_mom = True
-        self._ma_type = "SMA"
+        self._ma_type = str
 
     @property
     def assets_weights(self):
