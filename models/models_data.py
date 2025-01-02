@@ -48,6 +48,7 @@ class ModelsData:
         self._return_metric = None
         self._risk_metric = None
         self._risk_tolerance = float(0.10)
+        self._negative_mom = True
 
 
     @property
@@ -820,3 +821,24 @@ class ModelsData:
             value (int): Integer representing the contribution.
         """
         self._risk_tolerance = value
+
+
+    @property
+    def negative_mom(self):
+        """
+        Gets the contribution.
+
+        Returns:
+            int: Integer representing the contribution.
+        """
+        return self._negative_mom
+
+    @negative_mom.setter
+    def negative_mom(self, value):
+        """
+        Sets the contribution.
+
+        Args:
+            value (int): Integer representing the contribution.
+        """
+        self._negative_mom = value

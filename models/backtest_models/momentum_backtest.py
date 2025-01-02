@@ -57,7 +57,7 @@ class BacktestMomentumPortfolio(BacktestingProcessor):
             An instance of the ModelsData class containing all relevant parameters and data for backtesting.
         """
         super().__init__(data_models=data_models)
-
+        self.filter_negative_momentum = data_models.negative_mom
 
     def process(self):
         """
@@ -97,7 +97,7 @@ class BacktestMomentumPortfolio(BacktestingProcessor):
             self,
             current_date: datetime,
             selected_assets: pd.DataFrame,
-            filter_negative_momentum: bool = True,
+            filter_negative_momentum: bool,
             selected_out_of_market_assets=None
         ) -> dict:
         """
@@ -193,7 +193,7 @@ class BacktestMomentumPortfolio(BacktestingProcessor):
             selected_assets = pd.DataFrame({'Asset': momentum.nlargest(self.num_assets_to_select).index, 'Momentum': momentum.nlargest(self.num_assets_to_select).values})
             print(selected_assets)
             # Adjust weights based on the selected assets
-            adjusted_weights = self.adjust_weights(last_date_current_month, selected_assets)
+            adjusted_weights = self.adjust_weights(last_date_current_month, selected_assets, self.filter_negative_momentum)
 
             previous_value = portfolio_values[-1]
             month_end_data = self._data.loc[last_date_current_month]

@@ -44,6 +44,7 @@ class SetupTab:
             value=self.data_models.num_assets_to_select
         )
         self.mom_threshold_asset_entry_var = ctk.StringVar()
+        self.negative_mom_var = ctk.StringVar()
         self.bold_font = ctk.CTkFont(size=12, weight="bold", family="Arial")
         self.bottom_text_frame = ctk.CTkFrame(self.parent, fg_color="transparent")
         self.create_initial_testing_tab(self.parent)
@@ -170,10 +171,10 @@ class SetupTab:
         ma_frame.grid_columnconfigure(3, weight=1)
 
         ctk.CTkLabel(ma_frame, text="Moving Average Window (days):", font=self.bold_font).grid(row=ma_frame_rows, column=0, sticky="e", padx=5)
-        sma_windows = ["21", "42", "63", "84", "105", "126", "147", "168", "189", "210"]
+        ma_windows = ["21", "42", "63", "84", "105", "126", "147", "168", "189", "210"]
         ctk.CTkOptionMenu(
             ma_frame,
-            values=sma_windows,
+            values=ma_windows,
             fg_color="#bb8fce",
             text_color="#000000",
             button_color="#8e44ad",
@@ -188,23 +189,38 @@ class SetupTab:
 
 
         # Momentum Settings
+        momentum_frame_rows = 0
         momentum_frame = ctk.CTkFrame(parent, fg_color="#f5f5f5")
         momentum_frame.pack(fill="x", pady=10, padx=10)
-        ctk.CTkLabel(momentum_frame, text="Momentum Settings", font=self.bold_font).grid(row=0, column=0, columnspan=4, sticky="ew", pady=5)
+        ctk.CTkLabel(momentum_frame, text="Momentum Settings", font=self.bold_font).grid(row=momentum_frame_rows, column=0, columnspan=4, sticky="ew", pady=5)
+        momentum_frame_rows += 1
+
         momentum_frame.grid_columnconfigure(0, weight=1)
         momentum_frame.grid_columnconfigure(1, weight=1)
         momentum_frame.grid_columnconfigure(2, weight=1)
         momentum_frame.grid_columnconfigure(3, weight=1)
 
-        ctk.CTkLabel(momentum_frame, text="Number of assets to select:", font=self.bold_font).grid(row=1, column=0, sticky="e", padx=5)
-        ctk.CTkEntry(momentum_frame, textvariable=self.num_assets_to_select_entry_var).grid(row=1, column=1, sticky="w", padx=5)
+        ctk.CTkLabel(momentum_frame, text="Number of assets to select:", font=self.bold_font).grid(row=momentum_frame_rows, column=0, sticky="e", padx=5)
+        ctk.CTkEntry(momentum_frame, textvariable=self.num_assets_to_select_entry_var).grid(row=momentum_frame_rows, column=1, sticky="w", padx=5)
         self.num_assets_to_select_entry_var.trace_add("write", self.update_num_assets_to_select)
 
-        # TODO this becomes MOM threshold asset.
-        ctk.CTkLabel(momentum_frame, text="Momentum Threshold Asset:", font=self.bold_font).grid(row=1, column=2, sticky="e", padx=5)
-        ctk.CTkEntry(momentum_frame, textvariable=self.mom_threshold_asset_entry_var).grid(row=1, column=3, sticky="w", padx=5)
+        ctk.CTkLabel(momentum_frame, text="Momentum Threshold Asset:", font=self.bold_font).grid(row=momentum_frame_rows, column=2, sticky="e", padx=5)
+        ctk.CTkEntry(momentum_frame, textvariable=self.mom_threshold_asset_entry_var).grid(row=momentum_frame_rows, column=3, sticky="w", padx=5)
         self.mom_threshold_asset_entry_var.trace_add("write", self.update_mom_threshold_asset)
+        momentum_frame_rows += 1
 
+        ctk.CTkLabel(momentum_frame, text="Remove Negative Momentum:", font=self.bold_font).grid(row=momentum_frame_rows, column=0, sticky="e", padx=5)
+        negative_mom_allowed = ["True", "False"]
+        ctk.CTkOptionMenu(
+            momentum_frame,
+            values=negative_mom_allowed,
+            fg_color="#bb8fce",
+            text_color="#000000",
+            button_color="#8e44ad",
+            button_hover_color="#8e44ad",
+            variable=self.negative_mom_var
+        ).grid(row=ma_frame_rows, column=1, sticky="w", padx=5)
+        self.negative_mom_var.trace_add("write", self.update_negative_mom)
 
         # Monte Carlo Settings
         monte_carlo_frame = ctk.CTkFrame(parent, fg_color="#f5f5f5")
@@ -591,6 +607,18 @@ class SetupTab:
         """
         _ = args
         self.data_models.return_metric = str(self.return_metric_var.get())
+
+    def update_negative_mom(self, *args):
+        """
+        Updates the contribution frequency in the data model based on the entry box.
+
+        Parameters
+        ----------
+        *args : tuple
+            Additional arguments passed by the trace method.
+        """
+        _ = args
+        self.data_models.negative_mom = bool(self.negative_mom_var.get())
 
     def update_tab(self):
         """
