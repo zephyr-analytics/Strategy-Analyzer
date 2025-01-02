@@ -49,7 +49,7 @@ class ModelsData:
         self._risk_metric = None
         self._risk_tolerance = float(0.10)
         self._negative_mom = True
-
+        self._ma_type = "SMA"
 
     @property
     def assets_weights(self):
@@ -842,3 +842,24 @@ class ModelsData:
             value (int): Integer representing the contribution.
         """
         self._negative_mom = value
+
+
+    @property
+    def ma_type(self):
+        """
+        Gets the contribution.
+
+        Returns:
+            int: Integer representing the contribution.
+        """
+        return self._ma_type
+
+    @ma_type.setter
+    def ma_type(self, value):
+        """
+        Sets the contribution.
+
+        Args:
+            value (int): Integer representing the contribution.
+        """
+        self._ma_type = value

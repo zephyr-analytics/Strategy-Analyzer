@@ -123,21 +123,33 @@ class BacktestMomentumPortfolio(BacktestingProcessor):
             """
             Determines the replacement asset (cash or bond) based on SMA.
             """
-            if self.bond_ticker and not is_below_sma(self.bond_ticker):
+            if self.bond_ticker and not is_below_ma(self.bond_ticker):
                 return self.bond_ticker
             return self.cash_ticker
 
-        def is_below_sma(ticker: str):
+        def is_below_ma(ticker):
             """
-            Checks if the asset's price is below its SMA.
+            Checks if the price of the given ticker is below its moving average.
 
             Parameters
             ----------
             ticker : str
-                String representing ticker symbol.
+                The ticker to check.
+
+            Returns
+            -------
+            bool
+                True if the price is below the moving average, False otherwise.
             """
             price = self._data.loc[:current_date, ticker].iloc[-1]
-            ma = self._data.loc[:current_date, ticker].rolling(window=self.ma_period).mean().iloc[-1]
+
+            if self.ma_type == "SMA":
+                ma = self._data.loc[:current_date, ticker].rolling(window=self.ma_period).mean().iloc[-1]
+            elif self.ma_type == "EMA":
+                ma = self._data.loc[:current_date, ticker].ewm(span=self.ma_period).mean().iloc[-1]
+            else:
+                raise ValueError("Invalid ma_type. Choose 'SMA' or 'EMA'.")
+
             return price < ma
 
         adjusted_weights = {}
@@ -148,7 +160,7 @@ class BacktestMomentumPortfolio(BacktestingProcessor):
             momentum = row['Momentum']
 
             # Apply conditional logic for filtering negative momentum
-            if (filter_negative_momentum and momentum <= 0) or is_below_sma(asset):
+            if (filter_negative_momentum and momentum <= 0) or is_below_ma(asset):
                 replacement_asset = get_replacement_asset()
                 adjusted_weights[replacement_asset] = adjusted_weights.get(replacement_asset, 0) + 1
             else:

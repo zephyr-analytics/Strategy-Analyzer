@@ -84,26 +84,61 @@ class SmaBacktestPortfolio(BacktestingProcessor):
         ----------
         current_date : datetime
             The current date for which the weights are being adjusted.
+        selected_assets : dict or None
+            Optional preselected assets with weights. If None, uses `self.assets_weights`.
+        selected_out_of_market_assets : dict or None
+            Optional out-of-market assets to be used when replacing assets.
 
         Returns
         -------
         dict
             Dictionary of adjusted asset weights.
         """
-        adjusted_weights = self.assets_weights.copy()
+        adjusted_weights = self.assets_weights.copy() if selected_assets is None else selected_assets.copy()
 
-        for ticker in self.assets_weights.keys():
-            if self._data.loc[:current_date, ticker].iloc[-1] < self._data.loc[:current_date, ticker].rolling(window=self.ma_period).mean().iloc[-1]:
-                if self.bond_ticker == "":
-                    adjusted_weights[ticker] = 0
-                    adjusted_weights[self.cash_ticker] = adjusted_weights.get(self.cash_ticker, 0) + self.assets_weights[ticker]
-                else:
-                    if self._data.loc[:current_date, self.bond_ticker].iloc[-1] < self._data.loc[:current_date, self.bond_ticker].rolling(window=self.ma_period).mean().iloc[-1]:
-                        adjusted_weights[ticker] = 0
-                        adjusted_weights[self.cash_ticker] = adjusted_weights.get(self.cash_ticker, 0) + self.assets_weights[ticker]
-                    else:
-                        adjusted_weights[ticker] = 0
-                        adjusted_weights[self.bond_ticker] = adjusted_weights.get(self.bond_ticker, 0) + self.assets_weights[ticker]
+        def is_below_ma(ticker):
+            """
+            Checks if the price of the given ticker is below its moving average.
+
+            Parameters
+            ----------
+            ticker : str
+                The ticker to check.
+
+            Returns
+            -------
+            bool
+                True if the price is below the moving average, False otherwise.
+            """
+            price = self._data.loc[:current_date, ticker].iloc[-1]
+
+            if self.ma_type == "SMA":
+                ma = self._data.loc[:current_date, ticker].rolling(window=self.ma_period).mean().iloc[-1]
+            elif self.ma_type == "EMA":
+                ma = self._data.loc[:current_date, ticker].ewm(span=self.ma_period).mean().iloc[-1]
+            else:
+                raise ValueError("Invalid ma_type. Choose 'SMA' or 'EMA'.")
+
+            return price < ma
+
+        def get_replacement_asset():
+            """
+            Determines the replacement asset (cash or bond) based on SMA.
+
+            Returns
+            -------
+            str
+                The replacement asset ticker.
+            """
+            if self.bond_ticker and not is_below_ma(self.bond_ticker):
+                return self.bond_ticker
+            return self.cash_ticker
+
+        for ticker in list(adjusted_weights.keys()):
+            if is_below_ma(ticker):
+                replacement_asset = get_replacement_asset()
+                adjusted_weights[replacement_asset] = adjusted_weights.get(replacement_asset, 0) + adjusted_weights[ticker]
+                adjusted_weights[ticker] = 0
 
         total_weight = sum(adjusted_weights.values())
         for ticker in adjusted_weights:

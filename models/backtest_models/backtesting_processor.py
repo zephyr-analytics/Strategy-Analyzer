@@ -58,6 +58,7 @@ class BacktestingProcessor(ABC):
         self.num_assets_to_select = int(data_models.num_assets_to_select)
         self.threshold_asset = str(data_models.ma_threshold_asset)
         self.processing_type = data_models.processing_type
+        self.ma_type = data_models.ma_type
 
         self._data = None
         self._momentum_data = None

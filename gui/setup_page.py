@@ -34,6 +34,7 @@ class SetupTab:
         self.risk_tolerance_var = ctk.StringVar(value=self.data_models.risk_tolerance)
         self.risk_metric_var = ctk.StringVar(value=self.data_models.risk_metric)
         self.return_metric_var = ctk.StringVar(value=self.data_models.return_metric)
+        self.ma_type_var = ctk.StringVar()
         # TODO this needs to be added to the UI.
         self.theme_mode_var = ctk.StringVar(value=self.data_models.theme_mode)
         self.initial_portfolio_value_var = ctk.StringVar(
@@ -186,6 +187,20 @@ class SetupTab:
         ctk.CTkLabel(ma_frame, text="Moving Average Threshold Asset:", font=self.bold_font).grid(row=ma_frame_rows, column=2, sticky="e", padx=5)
         ctk.CTkEntry(ma_frame, textvariable=self.ma_threshold_asset_entry_var).grid(row=ma_frame_rows, column=3, sticky="w", padx=5)
         self.ma_threshold_asset_entry_var.trace_add("write", self.update_threshold_asset)
+        ma_frame_rows += 1
+
+        ctk.CTkLabel(ma_frame, text="Moving Average Type:", font=self.bold_font).grid(row=ma_frame_rows, column=0, sticky="e", padx=5)
+        ma_types = ["SMA", "EMA"]
+        ctk.CTkOptionMenu(
+            ma_frame,
+            values=ma_types,
+            fg_color="#bb8fce",
+            text_color="#000000",
+            button_color="#8e44ad",
+            button_hover_color="#8e44ad",
+            variable=self.ma_type_var
+        ).grid(row=ma_frame_rows, column=1, sticky="w", padx=5)
+        self.ma_type_var.trace_add("write", self.update_ma_type)
 
 
         # Momentum Settings
@@ -619,6 +634,18 @@ class SetupTab:
         """
         _ = args
         self.data_models.negative_mom = bool(self.negative_mom_var.get())
+
+    def update_ma_type(self, *args):
+        """
+        Updates the contribution frequency in the data model based on the entry box.
+
+        Parameters
+        ----------
+        *args : tuple
+            Additional arguments passed by the trace method.
+        """
+        _ = args
+        self.data_models.ma_type = bool(self.ma_type_var.get())
 
     def update_tab(self):
         """
