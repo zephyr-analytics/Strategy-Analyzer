@@ -313,7 +313,7 @@ class SetupTab:
         self.bottom_text_frame.pack(padx=5, pady=5)
         # Footer Section
         footer_frame = ctk.CTkFrame(parent, fg_color="transparent")
-        footer_frame.pack(fill="x", pady=20)
+        footer_frame.pack(fill="x", pady=10)
         # Add copyright info
         copyright_label = ctk.CTkLabel(
             footer_frame,

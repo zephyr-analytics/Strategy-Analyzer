@@ -12,7 +12,7 @@ from models.models_factory import ModelsFactory
 from processing_types import *
 import utilities as utilities
 
-# TODO Selected assets and weights are not being displayed.
+
 class TestingTab:
     """
     Handles the layout and functionality of the Testing tab.

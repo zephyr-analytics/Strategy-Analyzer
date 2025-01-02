@@ -5,6 +5,7 @@ from portfolio_management.portfolio_data import PortfolioData
 
 import utilities as utilities
 
+
 class PortfolioAnalyzer(ctk.CTk):
     """
     A GUI application for running backtests and Monte Carlo simulations on investment portfolios.
@@ -12,7 +13,6 @@ class PortfolioAnalyzer(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.title("Portfolio Analyzer")
-        self.geometry("1920x1080")
 
         models_data = ModelsData()
         self.data_models = models_data
