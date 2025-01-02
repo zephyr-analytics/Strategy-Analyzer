@@ -27,6 +27,7 @@ class MomentumParameterTuning(ParameterTuningProcessor):
             An instance of the ModelsData class that holds all necessary attributes.
         """
         super().__init__(models_data)
+        self.theme = models_data.theme_mode
 
     def process(self):
         """
@@ -123,7 +124,10 @@ class MomentumParameterTuning(ParameterTuningProcessor):
             },
             title="Possible Momentum Strategies"
         )
+        chart_theme = "plotly_dark" if self.theme.lower() == "dark" else "plotly"
+
         fig.update_layout(
+            template=chart_theme,
             annotations=[
                 dict(
                     xref='paper', yref='paper', x=0.5, y=0.2,

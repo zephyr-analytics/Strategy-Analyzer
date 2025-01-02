@@ -42,6 +42,7 @@ class ResultsProcessor:
         self.trading_frequency = data_models.trading_frequency
         self.processing_type = data_models.processing_type
         self.ma_window = data_models.ma_window
+        self.theme = data_models.theme_mode
 
 
     def plot_portfolio_value(self, filename='portfolio_value'):
@@ -58,7 +59,10 @@ class ResultsProcessor:
         """
         portfolio_value = self.portfolio_values
         final_value = portfolio_value.iloc[-1]
-
+        if self.theme.lower() == "dark":
+            line_color = "white"
+        else:
+            line_color = "black" 
         fig = go.Figure()
 
         fig.add_trace(go.Scatter(
@@ -66,7 +70,7 @@ class ResultsProcessor:
             y=portfolio_value,
             mode='lines',
             name='Portfolio Value',
-            line=dict(color="black")
+            line=dict(color=line_color)
         ))
 
         if self.buy_and_hold_values is not None:
@@ -133,7 +137,10 @@ class ResultsProcessor:
             )
         )
 
+        chart_theme = "plotly_dark" if self.theme.lower() == "dark" else "plotly"
+        
         fig.update_layout(
+            template=chart_theme,
             title=dict(
                 text=f'Portfolio Value for {self.output_filename}, # of Assets {self.num_assets}, Trading Freq {self.trading_frequency}',
                 x=0.5,
@@ -170,6 +177,11 @@ class ResultsProcessor:
         returns = self.portfolio_returns
         portfolio_value = self.portfolio_values
 
+        if self.theme.lower() == "dark":
+            line_color = "white"
+        else:
+            line_color = "black"
+
         fig = go.Figure()
         fig.add_trace(
             go.Histogram(
@@ -182,15 +194,19 @@ class ResultsProcessor:
         )
         fig.add_shape(type="line",
                     x0=self.var, y0=0, x1=self.var, y1=1,
-                    line=dict(color="Black", dash="dash"),
+                    line=dict(color=line_color, dash="dash"),
                     xref='x', yref='paper',
                     name=f'VaR ({confidence_level * 100}%): {self.var:.2%}')
         fig.add_shape(type="line",
                     x0=self.cvar, y0=0, x1=self.cvar, y1=1,
-                    line=dict(color="Black", dash="dash"),
+                    line=dict(color=line_color, dash="dash"),
                     xref='x', yref='paper',
                     name=f'CVaR ({confidence_level * 100}%): {self.cvar:.2%}')
+
+        chart_theme = "plotly_dark" if self.theme.lower() == "dark" else "plotly"
+        
         fig.update_layout(
+            template=chart_theme,
             title='Portfolio Returns with VaR and CVaR',
             xaxis_title='Returns',
             yaxis_title='Frequency',
@@ -233,7 +249,6 @@ class ResultsProcessor:
                     text=f'CVaR ({confidence_level * 100}%): {self.cvar:.2%}',
                     showarrow=False
                 ),
-                # Add the watermark annotation here
                 dict(
                     xref='paper', yref='paper', x=0.5, y=0.2,
                     text="© Zephyr Analytics",
@@ -300,7 +315,11 @@ class ResultsProcessor:
             name=f'Upper Bound (95%) (CAGR: {upper_cagr:.2%}, End Value: ${upper_end_value:,.2f})',
             line=dict(color='green', dash='dash')
         ))
+
+        chart_theme = "plotly_dark" if self.theme.lower() == "dark" else "plotly"
+        
         fig.update_layout(
+            template=chart_theme,
             title='Monte Carlo Simulation of Portfolio Value',
             xaxis_title='Year',
             yaxis_title='Portfolio Value ($)',
@@ -418,7 +437,11 @@ class ResultsProcessor:
                     showarrow=False
                 )
             )
+
+        chart_theme = "plotly_dark" if self.theme.lower() == "dark" else "plotly"
+        
         fig.update_layout(
+            template=chart_theme,
             annotations=monthly_annotations + yearly_annotations + [
                 dict(
                     xref='paper', yref='paper', x=0.5, y=0.5,
