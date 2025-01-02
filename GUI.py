@@ -1,7 +1,11 @@
+"""
+Parent module for GUI.
+"""
+
 import customtkinter as ctk
+
 from gui import *
 from models.models_data import ModelsData
-
 import utilities as utilities
 
 
@@ -21,7 +25,7 @@ class PortfolioAnalyzer(ctk.CTk):
         icon_path = utilities.resource_path("images/Zephyr Analytics-Clipped.ico")
         self.iconbitmap(icon_path)
 
-        # self.show_acknowledgment_popup()
+        self.show_acknowledgment_popup()
 
         self.create_widgets()
 

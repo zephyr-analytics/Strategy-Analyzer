@@ -4,8 +4,8 @@ Module for creating the setup page.
 
 import customtkinter as ctk
 
-import utilities as utilities
 from models.models_data import ModelsData
+import utilities as utilities
 
 
 class SetupTab:

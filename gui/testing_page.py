@@ -2,9 +2,9 @@
 Module for creating the testing page.
 """
 
-import customtkinter as ctk
-import os
 import threading
+
+import customtkinter as ctk
 
 from models.models_data import ModelsData
 from models.models_factory import ModelsFactory
