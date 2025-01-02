@@ -105,7 +105,7 @@ class TestingTab:
         self.testing_tab_control.grid(row=0, column=0, sticky="nsew")
 
         # Create individual testing tabs
-        self.create_testing_tab("SMA Strategies")
+        self.create_testing_tab("Moving Average Strategies")
         self.create_testing_tab("Momentum Strategies")
         self.create_testing_tab("Momentum In & Out Strategies")
 
@@ -172,7 +172,7 @@ class TestingTab:
         selected_run = self.tab_run_vars[tab_name].get()
 
         tab_to_model_map = {
-            "SMA Strategies": Models.SMA,
+            "Moving Average Strategies": Models.MA,
             "Momentum Strategies": Models.MOMENTUM,
             "Momentum In & Out Strategies": Models.IN_AND_OUT_OF_MARKET,
         }
