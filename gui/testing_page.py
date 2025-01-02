@@ -5,7 +5,6 @@ Module for creating the testing page.
 import customtkinter as ctk
 import os
 import threading
-import webbrowser
 
 from models.models_data import ModelsData
 from models.models_factory import ModelsFactory
@@ -23,45 +22,20 @@ class TestingTab:
         self.parent = parent
         self.bold_font = ctk.CTkFont(size=12, weight="bold", family="Arial")
 
-        # self.create_layout()
-        self.artifacts_directory = os.path.join(os.getcwd(), "artifacts")
-        self.start_date_var = ctk.StringVar(value=self.data_models.start_date)
-        self.end_date_var = ctk.StringVar(value=self.data_models.end_date)
-        self.cash_ticker_var = ctk.StringVar(value=self.data_models.cash_ticker)
-        self.bond_ticker_var = ctk.StringVar(value=self.data_models.bond_ticker)
-        self.trading_frequency_var = ctk.StringVar(value=self.data_models.trading_frequency)
-        self.weighting_strategy_var = ctk.StringVar(value=self.data_models.weighting_strategy)
-        self.sma_window_var = ctk.StringVar(value=self.data_models.ma_window)
-        self.num_simulations_var = ctk.StringVar(value=self.data_models.num_simulations)
-        self.simulation_horizon_entry_var = ctk.StringVar(value=self.data_models.simulation_horizon)
-        # TODO add benchmark asset
-        # TODO add addition portfolio contributions
         self.theme_mode_var = ctk.StringVar(value=self.data_models.theme_mode)
-        self.initial_portfolio_value_var = ctk.StringVar(
-            value=self.data_models._initial_portfolio_value
-        )
-        self.num_assets_to_select_entry_var = ctk.StringVar(
-            value=self.data_models._num_assets_to_select
-        )
-
-        # self.bottom_text = None
-        # TODO bottom_text_area might still need to be set.
         self.create_widgets()
 
 
     def create_widgets(self):
         """
+        Method for creating widgets and packing them to the canvas.
         """
-        # TODO write the docstring for this.
-        # Center frame for main tabs
         center_frame = ctk.CTkFrame(self.parent, fg_color="#edeaea")
         center_frame.pack()
 
-        # Create tabs within the center frame
         self.high_level_tab_control = ctk.CTkTabview(center_frame, fg_color="#edeaea")
         self.high_level_tab_control.pack(expand=True, fill="both")
 
-        # Add testing tabs
         self.create_testing_tabs(self.high_level_tab_control)
 
         self.bottom_text_frame = ctk.CTkFrame(self.parent, fg_color="transparent")
@@ -73,7 +47,6 @@ class TestingTab:
         self.bottom_text_result_display = ctk.CTkLabel(self.bottom_text_frame)
         self.bottom_text_result_display.pack()
 
-        # Add copyright info
         copyright_label = ctk.CTkLabel(
             self.parent,
             text="© Zephyr Analytics 2025",
@@ -101,10 +74,9 @@ class TestingTab:
             text_color="#000000",
             segmented_button_selected_hover_color="#8e44ad",
         )
-        # Use grid instead of pack
+
         self.testing_tab_control.grid(row=0, column=0, sticky="nsew")
 
-        # Create individual testing tabs
         self.create_testing_tab("Moving Average Strategies")
         self.create_testing_tab("Momentum Strategies")
         self.create_testing_tab("Momentum In & Out Strategies")

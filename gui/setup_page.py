@@ -96,11 +96,11 @@ class SetupTab:
         data_frame_rows += 1
 
         ctk.CTkLabel(data_frame, text="Select In Market Assets:", font=self.bold_font).grid(row=data_frame_rows, column=0, sticky="e", padx=5)
-        ctk.CTkButton(data_frame, text="Select Asset Weights File", fg_color="#bb8fce", text_color="#000000",
+        ctk.CTkButton(data_frame, text="Select .csv File", fg_color="#bb8fce", text_color="#000000",
                     hover_color="#8e44ad", command=self.load_weights_and_update).grid(row=data_frame_rows, column=1, sticky="w", padx=5)
 
         ctk.CTkLabel(data_frame, text="Select Out of Market Assets:", font=self.bold_font).grid(row=data_frame_rows, column=2, sticky="e", padx=5)
-        ctk.CTkButton(data_frame, text="Select Asset Weights File", fg_color="#bb8fce", text_color="#000000",
+        ctk.CTkButton(data_frame, text="Select .csv File", fg_color="#bb8fce", text_color="#000000",
                     hover_color="#8e44ad", command=self.load_out_of_market_weights_and_update).grid(row=data_frame_rows, column=3, sticky="w", padx=5)
         data_frame_rows += 1
 
