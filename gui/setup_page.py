@@ -227,6 +227,9 @@ class SetupTab:
         ctk.CTkLabel(momentum_frame, text="Momentum Settings", font=self.bold_font).grid(row=momentum_frame_rows, column=0, columnspan=4, sticky="ew")
         momentum_frame_rows += 1
 
+        ctk.CTkLabel(momentum_frame, text="Sets the momentum parameters of the trading model.", font=self.bold_font).grid(row=momentum_frame_rows, column=0, columnspan=4, sticky="ew", pady=y_padding)
+        momentum_frame_rows += 1
+
         momentum_frame.grid_columnconfigure(0, weight=1)
         momentum_frame.grid_columnconfigure(1, weight=1)
         momentum_frame.grid_columnconfigure(2, weight=1)
@@ -236,9 +239,9 @@ class SetupTab:
         ctk.CTkEntry(momentum_frame, textvariable=self.num_assets_to_select_entry_var).grid(row=momentum_frame_rows, column=1, sticky="w", padx=5, pady=y_padding)
         self.num_assets_to_select_entry_var.trace_add("write", self.update_num_assets_to_select)
 
-        ctk.CTkLabel(momentum_frame, text="Momentum Threshold Asset:", font=self.bold_font).grid(row=momentum_frame_rows, column=2, sticky="e", padx=5)
-        ctk.CTkEntry(momentum_frame, textvariable=self.mom_threshold_asset_entry_var).grid(row=momentum_frame_rows, column=3, sticky="w", padx=5, pady=y_padding)
-        self.mom_threshold_asset_entry_var.trace_add("write", self.update_mom_threshold_asset)
+        # ctk.CTkLabel(momentum_frame, text="Momentum Threshold Asset:", font=self.bold_font).grid(row=momentum_frame_rows, column=2, sticky="e", padx=5)
+        # ctk.CTkEntry(momentum_frame, textvariable=self.mom_threshold_asset_entry_var).grid(row=momentum_frame_rows, column=3, sticky="w", padx=5, pady=y_padding)
+        # self.mom_threshold_asset_entry_var.trace_add("write", self.update_mom_threshold_asset)
         momentum_frame_rows += 1
 
         ctk.CTkLabel(momentum_frame, text="Remove Negative Momentum:", font=self.bold_font).grid(row=momentum_frame_rows, column=0, sticky="e", padx=5)
@@ -254,28 +257,36 @@ class SetupTab:
         ).grid(row=momentum_frame_rows, column=1, sticky="w", padx=5, pady=y_padding)
         self.negative_mom_var.trace_add("write", self.update_negative_mom)
 
+
         # Monte Carlo Settings
+        monte_carlo_frame_rows = 0
         monte_carlo_frame = ctk.CTkFrame(parent, fg_color="transparent")
         monte_carlo_frame.pack(fill="x", pady=10, padx=10)
-        ctk.CTkLabel(monte_carlo_frame, text="Monte Carlo Settings", font=self.bold_font).grid(row=0, column=0, columnspan=4, sticky="ew")
+        ctk.CTkLabel(monte_carlo_frame, text="Monte Carlo Settings", font=self.bold_font).grid(row=monte_carlo_frame_rows, column=0, columnspan=4, sticky="ew")
+        monte_carlo_frame_rows += 1
+
+        ctk.CTkLabel(monte_carlo_frame, text="Sets the Monte Carlo parameters of the trading model.", font=self.bold_font).grid(row=monte_carlo_frame_rows, column=0, columnspan=4, sticky="ew", pady=y_padding)
+        monte_carlo_frame_rows += 1
+
         monte_carlo_frame.grid_columnconfigure(0, weight=1)
         monte_carlo_frame.grid_columnconfigure(1, weight=1)
         monte_carlo_frame.grid_columnconfigure(2, weight=1)
         monte_carlo_frame.grid_columnconfigure(3, weight=1)
 
-        ctk.CTkLabel(monte_carlo_frame, text="Simulation Horizon:", font=self.bold_font).grid(row=1, column=0, sticky="e", padx=5)
-        ctk.CTkEntry(monte_carlo_frame, textvariable=self.simulation_horizon_entry_var).grid(row=1, column=1, sticky="w", padx=5, pady=y_padding)
+        ctk.CTkLabel(monte_carlo_frame, text="Simulation Horizon:", font=self.bold_font).grid(row=monte_carlo_frame_rows, column=0, sticky="e", padx=5)
+        ctk.CTkEntry(monte_carlo_frame, textvariable=self.simulation_horizon_entry_var).grid(row=monte_carlo_frame_rows, column=1, sticky="w", padx=5, pady=y_padding)
         self.simulation_horizon_entry_var.trace_add("write", self.update_simulation_horizon)
 
-        ctk.CTkLabel(monte_carlo_frame, text="Number Simulations To Run:", font=self.bold_font).grid(row=1, column=2, sticky="e", padx=5)
-        ctk.CTkEntry(monte_carlo_frame, textvariable=self.num_simulations_var).grid(row=1, column=3, sticky="w", padx=5, pady=y_padding)
+        ctk.CTkLabel(monte_carlo_frame, text="Number Simulations To Run:", font=self.bold_font).grid(row=monte_carlo_frame_rows, column=2, sticky="e", padx=5)
+        ctk.CTkEntry(monte_carlo_frame, textvariable=self.num_simulations_var).grid(row=monte_carlo_frame_rows, column=3, sticky="w", padx=5, pady=y_padding)
         self.num_simulations_var.trace_add("write", self.update_num_simulations)
+        monte_carlo_frame_rows += 1
 
-        ctk.CTkLabel(monte_carlo_frame, text="Contribution:", font=self.bold_font).grid(row=2, column=0, sticky="e", padx=5)
-        ctk.CTkEntry(monte_carlo_frame, textvariable=self.contribution_entry_var).grid(row=2, column=1, sticky="w", padx=5, pady=y_padding)
+        ctk.CTkLabel(monte_carlo_frame, text="Contribution:", font=self.bold_font).grid(row=monte_carlo_frame_rows, column=0, sticky="e", padx=5)
+        ctk.CTkEntry(monte_carlo_frame, textvariable=self.contribution_entry_var).grid(row=monte_carlo_frame_rows, column=1, sticky="w", padx=5, pady=y_padding)
         self.contribution_entry_var.trace_add("write", self.update_contribution)
 
-        ctk.CTkLabel(monte_carlo_frame, text="Contribution Frequency:", font=self.bold_font).grid(row=2, column=2, sticky="e", padx=5)
+        ctk.CTkLabel(monte_carlo_frame, text="Contribution Frequency:", font=self.bold_font).grid(row=monte_carlo_frame_rows, column=2, sticky="e", padx=5)
         contribution_freq = ["Monthly", "Quarterly", "Yearly"]
         ctk.CTkOptionMenu(
             monte_carlo_frame,
@@ -285,7 +296,7 @@ class SetupTab:
             button_color="#8e44ad",
             button_hover_color="#8e44ad",
             variable=self.contribution_frequency_var
-        ).grid(row=2, column=3, sticky="w", padx=5, pady=y_padding)
+        ).grid(row=monte_carlo_frame_rows, column=3, sticky="w", padx=5, pady=y_padding)
         self.contribution_frequency_var.trace_add("write", self.update_contribution_frequency)
 
 
