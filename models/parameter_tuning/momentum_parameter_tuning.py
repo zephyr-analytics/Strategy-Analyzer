@@ -46,18 +46,18 @@ class MomentumParameterTuning(ParameterTuningProcessor):
             A dictionary of backtest results and portfolio statistics from parameter tuning.
         """
         results = {}
-        sma_list = [21, 42, 63, 84, 105, 126, 147, 168, 189, 210]
+        ma_list = [21, 42, 63, 84, 105, 126, 147, 168, 189, 210]
         num_asset_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
         trading_frequencies = ["Monthly", "Bi-Monthly"]
 
         total_assets = len(self.data_models.assets_weights)
 
-        for sma in sma_list:
+        for ma in ma_list:
             for frequency in trading_frequencies:
                 for num_assets in num_asset_list:
                     if num_assets > total_assets:
                         break
-                    self.data_models.sma_window = sma
+                    self.data_models.ma_window = ma
                     self.data_models.trading_frequency = frequency
                     self.data_models.num_assets_to_select = num_assets
 
@@ -71,7 +71,7 @@ class MomentumParameterTuning(ParameterTuningProcessor):
                     cvar = self.data_models.cvar
                     annual_volatility = self.data_models.annual_volatility
 
-                    results[(sma, frequency, num_assets)] = {
+                    results[(ma, frequency, num_assets)] = {
                         "cagr": cagr,
                         "average_annual_return": average_annual_return,
                         "max_drawdown": max_drawdown,
@@ -134,7 +134,7 @@ class MomentumParameterTuning(ParameterTuningProcessor):
                 "cagr": "Compound Annual Growth Rate",
                 "annual_volatility": "Annual Volatility"
             },
-            title="Scatter Plot of SMA Strategies"
+            title="Scatter Plot of Momentum Strategies"
         )
 
         # Add efficient frontier line

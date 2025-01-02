@@ -46,12 +46,12 @@ class SmaParameterTuning(ParameterTuningProcessor):
             A dictionary of backtest results and portfolio statistics from parameter tuning.
         """
         results = {}
-        sma_list = [21, 42, 63, 84, 105, 126, 147, 168, 189, 210]
+        ma_list = [21, 42, 63, 84, 105, 126, 147, 168, 189, 210]
         trading_frequencies = ["Monthly", "Bi-Monthly"]
 
-        for sma in sma_list:
+        for ma in ma_list:
             for frequency in trading_frequencies:
-                self.data_models.sma_window = sma
+                self.data_models.ma_window = ma
                 self.data_models.trading_frequency = frequency
 
                 backtest = SmaBacktestPortfolio(self.data_models)
@@ -64,7 +64,7 @@ class SmaParameterTuning(ParameterTuningProcessor):
                 cvar = self.data_models.cvar
                 annual_volatility = self.data_models.annual_volatility
 
-                results[(sma, frequency)] = {
+                results[(ma, frequency)] = {
                     "cagr": cagr,
                     "average_annual_return": average_annual_return,
                     "max_drawdown": max_drawdown,
