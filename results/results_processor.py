@@ -39,10 +39,10 @@ class ResultsProcessor:
         self.buy_and_hold_values = data_models.buy_and_hold_values
         self.weights_filename = data_models.weights_filename
         self.num_assets = data_models.num_assets_to_select
-        self.trading_frequency = data_models.trading_frequency
         self.processing_type = data_models.processing_type
         self.ma_window = data_models.ma_window
         self.theme = data_models.theme_mode
+        self.ma_type = data_models.ma_type
 
 
     def plot_portfolio_value(self, filename='portfolio_value'):
@@ -142,7 +142,7 @@ class ResultsProcessor:
         fig.update_layout(
             template=chart_theme,
             title=dict(
-                text=f'Portfolio Value for {self.output_filename}, # of Assets {self.num_assets}, Trading Freq {self.trading_frequency}',
+                text=f'Portfolio Value: {self.output_filename}, Assets: {self.num_assets}, Trading Freq: {self.trading_frequency}',
                 x=0.5,
                 y=1,
                 xanchor='center',
@@ -160,7 +160,16 @@ class ResultsProcessor:
             )
         )
 
-        utilities.save_html(fig, filename, self.weights_filename, self.output_filename, self.processing_type, self.num_assets, self.ma_window)
+        utilities.save_html(
+            fig,
+            filename,
+            self.weights_filename,
+            self.ma_type,
+            self.processing_type,
+            self.num_assets,
+            self.ma_window,
+            self.trading_frequency
+        )
 
 
     def plot_var_cvar(self, confidence_level=0.95, filename='var_cvar'):
@@ -260,7 +269,16 @@ class ResultsProcessor:
                 )
             ]
         )
-        utilities.save_html(fig, filename, self.weights_filename, self.output_filename, self.processing_type, self.num_assets, self.ma_window)
+        utilities.save_html(
+            fig,
+            filename,
+            self.weights_filename,
+            self.ma_type,
+            self.processing_type,
+            self.num_assets,
+            self.ma_window,
+            self.trading_frequency
+        )
 
 
     def plot_monte_carlo_simulation(
@@ -337,7 +355,16 @@ class ResultsProcessor:
             ]
         )
 
-        utilities.save_html(fig, filename, self.weights_filename, self.output_filename, self.processing_type, self.num_assets, self.ma_window)
+        utilities.save_html(
+            fig,
+            filename,
+            self.weights_filename,
+            self.ma_type,
+            self.processing_type,
+            self.num_assets,
+            self.ma_window,
+            self.trading_frequency
+        )
 
 
     def plot_returns_heatmaps(self, filename='returns_heatmap'):
@@ -455,4 +482,12 @@ class ResultsProcessor:
             ]
         )
 
-        utilities.save_html(fig, filename, self.weights_filename, self.output_filename, self.processing_type, self.num_assets, self.ma_window)
+        utilities.save_html(
+            fig, filename,
+            self.weights_filename,
+            self.ma_type,
+            self.processing_type,
+            self.num_assets,
+            self.ma_window,
+            self.trading_frequency
+        )
