@@ -80,7 +80,7 @@ class TestingTab:
 
         self.create_testing_tab("Moving Average Strategies")
         self.create_testing_tab("Momentum Strategies")
-        self.create_testing_tab("Momentum In & Out Strategies")
+        # self.create_testing_tab("Momentum In & Out Strategies")
 
 
     def create_testing_tab(self, tab_name):

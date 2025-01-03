@@ -20,31 +20,6 @@ warnings.filterwarnings("ignore")
 class BacktestMomentumPortfolio(BacktestingProcessor):
     """
     A class to backtest a static portfolio with adjustable weights based on Simple Moving Average (SMA).
-
-    Attributes
-    ----------
-    assets_weights : dict
-        Dictionary of asset tickers and their corresponding weights in the portfolio.
-    start_date : str
-        The start date for the backtest.
-    end_date : str
-        The end date for the backtest.
-    sma_period : int
-        The period for calculating the Simple Moving Average (SMA). Default is 168.
-    bond_ticker : str
-        The ticker symbol for the bond asset. Default is 'BND'.
-    cash_ticker : str
-        The ticker symbol for the cash asset. Default is 'SHV'.
-    initial_portfolio_value : float
-        The initial value of the portfolio. Default is 10000.
-    _data : DataFrame or None
-        DataFrame to store the adjusted closing prices of the assets.
-    _portfolio_value : Series
-        Series to store the portfolio values over time.
-    _returns : Series
-        Series to store the portfolio returns over time.
-    _momentum_data : DataFrame
-        DataFrame to store the returns data for calculating momentum.
     """
 
     def __init__(self, data_models: ModelsData):
@@ -75,7 +50,6 @@ class BacktestMomentumPortfolio(BacktestingProcessor):
         results_processor.plot_portfolio_value()
         results_processor.plot_var_cvar()
         results_processor.plot_returns_heatmaps()
-
 
 
     def calculate_momentum(self, current_date: datetime) -> float:
