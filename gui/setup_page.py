@@ -189,7 +189,7 @@ class SetupTab:
         ma_frame.grid_columnconfigure(3, weight=1)
 
         ctk.CTkLabel(ma_frame, text="Moving Average Window (days):", font=self.bold_font).grid(row=ma_frame_rows, column=0, sticky="e", padx=5)
-        ma_windows = ["21", "42", "63", "84", "105", "126", "147", "168", "189", "210"]
+        ma_windows = ["21", "42", "63", "84", "105", "126", "147", "168", "189", "210", "231", "252"]
         ctk.CTkOptionMenu(
             ma_frame,
             values=ma_windows,

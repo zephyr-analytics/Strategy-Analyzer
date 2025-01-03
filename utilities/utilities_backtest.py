@@ -128,9 +128,11 @@ def calculate_var_cvar(returns, confidence_level=0.95):
         Tuple containing VaR and CVaR values.
     """
     sorted_returns = np.sort(returns.dropna())
-    index = int((1 - confidence_level) * len(sorted_returns))
+    index = int(np.floor((1 - confidence_level) * len(sorted_returns)))
+    index = max(0, min(index, len(sorted_returns) - 1))
     var = sorted_returns[index]
-    cvar = sorted_returns[:index].mean()
+    cvar = sorted_returns[:index + 1].mean()
+
     return var, cvar
 
 

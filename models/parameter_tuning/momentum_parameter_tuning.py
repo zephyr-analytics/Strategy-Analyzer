@@ -48,7 +48,7 @@ class MomentumParameterTuning(ParameterTuningProcessor):
             A dictionary of backtest results and portfolio statistics from parameter tuning.
         """
         results = {}
-        ma_list = [21, 42, 63, 84, 105, 126, 147, 168, 189, 210]
+        ma_list = [21, 42, 63, 84, 105, 126, 147, 168, 189, 210, 231, 252]
         num_asset_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
         trading_frequencies = ["Monthly", "Bi-Monthly", "Quarterly", "Yearly"]
         ma_types = ["SMA", "EMA"]
@@ -129,6 +129,7 @@ class MomentumParameterTuning(ParameterTuningProcessor):
 
         fig.update_layout(
             template=chart_theme,
+            coloraxis_colorbar_title="Sharpe Ratio",
             annotations=[
                 dict(
                     xref='paper', yref='paper', x=0.5, y=0.2,
