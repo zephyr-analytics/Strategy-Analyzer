@@ -49,7 +49,7 @@ class SmaParameterTuning(ParameterTuningProcessor):
         """
         results = {}
         ma_list = [21, 42, 63, 84, 105, 126, 147, 168, 189, 210]
-        trading_frequencies = ["Monthly", "Bi-Monthly"]
+        trading_frequencies = ["Monthly", "Bi-Monthly", "Quarterly", "Yearly"]
         ma_types = ["SMA", "EMA"]
 
         for ma in ma_list:

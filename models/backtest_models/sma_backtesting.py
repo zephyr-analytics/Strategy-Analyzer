@@ -157,14 +157,20 @@ class SmaBacktestPortfolio(BacktestingProcessor):
         portfolio_returns = []
         all_adjusted_weights = []
 
-        if self.trading_frequency == 'Monthly':
+        if self.trading_frequency == "Monthly":
             step = 1
-            freq = 'M'
-        elif self.trading_frequency == 'Bi-Monthly':
+            freq = "M"
+        elif self.trading_frequency == "Bi-Monthly":
             step = 2
-            freq = '2M'
+            freq = "2M"
+        elif self.trading_frequency == "Quarterly":
+            step = 3
+            freq = "3M"
+        elif self.trading_frequency == "Yearly":
+            step = 12
+            freq = "12M"
         else:
-            raise ValueError("Invalid trading frequency. Choose 'Monthly' or 'Bi-Monthly'.")
+            raise ValueError("Invalid trading frequency. Choose 'Monthly', 'Bi-Monthly', 'Quarterly', or 'Yearly'.")
 
         for i in range(0, len(monthly_dates), step):
             current_date = monthly_dates[i]

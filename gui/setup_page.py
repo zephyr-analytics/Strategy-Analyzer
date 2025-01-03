@@ -160,7 +160,7 @@ class SetupTab:
         self.benchmark_asset_entry_var.trace_add("write", self.update_benchmark_asset)
 
         ctk.CTkLabel(trade_frame, text="Trading Frequency:", font=self.bold_font).grid(row=trade_frame_rows, column=2, sticky="e", padx=5)
-        trading_options = ["Monthly", "Bi-Monthly"]
+        trading_options = ["Monthly", "Bi-Monthly", "Quarterly", "Yearly"]
         ctk.CTkOptionMenu(
             trade_frame,
             values=trading_options,
