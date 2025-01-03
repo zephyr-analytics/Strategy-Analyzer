@@ -28,6 +28,7 @@ class SmaParameterTuning(ParameterTuningProcessor):
         """
         super().__init__(models_data)
         self.theme = models_data.theme_mode
+        self.portfolio_name = models_data.weights_filename
 
     def process(self):
         """
@@ -89,7 +90,7 @@ class SmaParameterTuning(ParameterTuningProcessor):
             Dictionary of results from parameter tuning.
         """
         data = {
-            "MA_Strategy": [
+            "Moving_Average_Strategy": [
                 f"MA:{key[0]} Freq:{key[1]} Type:{key[2]}" for key in results.keys()
             ],
             "cagr": [v["cagr"] for v in results.values()],
@@ -110,12 +111,12 @@ class SmaParameterTuning(ParameterTuningProcessor):
             y='cagr',
             color='sharpe_ratio',
             color_continuous_scale=trimmed_twilight[::-1],
-            hover_data=['MA_Strategy', 'max_drawdown', 'var', 'cvar'],
+            hover_data=['Moving_Average_Strategy', 'max_drawdown', 'var', 'cvar'],
             labels={
                 "cagr": "Compound Annual Growth Rate",
                 "annual_volatility": "Annual Volatility"
             },
-            title="Possible MA Strategies"
+            title=f"Possible Moving Average Strategies - {self.portfolio_name}"
         )
         chart_theme = "plotly_dark" if self.theme.lower() == "dark" else "plotly"
 

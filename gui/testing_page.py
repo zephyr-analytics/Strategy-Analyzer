@@ -2,6 +2,7 @@
 Module for creating the testing page.
 """
 
+import os
 import threading
 
 import customtkinter as ctk
@@ -132,6 +133,15 @@ class TestingTab:
             command=lambda: self.execute_task_for_tab(tab_name),
         ).pack(pady=10)
 
+        ctk.CTkButton(
+            tab,
+            text="Open Plots Directory",
+            fg_color="#bb8fce",
+            text_color="#000000",
+            hover_color="#8e44ad",
+            command=self.open_artifacts_directory,
+        ).pack(pady=50)
+
 
     def execute_task_for_tab(self, tab_name):
         """
@@ -182,6 +192,17 @@ class TestingTab:
         finally:
             pass
 
+    def open_artifacts_directory(self):
+        """
+        Opens the artifacts plot directory on Windows.
+        """
+        path = os.path.join(os.getcwd(), "artifacts", "plots")
+        artifacts_dir = path
+
+        try:
+            os.startfile(artifacts_dir)
+        except Exception as e:
+            print(f"Error opening directory: {e}")
 
     def change_theme(self, selected_theme):
         """
