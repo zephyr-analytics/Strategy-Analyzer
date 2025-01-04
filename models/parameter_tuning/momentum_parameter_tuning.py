@@ -1,9 +1,10 @@
 """
-Module for creating sma based porfolio signals.
+Module for creating momentum based parameters.
 """
 
 import os
 import json
+from multiprocessing import Pool
 
 import plotly.express as px
 
@@ -27,6 +28,8 @@ class MomentumParameterTuning(ParameterTuningProcessor):
             An instance of the ModelsData class that holds all necessary attributes.
         """
         super().__init__(models_data)
+        self.theme = models_data.theme_mode
+        self.portfolio_name = models_data.weights_filename
 
     def process(self):
         """
@@ -38,7 +41,7 @@ class MomentumParameterTuning(ParameterTuningProcessor):
 
     def get_portfolio_results(self) -> dict:
         """
-        Processes parameters for tuning and stores results.
+        Processes parameters for tuning using joblib to parallelize execution.
 
         Returns
         -------
@@ -46,44 +49,65 @@ class MomentumParameterTuning(ParameterTuningProcessor):
             A dictionary of backtest results and portfolio statistics from parameter tuning.
         """
         results = {}
-        ma_list = [21, 42, 63, 84, 105, 126, 147, 168, 189, 210]
+        ma_list = [21, 42, 63, 84, 105, 126, 147, 168, 189, 210, 231, 252]
         num_asset_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-        trading_frequencies = ["Monthly", "Bi-Monthly"]
+        trading_frequencies = ["Monthly", "Bi-Monthly", "Quarterly", "Yearly"]
         ma_types = ["SMA", "EMA"]
 
         total_assets = len(self.data_models.assets_weights)
 
-        for ma in ma_list:
-            for frequency in trading_frequencies:
-                for num_assets in num_asset_list:
-                    if num_assets > total_assets:
-                        break
-                    for ma_type in ma_types:
-                        self.data_models.ma_window = ma
-                        self.data_models.trading_frequency = frequency
-                        self.data_models.num_assets_to_select = num_assets
-                        self.data_models.ma_type = ma_type
+        parameter_combinations = [
+            (ma, frequency, num_assets, ma_type)
+            for ma in ma_list
+            for frequency in trading_frequencies
+            for num_assets in num_asset_list if num_assets <= total_assets
+            for ma_type in ma_types
+        ]
 
-                        backtest = BacktestMomentumPortfolio(self.data_models)
-                        backtest.process()
+        with Pool() as pool:
+            parallel_results = pool.starmap(self.process_combination, parameter_combinations)
 
-                        cagr = self.data_models.cagr
-                        average_annual_return = self.data_models.average_annual_return
-                        max_drawdown = self.data_models.max_drawdown
-                        var = self.data_models.var
-                        cvar = self.data_models.cvar
-                        annual_volatility = self.data_models.annual_volatility
-
-                        results[(ma, frequency, num_assets, ma_type)] = {
-                            "cagr": cagr,
-                            "average_annual_return": average_annual_return,
-                            "max_drawdown": max_drawdown,
-                            "var": var,
-                            "cvar": cvar,
-                            "annual_volatility": annual_volatility
-                        }
+        for params, result in zip(parameter_combinations, parallel_results):
+            results[params] = result
 
         return results
+
+    def process_combination(self, ma, frequency, num_assets, ma_type) -> dict:
+        """
+        Processes a single parameter combination and returns the backtest results.
+
+        Parameters
+        ----------
+        ma : int
+            Moving average window.
+        frequency : str
+            Trading frequency.
+        num_assets : int
+            Number of assets to select.
+        ma_type : str
+            Type of moving average (SMA or EMA).
+
+        Returns
+        -------
+        dict
+            The backtest results for the given parameter combination.
+        """
+        self.data_models.ma_window = ma
+        self.data_models.trading_frequency = frequency
+        self.data_models.num_assets_to_select = num_assets
+        self.data_models.ma_type = ma_type
+
+        backtest = BacktestMomentumPortfolio(self.data_models)
+        backtest.process()
+
+        return {
+            "cagr": self.data_models.cagr,
+            "average_annual_return": self.data_models.average_annual_return,
+            "max_drawdown": self.data_models.max_drawdown,
+            "var": self.data_models.var,
+            "cvar": self.data_models.cvar,
+            "annual_volatility": self.data_models.annual_volatility,
+        }
 
     def plot_results(self, results: dict):
         """
@@ -95,7 +119,7 @@ class MomentumParameterTuning(ParameterTuningProcessor):
             Dictionary of results from parameter tuning.
         """
         data = {
-            "MA_Strategy": [
+            "Momentum_Strategy": [
                 f"MA:{key[0]} Freq:{key[1]} Assets:{key[2]} Type:{key[3]}" for key in results.keys()
             ],
             "cagr": [v["cagr"] for v in results.values()],
@@ -116,14 +140,18 @@ class MomentumParameterTuning(ParameterTuningProcessor):
             y='cagr',
             color='sharpe_ratio',
             color_continuous_scale=trimmed_twilight[::-1],
-            hover_data=['MA_Strategy', 'max_drawdown', 'var', 'cvar'],
+            hover_data=['Momentum_Strategy', 'max_drawdown', 'var', 'cvar'],
             labels={
                 "cagr": "Compound Annual Growth Rate",
                 "annual_volatility": "Annual Volatility"
             },
-            title="Possible Momentum Strategies"
+            title=f"Possible Momentum Strategies - {self.portfolio_name}"
         )
+        chart_theme = "plotly_dark" if self.theme.lower() == "dark" else "plotly"
+
         fig.update_layout(
+            template=chart_theme,
+            coloraxis_colorbar_title="Sharpe Ratio",
             annotations=[
                 dict(
                     xref='paper', yref='paper', x=0.5, y=0.2,

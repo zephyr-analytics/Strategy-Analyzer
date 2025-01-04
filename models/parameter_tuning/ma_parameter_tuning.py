@@ -1,21 +1,22 @@
 """
-Module for creating sma based porfolio signals.
+Module for creating ma based parameters.
 """
 
 import os
 import json
+from multiprocessing import Pool
 
 import plotly.express as px
 
 import utilities as utilities
 from models.models_data import ModelsData
 from models.parameter_tuning.parameter_tuning_processor import ParameterTuningProcessor
-from models.backtest_models.sma_backtesting import SmaBacktestPortfolio
+from models.backtest_models.ma_backtesting import MaBacktestPortfolio
 
 
-class SmaParameterTuning(ParameterTuningProcessor):
+class MaParameterTuning(ParameterTuningProcessor):
     """
-    Processor for parameter tuning based on the an SMA portfolio.
+    Processor for parameter tuning based on the a momentum portfolio.
     """
     def __init__(self, models_data: ModelsData):
         """
@@ -27,60 +28,77 @@ class SmaParameterTuning(ParameterTuningProcessor):
             An instance of the ModelsData class that holds all necessary attributes.
         """
         super().__init__(models_data)
+        self.theme = models_data.theme_mode
+        self.portfolio_name = models_data.weights_filename
 
     def process(self):
         """
-        Method for processing within the sma parameter tuning class.
+        Method for processing within the momentum parameter tuning class.
         """
         results = self.get_portfolio_results()
         self.plot_results(results=results)
         self.persist_results(results=results)
 
     def get_portfolio_results(self) -> dict:
+        results = {}
+        ma_list = [21, 42, 63, 84, 105, 126, 147, 168, 189, 210, 231, 252]
+        trading_frequencies = ["Monthly", "Bi-Monthly", "Quarterly", "Yearly"]
+        ma_types = ["SMA", "EMA"]
+
+        parameter_combinations = [
+            (ma, frequency, ma_type) 
+            for ma in ma_list 
+            for frequency in trading_frequencies 
+            for ma_type in ma_types
+        ]
+
+        with Pool() as pool:
+            parallel_results = pool.starmap(self.process_combination, parameter_combinations)
+
+        for params, result in zip(parameter_combinations, parallel_results):
+            results[params] = result
+
+        return results
+
+    def process_combination(self, ma, frequency, ma_type) -> dict:
         """
-        Processes parameters for tuning and stores results.
+        Processes a single parameter combination and returns the backtest results.
+
+        Parameters
+        ----------
+        ma : int
+            Moving average window.
+        frequency : str
+            Trading frequency.
+        num_assets : int
+            Number of assets to select.
+        ma_type : str
+            Type of moving average (SMA or EMA).
 
         Returns
         -------
         dict
-            A dictionary of backtest results and portfolio statistics from parameter tuning.
+            The backtest results for the given parameter combination.
         """
-        results = {}
-        ma_list = [21, 42, 63, 84, 105, 126, 147, 168, 189, 210]
-        trading_frequencies = ["Monthly", "Bi-Monthly"]
-        ma_types = ["SMA", "EMA"]
+        self.data_models.ma_window = ma
+        self.data_models.trading_frequency = frequency
+        self.data_models.ma_type = ma_type
 
-        for ma in ma_list:
-            for frequency in trading_frequencies:
-                for ma_type in ma_types:
-                    self.data_models.ma_window = ma
-                    self.data_models.trading_frequency = frequency
-                    self.data_models.ma_type = ma_type
+        backtest = MaBacktestPortfolio(self.data_models)
+        backtest.process()
 
-                    backtest = SmaBacktestPortfolio(self.data_models)
-                    backtest.process()
-
-                    cagr = self.data_models.cagr
-                    average_annual_return = self.data_models.average_annual_return
-                    max_drawdown = self.data_models.max_drawdown
-                    var = self.data_models.var
-                    cvar = self.data_models.cvar
-                    annual_volatility = self.data_models.annual_volatility
-
-                    results[(ma, frequency, ma_type)] = {
-                        "cagr": cagr,
-                        "average_annual_return": average_annual_return,
-                        "max_drawdown": max_drawdown,
-                        "var": var,
-                        "cvar": cvar,
-                        "annual_volatility": annual_volatility
-                    }
-
-        return results
+        return {
+            "cagr": self.data_models.cagr,
+            "average_annual_return": self.data_models.average_annual_return,
+            "max_drawdown": self.data_models.max_drawdown,
+            "var": self.data_models.var,
+            "cvar": self.data_models.cvar,
+            "annual_volatility": self.data_models.annual_volatility,
+        }
 
     def plot_results(self, results: dict):
         """
-        Plot results from the MA strategy testing.
+        Plot results from the momentum strategy testing.
 
         Parameters
         ----------
@@ -88,7 +106,7 @@ class SmaParameterTuning(ParameterTuningProcessor):
             Dictionary of results from parameter tuning.
         """
         data = {
-            "MA_Strategy": [
+            "Moving_Average_Strategy": [
                 f"MA:{key[0]} Freq:{key[1]} Type:{key[2]}" for key in results.keys()
             ],
             "cagr": [v["cagr"] for v in results.values()],
@@ -109,14 +127,18 @@ class SmaParameterTuning(ParameterTuningProcessor):
             y='cagr',
             color='sharpe_ratio',
             color_continuous_scale=trimmed_twilight[::-1],
-            hover_data=['MA_Strategy', 'max_drawdown', 'var', 'cvar'],
+            hover_data=['Moving_Average_Strategy', 'max_drawdown', 'var', 'cvar'],
             labels={
                 "cagr": "Compound Annual Growth Rate",
                 "annual_volatility": "Annual Volatility"
             },
-            title="Possible MA Strategies"
+            title=f"Possible Moving Average Strategies - {self.portfolio_name}"
         )
+        chart_theme = "plotly_dark" if self.theme.lower() == "dark" else "plotly"
+
         fig.update_layout(
+            template=chart_theme,
+            coloraxis_colorbar_title="Sharpe Ratio",
             annotations=[
                 dict(
                     xref='paper', yref='paper', x=0.5, y=0.2,
@@ -139,7 +161,7 @@ class SmaParameterTuning(ParameterTuningProcessor):
         Parameters
         ----------
         results : dict
-            The dictionary containing SMA backtest results and portfolio statistics.
+            The dictionary containing momentum backtest results and portfolio statistics.
         """
         current_directory = os.getcwd()
         artifacts_directory = os.path.join(current_directory, "artifacts", "data")

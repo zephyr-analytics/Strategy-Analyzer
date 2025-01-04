@@ -22,10 +22,14 @@ def calculate_cagr(portfolio_value, trading_frequency):
     float
         CAGR value.
     """
-    if trading_frequency == 'Monthly':
+    if trading_frequency == "Monthly":
         periods_per_year = 12
-    elif trading_frequency == 'Bi-Monthly':
+    elif trading_frequency == "Bi-Monthly":
         periods_per_year = 6
+    elif trading_frequency == "Quarterly":
+        periods_per_year = 4
+    elif trading_frequency == "Yearly":
+        periods_per_year = 1
     else:
         raise ValueError("Invalid trading frequency. Choose 'Monthly' or 'Bi-Monthly'.")
 
@@ -73,10 +77,14 @@ def calculate_average_annual_return(returns, trading_frequency):
     """
     average_periodic_return = returns.mean()
 
-    if trading_frequency == 'Monthly':
+    if trading_frequency == "Monthly":
         average_annual_return = (1 + average_periodic_return) ** 12 - 1
-    elif trading_frequency == 'Bi-Monthly':
+    elif trading_frequency == "Bi-Monthly":
         average_annual_return = (1 + average_periodic_return) ** 6 - 1
+    elif trading_frequency == "Quarterly":
+        average_annual_return = (1 + average_periodic_return) ** 4 - 1
+    elif trading_frequency == "Yearly":
+        average_annual_return = average_periodic_return
     else:
         raise ValueError("Invalid trading frequency. Choose 'Monthly' or 'Bi-Monthly'.")
 
@@ -120,9 +128,11 @@ def calculate_var_cvar(returns, confidence_level=0.95):
         Tuple containing VaR and CVaR values.
     """
     sorted_returns = np.sort(returns.dropna())
-    index = int((1 - confidence_level) * len(sorted_returns))
+    index = int(np.floor((1 - confidence_level) * len(sorted_returns)))
+    index = max(0, min(index, len(sorted_returns) - 1))
     var = sorted_returns[index]
-    cvar = sorted_returns[:index].mean()
+    cvar = sorted_returns[:index + 1].mean()
+
     return var, cvar
 
 
@@ -140,10 +150,14 @@ def calculate_annual_volatility(trading_frequency, portfolio_returns):
     float
         The annual volatility of the portfolio.
     """
-    if trading_frequency == 'Monthly':
+    if trading_frequency == "Monthly":
         annual_volatility = portfolio_returns.std() * np.sqrt(12)
-    elif trading_frequency == 'Bi-Monthly':
+    elif trading_frequency == "Bi-Monthly":
         annual_volatility = portfolio_returns.std() * np.sqrt(6)
+    elif trading_frequency == "Quarterly":
+        annual_volatility = portfolio_returns.std() * np.sqrt(4)
+    elif trading_frequency == "Yearly":
+        annual_volatility = portfolio_returns.std()
     else:
         raise ValueError("Invalid trading frequency. Choose 'Monthly' or 'Bi-Monthly'.")
 

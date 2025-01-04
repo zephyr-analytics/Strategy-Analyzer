@@ -12,8 +12,8 @@ Monte Carlo Simualation has been introduced for being able to model how it will 
 
 #### **Backtesting**  
 Evaluate portfolio performance with flexible parameters such as trading frequency, SMA windows, and asset weighting strategies.
-- **Simple Moving Average (SMA)**  
-Use SMA-based strategies to guide asset selection and trading decisions by analyzing price trends over time.
+- **Moving Average**  
+Use MA-based strategies to guide asset selection and trading decisions by analyzing price trends over time.
 - **Momentum**  
 Incorporate momentum strategies to identify high-performing assets based on historical returns and optimize portfolio composition.
 

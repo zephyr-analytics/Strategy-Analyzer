@@ -31,12 +31,14 @@ class SignalsProcessor(ABC):
         self.bond_ticker = models_data.bond_ticker
         self.cash_ticker = models_data.cash_ticker
         self.weighting_strategy = models_data.weighting_strategy
-        self.sma_period = int(models_data.sma_window)
+        self.sma_period = int(models_data.ma_window)
         self.current_date = models_data.end_date
         self.output_filename = models_data.weights_filename
         self.weights_filename = models_data.weights_filename
         self.num_assets = models_data.num_assets_to_select
         self.processing_type = self.data_models.processing_type
+        self.ma_type = self.data_models.ma_type
+        self.trading_freq = self.data_models.trading_frequency
 
 
     def process(self):
@@ -117,8 +119,9 @@ class SignalsProcessor(ABC):
             fig,
             filename=filename,
             weights_filename=self.weights_filename,
-            output_filename=self.output_filename,
+            ma_type=self.ma_type,
             processing_type=self.processing_type,
             num_assets=self.num_assets,
-            sma_window=self.sma_period
+            sma_window=self.sma_period,
+            trading_frequency=self.trading_freq
         )

@@ -43,6 +43,8 @@ class ModelsData:
         self._out_of_market_tickers = {}
         self._processing_type = str
         self._benchmark_asset = ""
+        self._benchmark_values = pd.Series
+        self._benchmark_returns = pd.Series
         self._contribution = None
         self._contribution_frequency = None
         self._return_metric = None
@@ -716,6 +718,48 @@ class ModelsData:
             value (str): String representing the benchmark_asset.
         """
         self._benchmark_asset = value
+
+
+    @property
+    def benchmark_values(self):
+        """
+        Gets the benchmark_asset.
+
+        Returns:
+            str: String representing the benchmark_values.
+        """
+        return self._benchmark_values
+
+    @benchmark_values.setter
+    def benchmark_values(self, value):
+        """
+        Sets the benchmark_asset.
+
+        Args:
+            value (str): String representing the benchmark_values.
+        """
+        self._benchmark_values = value
+
+
+    @property
+    def benchmark_returns(self):
+        """
+        Gets the benchmark_asset.
+
+        Returns:
+            str: String representing the benchmark_asset.
+        """
+        return self._benchmark_returns
+
+    @benchmark_returns.setter
+    def benchmark_returns(self, value):
+        """
+        Sets the benchmark_asset.
+
+        Args:
+            value (str): String representing the benchmark_asset.
+        """
+        self._benchmark_returns = value
 
 
     @property

@@ -20,31 +20,6 @@ warnings.filterwarnings("ignore")
 class BacktestMomentumPortfolio(BacktestingProcessor):
     """
     A class to backtest a static portfolio with adjustable weights based on Simple Moving Average (SMA).
-
-    Attributes
-    ----------
-    assets_weights : dict
-        Dictionary of asset tickers and their corresponding weights in the portfolio.
-    start_date : str
-        The start date for the backtest.
-    end_date : str
-        The end date for the backtest.
-    sma_period : int
-        The period for calculating the Simple Moving Average (SMA). Default is 168.
-    bond_ticker : str
-        The ticker symbol for the bond asset. Default is 'BND'.
-    cash_ticker : str
-        The ticker symbol for the cash asset. Default is 'SHV'.
-    initial_portfolio_value : float
-        The initial value of the portfolio. Default is 10000.
-    _data : DataFrame or None
-        DataFrame to store the adjusted closing prices of the assets.
-    _portfolio_value : Series
-        Series to store the portfolio values over time.
-    _returns : Series
-        Series to store the portfolio returns over time.
-    _momentum_data : DataFrame
-        DataFrame to store the returns data for calculating momentum.
     """
 
     def __init__(self, data_models: ModelsData):
@@ -70,12 +45,12 @@ class BacktestMomentumPortfolio(BacktestingProcessor):
         self.run_backtest()
         self._get_portfolio_statistics()
         self._calculate_buy_and_hold()
+        self._calculate_benchmark()
         self.persist_data()
         results_processor = ResultsProcessor(self.data_models)
         results_processor.plot_portfolio_value()
         results_processor.plot_var_cvar()
         results_processor.plot_returns_heatmaps()
-
 
 
     def calculate_momentum(self, current_date: datetime) -> float:
@@ -117,11 +92,16 @@ class BacktestMomentumPortfolio(BacktestingProcessor):
         dict
             Dictionary of adjusted asset weights.
         """
-        trading_assets = selected_assets[selected_assets['Asset'] != self.threshold_asset]
+        adjusted_weights = self.assets_weights.copy() if selected_assets is None else selected_assets.copy()
 
         def get_replacement_asset():
             """
             Determines the replacement asset (cash or bond) based on SMA.
+            
+            Returns
+            -------
+            str
+                The replacement asset ticker.
             """
             if self.bond_ticker and not is_below_ma(self.bond_ticker):
                 return self.bond_ticker
@@ -152,6 +132,16 @@ class BacktestMomentumPortfolio(BacktestingProcessor):
 
             return price < ma
 
+        if not self.ma_threshold_asset:
+            pass
+        elif is_below_ma(self.ma_threshold_asset):
+            replacement_asset = get_replacement_asset()
+            return {replacement_asset: 1.0}
+
+        trading_assets = selected_assets[~selected_assets['Asset'].isin(
+            [self.ma_threshold_asset, self.bond_ticker, self.cash_ticker, self.benchmark_asset]
+        )]
+
         adjusted_weights = {}
         total_weight = 0
 
@@ -159,7 +149,6 @@ class BacktestMomentumPortfolio(BacktestingProcessor):
             asset = row['Asset']
             momentum = row['Momentum']
 
-            # Apply conditional logic for filtering negative momentum
             if (filter_negative_momentum and momentum <= 0) or is_below_ma(asset):
                 replacement_asset = get_replacement_asset()
                 adjusted_weights[replacement_asset] = adjusted_weights.get(replacement_asset, 0) + 1
@@ -168,11 +157,11 @@ class BacktestMomentumPortfolio(BacktestingProcessor):
 
             total_weight += 1
 
-        # Normalize weights
         adjusted_weights = {ticker: weight / total_weight for ticker, weight in adjusted_weights.items()}
 
         print(f'{current_date}: Weights: {adjusted_weights}')
         return adjusted_weights
+
 
     def run_backtest(self):
         """
@@ -183,12 +172,18 @@ class BacktestMomentumPortfolio(BacktestingProcessor):
         portfolio_returns = []
         all_adjusted_weights = []
 
-        if self.trading_frequency == 'Monthly':
+        if self.trading_frequency == "Monthly":
             step = 1
-            freq = 'M'
-        elif self.trading_frequency == 'Bi-Monthly':
+            freq = "M"
+        elif self.trading_frequency == "Bi-Monthly":
             step = 2
-            freq = '2M'
+            freq = "2M"
+        elif self.trading_frequency == "Quarterly":
+            step = 3
+            freq = "3M"
+        elif self.trading_frequency == "Yearly":
+            step = 12
+            freq = "12M"
         else:
             raise ValueError("Invalid trading frequency. Choose 'Monthly' or 'Bi-Monthly'.")
 
@@ -199,8 +194,7 @@ class BacktestMomentumPortfolio(BacktestingProcessor):
 
             # Calculate momentum
             momentum = self.calculate_momentum(last_date_current_month)
-            momentum = momentum.drop(self.threshold_asset, errors='ignore')
-            
+
             # Select assets based on momentum
             selected_assets = pd.DataFrame({'Asset': momentum.nlargest(self.num_assets_to_select).index, 'Momentum': momentum.nlargest(self.num_assets_to_select).values})
             print(selected_assets)
