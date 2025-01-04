@@ -71,7 +71,7 @@ class ModelsFactory:
         """
         if not self.data_models.assets_weights:
             return "Please load asset weights file."
-        backtest = SmaBacktestPortfolio(self.data_models)
+        backtest = MaBacktestPortfolio(self.data_models)
         backtest.process()
         return "MA backtest completed and plots saved."
 
@@ -86,7 +86,7 @@ class ModelsFactory:
         """
         if not self.data_models.assets_weights:
             return "Please load asset weights file."
-        create_signals = CreateSmaSignals(self.data_models)
+        create_signals = CreateMaSignals(self.data_models)
         create_signals.process()
         return f"MA signals generated for {self.data_models.end_date}."
 
@@ -101,7 +101,7 @@ class ModelsFactory:
         """
         if not self.data_models.assets_weights:
             return "Please load asset weights file."
-        backtest = SmaBacktestPortfolio(self.data_models)
+        backtest = MaBacktestPortfolio(self.data_models)
         backtest.process()
         monte_carlo = MonteCarloSimulation(self.data_models)
         monte_carlo.process()
@@ -199,7 +199,7 @@ class ModelsFactory:
         """
         if not self.data_models.assets_weights:
             return "Please load asset weights file."
-        parameter_tune = SmaParameterTuning(self.data_models)
+        parameter_tune = MaParameterTuning(self.data_models)
         parameter_tune.process()
         return "MA parameter tuning completed."
 

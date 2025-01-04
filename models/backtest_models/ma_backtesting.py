@@ -16,7 +16,7 @@ from models.backtest_models.backtesting_processor import BacktestingProcessor
 warnings.filterwarnings("ignore")
 
 
-class SmaBacktestPortfolio(BacktestingProcessor):
+class MaBacktestPortfolio(BacktestingProcessor):
     """
     A class to backtest a static portfolio with adjustable weights based on Simple Moving Average (SMA).
 

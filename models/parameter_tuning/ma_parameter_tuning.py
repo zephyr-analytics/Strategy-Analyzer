@@ -11,10 +11,10 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 import utilities as utilities
 from models.models_data import ModelsData
 from models.parameter_tuning.parameter_tuning_processor import ParameterTuningProcessor
-from models.backtest_models.sma_backtesting import SmaBacktestPortfolio
+from models.backtest_models.ma_backtesting import MaBacktestPortfolio
 
 
-class SmaParameterTuning(ParameterTuningProcessor):
+class MaParameterTuning(ParameterTuningProcessor):
     """
     Processor for parameter tuning based on the an SMA portfolio.
     """
@@ -98,7 +98,7 @@ class SmaParameterTuning(ParameterTuningProcessor):
         self.data_models.trading_frequency = frequency
         self.data_models.ma_type = ma_type
 
-        backtest = SmaBacktestPortfolio(self.data_models)
+        backtest = MaBacktestPortfolio(self.data_models)
         backtest.process()
 
         return {
