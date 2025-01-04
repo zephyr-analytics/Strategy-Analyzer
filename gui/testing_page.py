@@ -2,17 +2,17 @@
 Module for creating the testing page.
 """
 
-import customtkinter as ctk
 import os
 import threading
-import webbrowser
+
+import customtkinter as ctk
 
 from models.models_data import ModelsData
 from models.models_factory import ModelsFactory
 from processing_types import *
 import utilities as utilities
 
-# TODO Selected assets and weights are not being displayed.
+
 class TestingTab:
     """
     Handles the layout and functionality of the Testing tab.
@@ -23,45 +23,20 @@ class TestingTab:
         self.parent = parent
         self.bold_font = ctk.CTkFont(size=12, weight="bold", family="Arial")
 
-        # self.create_layout()
-        self.artifacts_directory = os.path.join(os.getcwd(), "artifacts")
-        self.start_date_var = ctk.StringVar(value=self.data_models.start_date)
-        self.end_date_var = ctk.StringVar(value=self.data_models.end_date)
-        self.cash_ticker_var = ctk.StringVar(value=self.data_models.cash_ticker)
-        self.bond_ticker_var = ctk.StringVar(value=self.data_models.bond_ticker)
-        self.trading_frequency_var = ctk.StringVar(value=self.data_models.trading_frequency)
-        self.weighting_strategy_var = ctk.StringVar(value=self.data_models.weighting_strategy)
-        self.sma_window_var = ctk.StringVar(value=self.data_models.sma_window)
-        self.num_simulations_var = ctk.StringVar(value=self.data_models.num_simulations)
-        self.simulation_horizon_entry_var = ctk.StringVar(value=self.data_models.simulation_horizon)
-        # TODO add benchmark asset
-        # TODO add addition portfolio contributions
         self.theme_mode_var = ctk.StringVar(value=self.data_models.theme_mode)
-        self.initial_portfolio_value_var = ctk.StringVar(
-            value=self.data_models._initial_portfolio_value
-        )
-        self.num_assets_to_select_entry_var = ctk.StringVar(
-            value=self.data_models._num_assets_to_select
-        )
-
-        # self.bottom_text = None
-        # TODO bottom_text_area might still need to be set.
         self.create_widgets()
 
 
     def create_widgets(self):
         """
+        Method for creating widgets and packing them to the canvas.
         """
-        # TODO write the docstring for this.
-        # Center frame for main tabs
-        center_frame = ctk.CTkFrame(self.parent, fg_color="#edeaea")
+        center_frame = ctk.CTkFrame(self.parent, fg_color=["#edeaea", "#2b2c2d"])
         center_frame.pack()
 
-        # Create tabs within the center frame
-        self.high_level_tab_control = ctk.CTkTabview(center_frame, fg_color="#edeaea")
+        self.high_level_tab_control = ctk.CTkTabview(center_frame, fg_color=["#edeaea", "#2b2c2d"])
         self.high_level_tab_control.pack(expand=True, fill="both")
 
-        # Add testing tabs
         self.create_testing_tabs(self.high_level_tab_control)
 
         self.bottom_text_frame = ctk.CTkFrame(self.parent, fg_color="transparent")
@@ -73,10 +48,9 @@ class TestingTab:
         self.bottom_text_result_display = ctk.CTkLabel(self.bottom_text_frame)
         self.bottom_text_result_display.pack()
 
-        # Add copyright info
         copyright_label = ctk.CTkLabel(
             self.parent,
-            text="© Zephyr Analytics 2024",
+            text="© Zephyr Analytics 2025",
             font=ctk.CTkFont(size=12)
         )
         copyright_label.pack()
@@ -93,21 +67,20 @@ class TestingTab:
         """
         self.testing_tab_control = ctk.CTkTabview(
             parent,
-            border_color="#edeaea",
-            fg_color="#edeaea",
-            segmented_button_fg_color="#edeaea",
+            border_color=["#edeaea", "#2b2c2d"],
+            fg_color=["#edeaea", "#2b2c2d"],
+            segmented_button_fg_color=["#edeaea", "#2b2c2d"],
             segmented_button_unselected_color="#bb8fce",
             segmented_button_selected_color="#8e44ad",
             text_color="#000000",
             segmented_button_selected_hover_color="#8e44ad",
         )
-        # Use grid instead of pack
+
         self.testing_tab_control.grid(row=0, column=0, sticky="nsew")
 
-        # Create individual testing tabs
-        self.create_testing_tab("SMA Strategies")
+        self.create_testing_tab("Moving Average Strategies")
         self.create_testing_tab("Momentum Strategies")
-        self.create_testing_tab("Momentum In & Out Strategies")
+        # self.create_testing_tab("Momentum In & Out Strategies")
 
 
     def create_testing_tab(self, tab_name):
@@ -124,6 +97,7 @@ class TestingTab:
 
         ctk.CTkLabel(
             tab,
+            fg_color="transparent",
             text=f"{tab_name} Testing",
             font=ctk.CTkFont(size=16, weight="bold"),
         ).pack(pady=10)
@@ -159,67 +133,14 @@ class TestingTab:
             command=lambda: self.execute_task_for_tab(tab_name),
         ).pack(pady=10)
 
-        ctk.CTkLabel(
-            tab,
-            text="Select Plot:",
-            font=ctk.CTkFont(size=14),
-        ).pack(pady=10)
-
-# TODO this is still broken plots do not up nor when changing selection does button 
-# function change what plot is populated within the webbroswer.
-
-        plot_files = self.get_all_plot_files()
-        self.plot_var = ctk.StringVar(value=plot_files[0] if plot_files else "No plots available")
-        plot_dropdown = ctk.CTkOptionMenu(
-            tab,
-            fg_color="#bb8fce",
-            text_color="#000000",
-            button_color="#8e44ad",
-            button_hover_color="#8e44ad",
-            values=plot_files if plot_files else ["No plots available"],
-            variable=self.plot_var,
-        )
-        plot_dropdown.pack(pady=10)
-
         ctk.CTkButton(
             tab,
-            text="Display Plot",
+            text="Open Plots Directory",
             fg_color="#bb8fce",
             text_color="#000000",
             hover_color="#8e44ad",
-            command=self.update_plot_display,
-        ).pack(pady=10)
-
-
-    def get_all_plot_files(self):
-        """
-        Fetch all .html plot files from all subdirectories in the artifacts folder.
-        Returns a list of paths relative to the artifacts directory.
-        """
-        if not os.path.exists(self.artifacts_directory):
-            os.makedirs(self.artifacts_directory)
-
-        plot_files = []
-        for root, _, files in os.walk(self.artifacts_directory):
-            for file in files:
-                if file.endswith(".html"):
-                    rel_path = os.path.relpath(os.path.join(root, file), self.artifacts_directory)
-                    plot_files.append(rel_path)
-        return plot_files
-
-
-    def update_plot_display(self):
-        """
-        Opens the selected plot in the default web browser.
-        """
-        selected_plot = self.plot_var.get()
-        file_path = os.path.join(self.artifacts_directory, selected_plot)
-
-        if not os.path.exists(file_path):
-            self.display_result(f"File not found: {file_path}")
-            return
-
-        webbrowser.open(f"file://{file_path}")
+            command=self.open_artifacts_directory,
+        ).pack(pady=50)
 
 
     def execute_task_for_tab(self, tab_name):
@@ -234,7 +155,7 @@ class TestingTab:
         selected_run = self.tab_run_vars[tab_name].get()
 
         tab_to_model_map = {
-            "SMA Strategies": Models.SMA,
+            "Moving Average Strategies": Models.MA,
             "Momentum Strategies": Models.MOMENTUM,
             "Momentum In & Out Strategies": Models.IN_AND_OUT_OF_MARKET,
         }
@@ -269,8 +190,19 @@ class TestingTab:
             result = factory.run(model, run_type)
             self.parent.after(0, lambda: self.display_result(result))
         finally:
-            self.get_all_plot_files()
+            pass
 
+    def open_artifacts_directory(self):
+        """
+        Opens the artifacts plot directory on Windows.
+        """
+        path = os.path.join(os.getcwd(), "artifacts", "plots")
+        artifacts_dir = path
+
+        try:
+            os.startfile(artifacts_dir)
+        except Exception as e:
+            print(f"Error opening directory: {e}")
 
     def change_theme(self, selected_theme):
         """
@@ -315,7 +247,7 @@ class TestingTab:
         self.bottom_text = ctk.CTkLabel(
             self.bottom_text_frame,
             text=f"Loaded Assets and Weights from: \n\n{self.data_models.weights_filename}:\n{assets_text}",
-            text_color="blue",
+            font=self.bold_font,
             fg_color="transparent"
         )
         self.bottom_text.pack(pady=5)

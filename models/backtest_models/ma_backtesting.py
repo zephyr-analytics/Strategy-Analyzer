@@ -16,7 +16,7 @@ from models.backtest_models.backtesting_processor import BacktestingProcessor
 warnings.filterwarnings("ignore")
 
 
-class SmaBacktestPortfolio(BacktestingProcessor):
+class MaBacktestPortfolio(BacktestingProcessor):
     """
     A class to backtest a static portfolio with adjustable weights based on Simple Moving Average (SMA).
 
@@ -28,7 +28,7 @@ class SmaBacktestPortfolio(BacktestingProcessor):
         The start date for the backtest.
     end_date : str
         The end date for the backtest.
-    sma_period : int
+    ma_period : int
         The period for calculating the Simple Moving Average (SMA). Default is 168.
     bond_ticker : str
         The ticker symbol for the bond asset. Default is 'BND'.
@@ -43,7 +43,7 @@ class SmaBacktestPortfolio(BacktestingProcessor):
     _returns : Series
         Series to store the portfolio returns over time.
     """
-# TODO this needs to be properly abstracted.
+
     def __init__(self, data_models: ModelsData):
         """
         Initializes the BacktestStaticPortfolio class with data from ModelsData.
@@ -66,6 +66,7 @@ class SmaBacktestPortfolio(BacktestingProcessor):
         self.run_backtest()
         self._get_portfolio_statistics()
         self._calculate_buy_and_hold()
+        self._calculate_benchmark()
         self.persist_data()
         results_processor = ResultsProcessor(self.data_models)
         results_processor.plot_portfolio_value()
@@ -76,7 +77,12 @@ class SmaBacktestPortfolio(BacktestingProcessor):
         pass
 
 
-    def adjust_weights(self, current_date, selected_assets=None, selected_out_of_market_assets=None):
+    def adjust_weights(
+            self, 
+            current_date, 
+            selected_assets=None, 
+            selected_out_of_market_assets=None
+        ) -> dict:
         """
         Adjusts the weights of the assets based on their SMA and the selected weighting strategy.
 
@@ -84,46 +90,71 @@ class SmaBacktestPortfolio(BacktestingProcessor):
         ----------
         current_date : datetime
             The current date for which the weights are being adjusted.
+        selected_assets : dict or None
+            Optional preselected assets with weights. If None, uses `self.assets_weights`.
+        selected_out_of_market_assets : dict or None
+            Optional out-of-market assets to be used when replacing assets.
 
         Returns
         -------
         dict
             Dictionary of adjusted asset weights.
         """
-        # if self.weighting_strategy == 'Use File Weights':
-        #     adjusted_weights = self.assets_weights.copy()
-        # elif self.weighting_strategy == 'Equal Weight':
-        #     adjusted_weights = utilities.equal_weighting(self.assets_weights)
-        # elif self.weighting_strategy == 'Risk Contribution':
-        #     adjusted_weights = utilities.risk_contribution_weighting(self._data.cov(), self.assets_weights)
-        # elif self.weighting_strategy == 'Min Volatility':
-        #     weights = utilities.min_volatility_weighting(self._data.cov())
-        #     adjusted_weights = dict(zip(self.assets_weights.keys(), weights))
-        # elif self.weighting_strategy == 'Max Sharpe':
-        #     returns = self._data.pct_change().mean()
-        #     weights = utilities.max_sharpe_ratio_weighting(self._data.cov(), returns)
-        #     adjusted_weights = dict(zip(self.assets_weights.keys(), weights))
-        # else:
-        #     raise ValueError("Invalid weighting strategy")
-        adjusted_weights = self.assets_weights.copy()
+        adjusted_weights = self.assets_weights.copy() if selected_assets is None else selected_assets.copy()
 
-        for ticker in self.assets_weights.keys():
-            # Check if the current ticker is below its SMA
-            if self._data.loc[:current_date, ticker].iloc[-1] < self._data.loc[:current_date, ticker].rolling(window=self.sma_period).mean().iloc[-1]:
-                # Handle the case where bond_ticker is not available
-                if self.bond_ticker == "":
-                    adjusted_weights[ticker] = 0
-                    adjusted_weights[self.cash_ticker] = adjusted_weights.get(self.cash_ticker, 0) + self.assets_weights[ticker]
-                else:
-                    # Bond ticker exists; check if it's below its SMA
-                    if self._data.loc[:current_date, self.bond_ticker].iloc[-1] < self._data.loc[:current_date, self.bond_ticker].rolling(window=self.sma_period).mean().iloc[-1]:
-                        adjusted_weights[ticker] = 0
-                        adjusted_weights[self.cash_ticker] = adjusted_weights.get(self.cash_ticker, 0) + self.assets_weights[ticker]
-                    else:
-                        adjusted_weights[ticker] = 0
-                        adjusted_weights[self.bond_ticker] = adjusted_weights.get(self.bond_ticker, 0) + self.assets_weights[ticker]
+        def get_replacement_asset():
+            """
+            Determines the replacement asset (cash or bond) based on SMA.
 
-        # Normalize weights to sum to 1
+            Returns
+            -------
+            str
+                The replacement asset ticker.
+            """
+            if self.bond_ticker and not is_below_ma(self.bond_ticker):
+                return self.bond_ticker
+            return self.cash_ticker
+
+        def is_below_ma(ticker):
+            """
+            Checks if the price of the given ticker is below its moving average.
+
+            Parameters
+            ----------
+            ticker : str
+                The ticker to check.
+
+            Returns
+            -------
+            bool
+                True if the price is below the moving average, False otherwise.
+            """
+            price = self._data.loc[:current_date, ticker].iloc[-1]
+
+            if self.ma_type == "SMA":
+                ma = self._data.loc[:current_date, ticker].rolling(window=self.ma_period).mean().iloc[-1]
+            elif self.ma_type == "EMA":
+                ma = self._data.loc[:current_date, ticker].ewm(span=self.ma_period).mean().iloc[-1]
+            else:
+                raise ValueError("Invalid ma_type. Choose 'SMA' or 'EMA'.")
+
+            return price < ma
+
+        if not self.ma_threshold_asset:
+            pass
+        elif is_below_ma(self.ma_threshold_asset):
+            replacement_asset = get_replacement_asset()
+            return {replacement_asset: 1.0}
+
+        trading_assets = {ticker: weight for ticker, weight in adjusted_weights.items() 
+                        if ticker not in [self.ma_threshold_asset, self.bond_ticker, self.cash_ticker, self.benchmark_asset]}
+
+        for ticker in list(trading_assets.keys()):
+            if is_below_ma(ticker):
+                replacement_asset = get_replacement_asset()
+                adjusted_weights[replacement_asset] = adjusted_weights.get(replacement_asset, 0) + trading_assets[ticker]
+                adjusted_weights[ticker] = 0
+
         total_weight = sum(adjusted_weights.values())
         for ticker in adjusted_weights:
             adjusted_weights[ticker] /= total_weight
@@ -136,27 +167,31 @@ class SmaBacktestPortfolio(BacktestingProcessor):
         """
         Runs the backtest by calculating portfolio values and returns over time.
         """
-        # print(self.sma_period, self.cash_ticker, self.bond_ticker)
         monthly_dates = pd.date_range(start=self.start_date, end=self.end_date, freq='M')
         portfolio_values = [self.initial_portfolio_value]
         portfolio_returns = []
         all_adjusted_weights = []
 
-        if self.trading_frequency == 'Monthly':
+        if self.trading_frequency == "Monthly":
             step = 1
-            freq = 'M'
-        elif self.trading_frequency == 'Bi-Monthly':
+            freq = "M"
+        elif self.trading_frequency == "Bi-Monthly":
             step = 2
-            freq = '2M'
+            freq = "2M"
+        elif self.trading_frequency == "Quarterly":
+            step = 3
+            freq = "3M"
+        elif self.trading_frequency == "Yearly":
+            step = 12
+            freq = "12M"
         else:
-            raise ValueError("Invalid trading frequency. Choose 'Monthly' or 'Bi-Monthly'.")
+            raise ValueError("Invalid trading frequency. Choose 'Monthly', 'Bi-Monthly', 'Quarterly', or 'Yearly'.")
 
         for i in range(0, len(monthly_dates), step):
             current_date = monthly_dates[i]
             next_date = monthly_dates[min(i + step, len(monthly_dates) - 1)]
             last_date_current_month = self._data.index[self._data.index.get_loc(current_date, method='pad')]
             adjusted_weights = self.adjust_weights(last_date_current_month)
-            # adjusted_weights = self._rebalance_portfolio(adjusted_weights)
             previous_value = portfolio_values[-1]
             month_end_data = self._data.loc[last_date_current_month]
             month_start_data = month_end_data
@@ -169,9 +204,6 @@ class SmaBacktestPortfolio(BacktestingProcessor):
             all_adjusted_weights.append(adjusted_weights)
             portfolio_values.append(new_portfolio_value)
             portfolio_returns.append(month_return)
-
-        # placeholder_weights = {asset: 0.0 for asset in all_adjusted_weights[0].keys()}
-        # all_adjusted_weights = all_adjusted_weights + [placeholder_weights]
 
         self.data_models.adjusted_weights = pd.Series(
             all_adjusted_weights,

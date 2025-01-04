@@ -1,32 +1,32 @@
+"""
+Parent module for GUI.
+"""
+
+import multiprocessing
+
 import customtkinter as ctk
+
 from gui import *
 from models.models_data import ModelsData
-from portfolio_management.portfolio_data import PortfolioData
-
 import utilities as utilities
+
 
 class PortfolioAnalyzer(ctk.CTk):
     """
     A GUI application for running backtests and Monte Carlo simulations on investment portfolios.
     """
-
     def __init__(self):
         super().__init__()
         self.title("Portfolio Analyzer")
-        self.geometry("1920x1080")
 
         models_data = ModelsData()
         self.data_models = models_data
-
-        portfolio_data = PortfolioData()
-        self.data_portfolios = portfolio_data
 
         self.bold_font = ctk.CTkFont(size=12, weight="bold", family="Arial")
 
         icon_path = utilities.resource_path("images/Zephyr Analytics-Clipped.ico")
         self.iconbitmap(icon_path)
 
-        # Display acknowledgment popup
         # self.show_acknowledgment_popup()
 
         self.create_widgets()
@@ -48,15 +48,15 @@ class PortfolioAnalyzer(ctk.CTk):
         self.grid_rowconfigure(1, weight=10)
 
         # Central Frame
-        center_frame = ctk.CTkFrame(self, fg_color="#edeaea")
+        center_frame = ctk.CTkFrame(self, fg_color=["#edeaea", "#2b2c2d"])
         center_frame.grid(row=0, column=1, rowspan=1, sticky="nsew")
 
         # High-Level Tab Control
         self.high_level_tab_control = ctk.CTkTabview(
             center_frame,
-            border_color="#edeaea",
-            fg_color="#edeaea",
-            segmented_button_fg_color="#edeaea",
+            border_color=["#edeaea", "#2b2c2d"],
+            fg_color=["#edeaea", "#2b2c2d"],
+            segmented_button_fg_color=["#edeaea", "#2b2c2d"],
             segmented_button_unselected_color="#bb8fce",
             segmented_button_selected_color="#8e44ad",
             text_color="#000000",
@@ -77,10 +77,6 @@ class PortfolioAnalyzer(ctk.CTk):
         testing_tab_frame = self.high_level_tab_control.add("Testing")
         self.testing_tab = TestingTab(testing_tab_frame, models_data=self.data_models)
 
-        # # Add Portfolio Management Tab
-        # portfolio_tab_frame = self.high_level_tab_control.add("Portfolio Management")
-        # self.portfolio_tab = PortfolioTab(portfolio_tab_frame, portfolio_data=self.data_portfolios)
-
         # Set initial tab
         self.high_level_tab_control.set("Initial Testing Setup")
 
@@ -90,16 +86,23 @@ class PortfolioAnalyzer(ctk.CTk):
         Determines the active tab and calls the update_tab method of the respective tab.
         """
         active_tab = self.high_level_tab_control.get()
-        if active_tab == "Economics":
-            self.economic_tab.update_tab()
-        elif active_tab == "Initial Testing Setup":
+        # if active_tab == "Economics":
+        #     self.economic_tab.update_tab()
+        if active_tab == "Initial Testing Setup":
             self.setup_tab.update_tab()
         elif active_tab == "Testing":
             self.testing_tab.update_tab()
-        elif active_tab == "Portfolio Management":
-            self.portfolio_tab.update_tab()
+
+def main():
+    """
+    Main entry point for the application.
+    This function ensures that the GUI only runs in the main process.
+    """
+    app = PortfolioAnalyzer()
+    app.mainloop()
 
 
 if __name__ == "__main__":
-    app = PortfolioAnalyzer()
-    app.mainloop()
+    if multiprocessing.current_process().name == "MainProcess":
+        multiprocessing.freeze_support()
+        main()

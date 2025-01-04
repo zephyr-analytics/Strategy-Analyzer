@@ -14,15 +14,15 @@ class ModelsData:
         """
         self._assets_weights = {}
         self._adjusted_weights = {}
-        self._bond_ticker = "BND"
+        self._bond_ticker = ""
         self._buy_and_hold_values = pd.Series
         self._buy_and_hold_returns = pd.Series
-        self._cash_ticker = "SGOV"
+        self._cash_ticker = "SHV"
         self._end_date = datetime.today().strftime('%Y-%m-%d')
         self._initial_portfolio_value = 10000
         self._num_simulations = 1000
         self._simulation_horizon = 10
-        self._sma_window = "21"
+        self._ma_window = "21"
         self._start_date = "2010-01-01"
         self._theme_mode = "Light"
         self._trading_frequency = "Monthly"
@@ -37,18 +37,21 @@ class ModelsData:
         self._cvar = None
         self._annual_volatility = None
         self._max_distance = 1.5
-        self._sma_threshold_asset = ""
+        self._ma_threshold_asset = ""
         self._num_assets_to_select = 1
         self._standard_deviation = None
         self._out_of_market_tickers = {}
         self._processing_type = str
         self._benchmark_asset = ""
+        self._benchmark_values = pd.Series
+        self._benchmark_returns = pd.Series
         self._contribution = None
         self._contribution_frequency = None
         self._return_metric = None
         self._risk_metric = None
         self._risk_tolerance = float(0.10)
-
+        self._negative_mom = True
+        self._ma_type = str
 
     @property
     def assets_weights(self):
@@ -261,24 +264,24 @@ class ModelsData:
 
 
     @property
-    def sma_window(self):
+    def ma_window(self):
         """
         Gets the SMA (Simple Moving Average) window for the backtest or simulation.
 
         Returns:
             int: The SMA window in days.
         """
-        return self._sma_window
+        return self._ma_window
 
-    @sma_window.setter
-    def sma_window(self, value):
+    @ma_window.setter
+    def ma_window(self, value):
         """
         Sets the SMA (Simple Moving Average) window for the backtest or simulation.
 
         Args:
             value (int): The SMA window in days.
         """
-        self._sma_window = value
+        self._ma_window = value
 
 
     @property
@@ -592,24 +595,24 @@ class ModelsData:
 
 
     @property
-    def sma_threshold_asset(self):
+    def ma_threshold_asset(self):
         """
         Gets the sma threshold asset value used for portfolio management.
 
         Returns:
             str: The sam threshold asset as a string.
         """
-        return self._sma_threshold_asset
+        return self._ma_threshold_asset
 
-    @sma_threshold_asset.setter
-    def sma_threshold_asset(self, value):
+    @ma_threshold_asset.setter
+    def ma_threshold_asset(self, value):
         """
         Sets the sma threshold asset value used for portfolio management.
 
         Args:
             value (str): The asset ticker symbol to be set as the sma threshold asset.
         """
-        self._sma_threshold_asset = value
+        self._ma_threshold_asset = value
 
 
     @property
@@ -718,6 +721,48 @@ class ModelsData:
 
 
     @property
+    def benchmark_values(self):
+        """
+        Gets the benchmark_asset.
+
+        Returns:
+            str: String representing the benchmark_values.
+        """
+        return self._benchmark_values
+
+    @benchmark_values.setter
+    def benchmark_values(self, value):
+        """
+        Sets the benchmark_asset.
+
+        Args:
+            value (str): String representing the benchmark_values.
+        """
+        self._benchmark_values = value
+
+
+    @property
+    def benchmark_returns(self):
+        """
+        Gets the benchmark_asset.
+
+        Returns:
+            str: String representing the benchmark_asset.
+        """
+        return self._benchmark_returns
+
+    @benchmark_returns.setter
+    def benchmark_returns(self, value):
+        """
+        Sets the benchmark_asset.
+
+        Args:
+            value (str): String representing the benchmark_asset.
+        """
+        self._benchmark_returns = value
+
+
+    @property
     def contribution(self):
         """
         Gets the contribution.
@@ -820,3 +865,45 @@ class ModelsData:
             value (int): Integer representing the contribution.
         """
         self._risk_tolerance = value
+
+
+    @property
+    def negative_mom(self):
+        """
+        Gets the contribution.
+
+        Returns:
+            int: Integer representing the contribution.
+        """
+        return self._negative_mom
+
+    @negative_mom.setter
+    def negative_mom(self, value):
+        """
+        Sets the contribution.
+
+        Args:
+            value (int): Integer representing the contribution.
+        """
+        self._negative_mom = value
+
+
+    @property
+    def ma_type(self):
+        """
+        Gets the contribution.
+
+        Returns:
+            int: Integer representing the contribution.
+        """
+        return self._ma_type
+
+    @ma_type.setter
+    def ma_type(self, value):
+        """
+        Sets the contribution.
+
+        Args:
+            value (int): Integer representing the contribution.
+        """
+        self._ma_type = value

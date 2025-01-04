@@ -1,3 +1,7 @@
+"""
+Module for acknowledgement window.
+"""
+
 import customtkinter as ctk
 from PIL import Image, ImageTk
 
@@ -14,19 +18,16 @@ class AcknowledgmentPopup(ctk.CTkToplevel):
         self.title("Acknowledgment Required")
         self.geometry("1000x800")
 
-        # Disable interactions with the parent window
         self.grab_set()
         self.add_image()
         self.protocol("WM_DELETE_WINDOW", self.on_close)
         self.center_window()
 
-        # Configure layout
         self.grid_rowconfigure(0, weight=0)
         self.grid_rowconfigure(1, weight=1)
         self.grid_rowconfigure(2, weight=0)
         self.grid_columnconfigure(0, weight=1)
 
-        # Default disclaimer message with indentation
         message = (
                 "    The Software may provide certain financial market data, quotes, price forecasts, "
                 "other forecasts, news, research, predictions, and opinions or other financial "
@@ -71,10 +72,9 @@ class AcknowledgmentPopup(ctk.CTkToplevel):
             height=500
         )
         self.text_area.insert("1.0", message)
-        self.text_area.configure(state="disabled")  # Make the text read-only
+        self.text_area.configure(state="disabled")
         self.text_area.grid(row=1, column=0, padx=10, sticky="nsew")
 
-        # Add acknowledgment button
         self.ack_button = ctk.CTkButton(
             self,
             text="I Acknowledge",
@@ -88,49 +88,41 @@ class AcknowledgmentPopup(ctk.CTkToplevel):
         """
         Adds an image to the top of the popup and ensures it is larger.
         """
-        # Load the image using Pillow
-        
         image_path = utilities.resource_path("images/Zephyr Analytics-01.png")
         image = Image.open(image_path)
-        image = image.resize((500, 400), Image.Resampling.LANCZOS)  # Resize to make it larger
+        image = image.resize((500, 400), Image.Resampling.LANCZOS)
 
-        # Convert the image to a format compatible with tkinter
         self.tk_image = ImageTk.PhotoImage(image)
 
-        # Configure grid to allow expansion
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
 
-        # Add the image to the popup using a CTkLabel
         image_label = ctk.CTkLabel(self, image=self.tk_image, text="", bg_color="black")
-        image_label.grid(row=0, column=0, padx=0, pady=0, sticky="nsew")  # Center and stretch
+        image_label.grid(row=0, column=0, padx=0, pady=0, sticky="nsew")
 
     def center_window(self):
         """
         Centers the popup window on the parent window.
         """
-        self.update_idletasks()  # Ensure the popup size is calculated
+        self.update_idletasks()
         popup_width = self.winfo_width()
         popup_height = self.winfo_height()
 
-        # Get the dimensions and position of the parent window
         parent_width = self.parent.winfo_width()
         parent_height = self.parent.winfo_height()
         parent_x = self.parent.winfo_x()
         parent_y = self.parent.winfo_y()
 
-        # Calculate the position to center the popup on the parent window
         x = parent_x + (parent_width // 2) - (popup_width // 2)
         y = parent_y + (parent_height // 2) - (popup_height // 2)
 
-        # Set the popup geometry
         self.geometry(f"+{x}+{y}")
 
     def on_acknowledge(self):
         """
         Handles the acknowledgment action and closes the popup.
         """
-        self.grab_release()  # Re-enable interaction with the parent window
+        self.grab_release()
         self.destroy()
 
     def on_close(self):

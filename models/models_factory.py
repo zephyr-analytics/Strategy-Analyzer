@@ -14,7 +14,6 @@ class ModelsFactory:
     """
     Factory class to handle model processing based on the provided enum types.
     """
-
     def __init__(self, data_models: ModelsData):
         """
         Initializes the ModelsFactory with the provided data models.
@@ -43,16 +42,15 @@ class ModelsFactory:
             Result message indicating the outcome of the operation.
         """
         model_run_map = {
-            (Models.SMA, Runs.BACKTEST): self._run_sma_backtest,
-            (Models.SMA, Runs.SIGNALS): self._run_sma_signals,
-            (Models.SMA, Runs.SIMULATION): self._run_sma_simulation,
+            (Models.MA, Runs.BACKTEST): self._run_sma_backtest,
+            (Models.MA, Runs.SIGNALS): self._run_sma_signals,
+            (Models.MA, Runs.SIMULATION): self._run_sma_simulation,
             (Models.MOMENTUM, Runs.BACKTEST): self._run_momentum_backtest,
             (Models.MOMENTUM, Runs.SIGNALS): self._run_momentum_signals,
             (Models.MOMENTUM, Runs.SIMULATION): self._run_momentum_simulation,
-            (Models.MACHINE_LEARNING, Runs.BACKTEST): self._run_machine_learning_backtest,
             (Models.IN_AND_OUT_OF_MARKET, Runs.BACKTEST): self._run_in_and_out_of_market_backtest,
             (Models.IN_AND_OUT_OF_MARKET, Runs.SIGNALS): self._run_in_and_out_of_market_signals,
-            (Models.SMA, Runs.PARAMETER_TUNE): self._run_sma_parameter_tune,
+            (Models.MA, Runs.PARAMETER_TUNE): self._run_sma_parameter_tune,
             (Models.MOMENTUM, Runs.PARAMETER_TUNE): self._run_momentum_parameter_tune
         }
 
@@ -73,9 +71,9 @@ class ModelsFactory:
         """
         if not self.data_models.assets_weights:
             return "Please load asset weights file."
-        backtest = SmaBacktestPortfolio(self.data_models)
+        backtest = MaBacktestPortfolio(self.data_models)
         backtest.process()
-        return "SMA backtest completed and plots saved."
+        return "MA backtest completed and plots saved."
 
     def _run_sma_signals(self) -> str:
         """
@@ -88,9 +86,9 @@ class ModelsFactory:
         """
         if not self.data_models.assets_weights:
             return "Please load asset weights file."
-        create_signals = CreateSmaSignals(self.data_models)
+        create_signals = CreateMaSignals(self.data_models)
         create_signals.process()
-        return f"SMA signals generated for {self.data_models.end_date}."
+        return f"MA signals generated for {self.data_models.end_date}."
 
     def _run_sma_simulation(self) -> str:
         """
@@ -103,11 +101,11 @@ class ModelsFactory:
         """
         if not self.data_models.assets_weights:
             return "Please load asset weights file."
-        backtest = SmaBacktestPortfolio(self.data_models)
+        backtest = MaBacktestPortfolio(self.data_models)
         backtest.process()
         monte_carlo = MonteCarloSimulation(self.data_models)
         monte_carlo.process()
-        return "SMA simulation completed and plots saved."
+        return "MA simulation completed and plots saved."
 
     def _run_momentum_backtest(self) -> str:
         """
@@ -138,7 +136,7 @@ class ModelsFactory:
         create_signals = CreateMomentumSignals(self.data_models)
         create_signals.process()
         return f"Momentum signals generated for {self.data_models.end_date}."
-    
+
     def _run_momentum_simulation(self)-> str:
         """
         Executes the momentum Monte Carlo simulation process.
@@ -155,21 +153,6 @@ class ModelsFactory:
         monte_carlo = MonteCarloSimulation(self.data_models)
         monte_carlo.process()
         return "Momentum simulation completed and plots saved."
-
-    def _run_machine_learning_backtest(self) -> str:
-        """
-        Executes the machine learning backtest process.
-
-        Returns
-        -------
-        str
-            Message indicating the outcome of the machine learning backtest.
-        """
-        if not self.data_models.assets_weights:
-            return "Please load asset weights file."
-        backtest = BacktestClusteringPortfolio(self.data_models)
-        backtest.process()
-        return "Machine learning backtest completed and plots saved."
 
     def _run_in_and_out_of_market_backtest(self) -> str:
         """
@@ -205,7 +188,7 @@ class ModelsFactory:
         signals.process()
         return "In and Out of Market signals completed and plots saved."
 
-    def _run_sma_parameter_tune(self):
+    def _run_sma_parameter_tune(self) -> str:
         """
         Executes the SMA parameter tune processor.
 
@@ -216,11 +199,11 @@ class ModelsFactory:
         """
         if not self.data_models.assets_weights:
             return "Please load asset weights file."
-        parameter_tune = SmaParameterTuning(self.data_models)
+        parameter_tune = MaParameterTuning(self.data_models)
         parameter_tune.process()
-        return "SMA parameter tuning completed."
-    
-    def _run_momentum_parameter_tune(self):
+        return "MA parameter tuning completed."
+
+    def _run_momentum_parameter_tune(self) -> str:
         """
         """
         if not self.data_models.assets_weights:

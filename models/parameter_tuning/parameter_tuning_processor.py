@@ -39,13 +39,13 @@ class ParameterTuningProcessor(ABC):
         pass
 
     @abstractmethod
-    def plot_results(self, results):
+    def plot_results(self, results: dict):
         """
         """
         pass
 
     @abstractmethod
-    def persist_results(self, results):
+    def persist_results(self, results: dict):
         """
         Persists the results dictionary as a JSON file.
         """

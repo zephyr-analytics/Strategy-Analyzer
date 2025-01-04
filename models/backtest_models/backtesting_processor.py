@@ -23,23 +23,6 @@ from results.results_processor import ResultsProcessor
 class BacktestingProcessor(ABC):
     """
     Abstract base class for backtesting portfolios with configurable strategies.
-
-    Attributes
-    ----------
-    assets_weights : dict
-        Dictionary of asset tickers and their corresponding weights in the portfolio.
-    start_date : str
-        The start date for the backtest.
-    end_date : str
-        The end date for the backtest.
-    initial_portfolio_value : float
-        The initial value of the portfolio.
-    trading_frequency : str
-        Frequency of portfolio rebalancing (e.g., 'Monthly', 'Bi-Monthly').
-    data_models : ModelsData
-        The data model instance containing parameters and configurations for the portfolio.
-    _data : DataFrame or None
-        DataFrame to store the adjusted closing prices of the assets.
     """
     def __init__(self, data_models: ModelsData):
         self.data_models = data_models
@@ -51,13 +34,15 @@ class BacktestingProcessor(ABC):
         self.output_filename = data_models.weights_filename
         self.rebalance_threshold = 0.02
         self.weighting_strategy = data_models.weighting_strategy
-        self.sma_period = int(data_models.sma_window)
+        self.ma_period = int(data_models.ma_window)
         self.bond_ticker = str(data_models.bond_ticker)
         self.cash_ticker = str(data_models.cash_ticker)
         self.initial_portfolio_value = int(data_models.initial_portfolio_value)
         self.num_assets_to_select = int(data_models.num_assets_to_select)
-        self.threshold_asset = str(data_models.sma_threshold_asset)
+        self.ma_threshold_asset = str(data_models.ma_threshold_asset)
         self.processing_type = data_models.processing_type
+        self.ma_type = data_models.ma_type
+        self.benchmark_asset = data_models.benchmark_asset
 
         self._data = None
         self._momentum_data = None
@@ -172,50 +157,39 @@ class BacktestingProcessor(ABC):
         self.data_models.buy_and_hold_returns = pd.Series(portfolio_returns, index=monthly_dates[1:len(portfolio_returns)+1])
 
 
-    def _calculate_benchmark(self, benchmark_ticker: str):
+    def _calculate_benchmark(self):
         """
         Calculates the performance of a benchmark asset over the specified timeframe.
-
-        Parameters
-        ----------
-        benchmark_ticker : str
-            The ticker of the benchmark asset to evaluate.
         """
-        # TODO Benchmark results will need to be added to results processor.
-        if self.benchmark_asset != None:
-            # TODO benchmark_data will need to be tied to the actually benchmark asset.
-            benchmark_data, message = utilities.fetch_data(
-                all_tickers=[benchmark_ticker],
-                start_date=self.start_date,
-                end_date=self.end_date
-            )
-
-            if benchmark_data.empty:
-                raise ValueError(f"No data retrieved for benchmark ticker '{benchmark_ticker}'.")
-
-            benchmark_values = [self.initial_portfolio_value]
-            benchmark_returns = []
-
-            monthly_dates = pd.date_range(start=self.start_date, end=self.end_date, freq='M')
-
-            for i in range(1, len(monthly_dates)):
-                start_index = benchmark_data.index.get_indexer([monthly_dates[i-1]], method='nearest')[0]
-                end_index = benchmark_data.index.get_indexer([monthly_dates[i]], method='nearest')[0]
-
-                start_price = benchmark_data.iloc[start_index][benchmark_ticker]
-                end_price = benchmark_data.iloc[end_index][benchmark_ticker]
-
-                monthly_return = (end_price / start_price) - 1
-
-                previous_value = benchmark_values[-1]
-                new_benchmark_value = previous_value * (1 + monthly_return)
-                benchmark_values.append(new_benchmark_value)
-                benchmark_returns.append(monthly_return)
-
-            self.data_models.benchmark_values = pd.Series(benchmark_values, index=monthly_dates[:len(benchmark_values)])
-            self.data_models.benchmark_returns = pd.Series(benchmark_returns, index=monthly_dates[1:len(benchmark_returns)+1])
+        if not self.benchmark_asset:
+            return
         else:
-            pass
+            data_processor = DataObtainmentProcessor(models_data=self.data_models)
+            processed_data = data_processor.process()
+
+        self._benchmark_data = processed_data.loc[:, [self.benchmark_asset]] if self.benchmark_asset in processed_data.columns else None
+        benchmark_values = [self.initial_portfolio_value]
+        benchmark_returns = []
+
+        monthly_dates = pd.date_range(start=self.start_date, end=self.end_date, freq='M')
+
+        for i in range(1, len(monthly_dates)):
+            start_index = self._benchmark_data.index.get_indexer([monthly_dates[i-1]], method='nearest')[0]
+            end_index = self._benchmark_data.index.get_indexer([monthly_dates[i]], method='nearest')[0]
+
+            start_price = self._benchmark_data.iloc[start_index][self.benchmark_asset]
+            end_price = self._benchmark_data.iloc[end_index][self.benchmark_asset]
+
+            monthly_return = (end_price / start_price) - 1
+
+            previous_value = benchmark_values[-1]
+            new_benchmark_value = previous_value * (1 + monthly_return)
+            benchmark_values.append(new_benchmark_value)
+            benchmark_returns.append(monthly_return)
+ 
+        self.data_models.benchmark_values = pd.Series(benchmark_values, index=monthly_dates[:len(benchmark_values)])
+        self.data_models.benchmark_returns = pd.Series(benchmark_returns, index=monthly_dates[1:len(benchmark_returns)+1])
+
 
 
     def persist_data(self):

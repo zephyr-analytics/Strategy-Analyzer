@@ -9,6 +9,7 @@ import pandas as pd
 
 import utilities as utilities
 
+from data.data_obtain import DataObtainmentProcessor
 from models.models_data import ModelsData
 from models.backtest_models.backtesting_processor import BacktestingProcessor
 from results.results_processor import ResultsProcessor
@@ -20,37 +21,6 @@ class BacktestInAndOutMomentumPortfolio(BacktestingProcessor):
     """
     A class to backtest a static portfolio with adjustable weights based on Simple Moving Average (SMA),
     with momentum calculations for both in-market and out-of-market assets.
-
-    Attributes
-    ----------
-    assets_weights : dict
-        Dictionary of asset tickers and their corresponding weights in the portfolio.
-    start_date : str
-        The start date for the backtest.
-    end_date : str
-        The end date for the backtest.
-    sma_period : int
-        The period for calculating the Simple Moving Average (SMA). Default is 168.
-    bond_ticker : str
-        The ticker symbol for the bond asset. Default is 'BND'.
-    cash_ticker : str
-        The ticker symbol for the cash asset. Default is 'SHV'.
-    initial_portfolio_value : float
-        The initial value of the portfolio. Default is 10000.
-    out_of_market_tickers : str
-        The ticker symbol for the out-of-market asset.
-    _data : DataFrame or None
-        DataFrame to store the adjusted closing prices of the in-market assets.
-    _out_of_market_data : DataFrame or None
-        DataFrame to store the adjusted closing prices of the out-of-market assets.
-    _portfolio_value : Series
-        Series to store the portfolio values over time.
-    _returns : Series
-        Series to store the portfolio returns over time.
-    _momentum_data : DataFrame
-        DataFrame to store the returns data for calculating momentum of in-market assets.
-    _momentum_data_out_of_market : DataFrame
-        DataFrame to store the returns data for calculating momentum of out-of-market assets.
     """
 
     def __init__(self, data_models: ModelsData):
@@ -71,12 +41,12 @@ class BacktestInAndOutMomentumPortfolio(BacktestingProcessor):
         self.output_filename = data_models.weights_filename
         self.rebalance_threshold = 0.02
         self.weighting_strategy = data_models.weighting_strategy
-        self.sma_period = int(data_models.sma_window)
+        self.sma_period = int(data_models.ma_window)
         self.bond_ticker = data_models.bond_ticker
         self.cash_ticker = data_models.cash_ticker
         self.initial_portfolio_value = int(data_models.initial_portfolio_value)
         self.num_assets_to_select = int(data_models.num_assets_to_select)
-        self.threshold_asset = str(data_models.sma_threshold_asset)
+        self.threshold_asset = str(data_models.ma_threshold_asset)
         self.out_of_market_tickers = data_models.out_of_market_tickers
 
         # Class-defined attributes
@@ -90,6 +60,9 @@ class BacktestInAndOutMomentumPortfolio(BacktestingProcessor):
         """
         Processes the backtest by fetching data, running the backtest, and generating the plots.
         """
+        data_processor = DataObtainmentProcessor(models_data=self.data_models)
+        self.data = data_processor.process
+
         all_tickers = list(self.assets_weights.keys()) + [self.cash_ticker]
 
         if self.threshold_asset != "":
@@ -116,7 +89,6 @@ class BacktestInAndOutMomentumPortfolio(BacktestingProcessor):
         results_processor.plot_portfolio_value()
         results_processor.plot_var_cvar()
         results_processor.plot_returns_heatmaps()
-
 
 
     def calculate_momentum(self, current_date: datetime) -> tuple:
@@ -250,12 +222,18 @@ class BacktestInAndOutMomentumPortfolio(BacktestingProcessor):
         portfolio_returns = []
         all_adjusted_weights = []
 
-        if self.trading_frequency == 'Monthly':
+        if self.trading_frequency == "Monthly":
             step = 1
-            freq = 'M'
-        elif self.trading_frequency == 'Bi-Monthly':
+            freq = "M"
+        elif self.trading_frequency == "Bi-Monthly":
             step = 2
-            freq = '2M'
+            freq = "2M"
+        elif self.trading_frequency == "Quarterly":
+            step = 3
+            freq = "3M"
+        elif self.trading_frequency == "Yearly":
+            step = 12
+            freq = "12M"
         else:
             raise ValueError("Invalid trading frequency. Choose 'Monthly' or 'Bi-Monthly'.")
 
