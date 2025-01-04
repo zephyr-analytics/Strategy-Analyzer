@@ -6,6 +6,7 @@ import os
 import json
 
 import plotly.express as px
+from concurrent.futures import ProcessPoolExecutor, as_completed
 
 import utilities as utilities
 from models.models_data import ModelsData
@@ -40,7 +41,7 @@ class MomentumParameterTuning(ParameterTuningProcessor):
 
     def get_portfolio_results(self) -> dict:
         """
-        Processes parameters for tuning and stores results.
+        Processes parameters for tuning using multi-processing to utilize all CPU cores.
 
         Returns
         -------
@@ -55,37 +56,69 @@ class MomentumParameterTuning(ParameterTuningProcessor):
 
         total_assets = len(self.data_models.assets_weights)
 
-        for ma in ma_list:
-            for frequency in trading_frequencies:
-                for num_assets in num_asset_list:
-                    if num_assets > total_assets:
-                        break
-                    for ma_type in ma_types:
-                        self.data_models.ma_window = ma
-                        self.data_models.trading_frequency = frequency
-                        self.data_models.num_assets_to_select = num_assets
-                        self.data_models.ma_type = ma_type
+        # Create a list of parameter combinations
+        parameter_combinations = [
+            (ma, frequency, num_assets, ma_type)
+            for ma in ma_list
+            for frequency in trading_frequencies
+            for num_assets in num_asset_list if num_assets <= total_assets
+            for ma_type in ma_types
+        ]
 
-                        backtest = BacktestMomentumPortfolio(self.data_models)
-                        backtest.process()
+        # Use ProcessPoolExecutor to utilize all CPU cores
+        with ProcessPoolExecutor() as executor:
+            future_to_params = {
+                executor.submit(self.process_combination, ma, frequency, num_assets, ma_type): (ma, frequency, num_assets, ma_type)
+                for ma, frequency, num_assets, ma_type in parameter_combinations
+            }
 
-                        cagr = self.data_models.cagr
-                        average_annual_return = self.data_models.average_annual_return
-                        max_drawdown = self.data_models.max_drawdown
-                        var = self.data_models.var
-                        cvar = self.data_models.cvar
-                        annual_volatility = self.data_models.annual_volatility
-
-                        results[(ma, frequency, num_assets, ma_type)] = {
-                            "cagr": cagr,
-                            "average_annual_return": average_annual_return,
-                            "max_drawdown": max_drawdown,
-                            "var": var,
-                            "cvar": cvar,
-                            "annual_volatility": annual_volatility
-                        }
+            for future in as_completed(future_to_params):
+                params = future_to_params[future]
+                try:
+                    result = future.result()
+                    results[params] = result
+                except Exception as e:
+                    print(f"Error processing {params}: {e}")
 
         return results
+
+    def process_combination(self, ma, frequency, num_assets, ma_type) -> dict:
+        """
+        Processes a single parameter combination and returns the backtest results.
+
+        Parameters
+        ----------
+        ma : int
+            Moving average window.
+        frequency : str
+            Trading frequency.
+        num_assets : int
+            Number of assets to select.
+        ma_type : str
+            Type of moving average (SMA or EMA).
+
+        Returns
+        -------
+        dict
+            The backtest results for the given parameter combination.
+        """
+        self.data_models.ma_window = ma
+        self.data_models.trading_frequency = frequency
+        self.data_models.num_assets_to_select = num_assets
+        self.data_models.ma_type = ma_type
+
+        backtest = BacktestMomentumPortfolio(self.data_models)
+        backtest.process()
+
+        return {
+            "cagr": self.data_models.cagr,
+            "average_annual_return": self.data_models.average_annual_return,
+            "max_drawdown": self.data_models.max_drawdown,
+            "var": self.data_models.var,
+            "cvar": self.data_models.cvar,
+            "annual_volatility": self.data_models.annual_volatility,
+        }
+
 
     def plot_results(self, results: dict):
         """
