@@ -75,24 +75,25 @@ class MonteCarloSimulation:
         DataFrame
             DataFrame containing the simulated portfolio values.
         """
-        # Initialize results
         simulation_results = np.zeros((self.simulation_horizon + 1, self.num_simulations))
         simulation_results[0] = self.initial_portfolio_value
 
-        # Contribution multiplier based on frequency
-        if self.contribution_frequency == "Monthly":
-            contribution = self.contribution*12
-        elif self.contribution_frequency == "Quarterly":
-            contribution = self.contribution*4
-        elif self.contribution_frequency == "Yearly":
-            contribution = self.contribution
+        if self.contribution and self.contribution_frequency:
+            if self.contribution_frequency == "Monthly":
+                contribution = self.contribution*12
+            elif self.contribution_frequency == "Quarterly":
+                contribution = self.contribution*4
+            elif self.contribution_frequency == "Yearly":
+                contribution = self.contribution
+            else:
+                raise ValueError("Invalid contribution frequency. Choose from 'monthly', 'quarterly', 'yearly'.")
         else:
-            raise ValueError("Invalid contribution frequency. Choose from 'monthly', 'quarterly', 'yearly'.")
+            contribution = 0
 
         for t in range(1, self.simulation_horizon + 1):
-            # Generate random annual returns
             random_returns = np.random.normal(self.average_annual_return, self.annual_volatility, self.num_simulations)
             simulation_results[t] = simulation_results[t - 1] * (1 + random_returns)
+
             simulation_results[t] += contribution
 
         return pd.DataFrame(simulation_results)
