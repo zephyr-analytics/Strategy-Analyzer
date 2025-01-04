@@ -94,7 +94,7 @@ class ResultsProcessor:
                 y=self.benchmark_values,
                 mode='lines',
                 name='Benchmark Value',
-                line=dict(color="#ffa726")
+                line=dict(color="#9b4aa5")
             ))
 
         # Annotations
