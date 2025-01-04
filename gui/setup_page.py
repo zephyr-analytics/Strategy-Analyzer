@@ -28,7 +28,7 @@ class SetupTab:
         self.ma_window_var = ctk.StringVar()
         self.num_simulations_var = ctk.StringVar(value=self.data_models.num_simulations)
         self.simulation_horizon_entry_var = ctk.StringVar(value=self.data_models.simulation_horizon)
-        self.benchmark_asset_entry_var = ctk.StringVar(value=self.data_models.benchmark_asset)
+        self.benchmark_asset_entry_var = ctk.StringVar()
         self.contribution_entry_var = ctk.StringVar(value=self.data_models.contribution)
         self.contribution_frequency_var = ctk.StringVar(value=self.data_models.contribution_frequency)
         self.risk_tolerance_var = ctk.StringVar(value=self.data_models.risk_tolerance)

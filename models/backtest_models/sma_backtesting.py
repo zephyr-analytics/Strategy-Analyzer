@@ -66,6 +66,7 @@ class SmaBacktestPortfolio(BacktestingProcessor):
         self.run_backtest()
         self._get_portfolio_statistics()
         self._calculate_buy_and_hold()
+        self._calculate_benchmark()
         self.persist_data()
         results_processor = ResultsProcessor(self.data_models)
         results_processor.plot_portfolio_value()
@@ -76,7 +77,12 @@ class SmaBacktestPortfolio(BacktestingProcessor):
         pass
 
 
-    def adjust_weights(self, current_date, selected_assets=None, selected_out_of_market_assets=None):
+    def adjust_weights(
+            self, 
+            current_date, 
+            selected_assets=None, 
+            selected_out_of_market_assets=None
+        ) -> dict:
         """
         Adjusts the weights of the assets based on their SMA and the selected weighting strategy.
 
@@ -95,6 +101,22 @@ class SmaBacktestPortfolio(BacktestingProcessor):
             Dictionary of adjusted asset weights.
         """
         adjusted_weights = self.assets_weights.copy() if selected_assets is None else selected_assets.copy()
+
+        trading_assets = {ticker: weight for ticker, weight in adjusted_weights.items() 
+                        if ticker not in [self.ma_threshold_asset, self.bond_ticker, self.cash_ticker, self.benchmark_asset]}
+
+        def get_replacement_asset():
+            """
+            Determines the replacement asset (cash or bond) based on SMA.
+
+            Returns
+            -------
+            str
+                The replacement asset ticker.
+            """
+            if self.bond_ticker and not is_below_ma(self.bond_ticker):
+                return self.bond_ticker
+            return self.cash_ticker
 
         def is_below_ma(ticker):
             """
@@ -121,23 +143,10 @@ class SmaBacktestPortfolio(BacktestingProcessor):
 
             return price < ma
 
-        def get_replacement_asset():
-            """
-            Determines the replacement asset (cash or bond) based on SMA.
-
-            Returns
-            -------
-            str
-                The replacement asset ticker.
-            """
-            if self.bond_ticker and not is_below_ma(self.bond_ticker):
-                return self.bond_ticker
-            return self.cash_ticker
-
-        for ticker in list(adjusted_weights.keys()):
+        for ticker in list(trading_assets.keys()):
             if is_below_ma(ticker):
                 replacement_asset = get_replacement_asset()
-                adjusted_weights[replacement_asset] = adjusted_weights.get(replacement_asset, 0) + adjusted_weights[ticker]
+                adjusted_weights[replacement_asset] = adjusted_weights.get(replacement_asset, 0) + trading_assets[ticker]
                 adjusted_weights[ticker] = 0
 
         total_weight = sum(adjusted_weights.values())

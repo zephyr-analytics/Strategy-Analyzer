@@ -45,6 +45,7 @@ class BacktestMomentumPortfolio(BacktestingProcessor):
         self.run_backtest()
         self._get_portfolio_statistics()
         self._calculate_buy_and_hold()
+        self._calculate_benchmark()
         self.persist_data()
         results_processor = ResultsProcessor(self.data_models)
         results_processor.plot_portfolio_value()
@@ -91,11 +92,18 @@ class BacktestMomentumPortfolio(BacktestingProcessor):
         dict
             Dictionary of adjusted asset weights.
         """
-        trading_assets = selected_assets[selected_assets['Asset'] != self.threshold_asset]
-
+        trading_assets = selected_assets[~selected_assets['Asset'].isin(
+            [self.ma_threshold_asset, self.bond_ticker, self.cash_ticker, self.benchmark_asset]
+        )]
+        # TODO this needs to be able to handle ma threshold asset and mom threshold asset.
         def get_replacement_asset():
             """
             Determines the replacement asset (cash or bond) based on SMA.
+            
+            Returns
+            -------
+            str
+                The replacement asset ticker.
             """
             if self.bond_ticker and not is_below_ma(self.bond_ticker):
                 return self.bond_ticker
@@ -179,8 +187,7 @@ class BacktestMomentumPortfolio(BacktestingProcessor):
 
             # Calculate momentum
             momentum = self.calculate_momentum(last_date_current_month)
-            momentum = momentum.drop(self.threshold_asset, errors='ignore')
-            
+
             # Select assets based on momentum
             selected_assets = pd.DataFrame({'Asset': momentum.nlargest(self.num_assets_to_select).index, 'Momentum': momentum.nlargest(self.num_assets_to_select).values})
             print(selected_assets)

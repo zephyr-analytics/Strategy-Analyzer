@@ -43,28 +43,30 @@ class ResultsProcessor:
         self.ma_window = data_models.ma_window
         self.theme = data_models.theme_mode
         self.ma_type = data_models.ma_type
+        self.benchmark_values = data_models.benchmark_values
 
 
     def plot_portfolio_value(self, filename='portfolio_value'):
         """
-        Plots the portfolio value over time, including an optional buy-and-hold strategy line,
+        Plots the portfolio value over time, including optional buy-and-hold and benchmark strategy lines,
         and saves the plot as an HTML file.
 
         Parameters
         ----------
-        buy_and_hold_values : Series, optional
-            Series representing the buy-and-hold portfolio value over time. Default is None.
         filename : str, optional
             The name of the file to save the plot. Default is 'portfolio_value.html'.
         """
         portfolio_value = self.portfolio_values
         final_value = portfolio_value.iloc[-1]
+        
         if self.theme.lower() == "dark":
             line_color = "white"
         else:
             line_color = "black" 
+
         fig = go.Figure()
 
+        # Plot Portfolio Value
         fig.add_trace(go.Scatter(
             x=portfolio_value.index,
             y=portfolio_value,
@@ -73,6 +75,7 @@ class ResultsProcessor:
             line=dict(color=line_color)
         ))
 
+        # Plot Buy-and-Hold Values if available
         if self.buy_and_hold_values is not None:
             final_bnh_value = self.buy_and_hold_values.iloc[-1]
             fig.add_trace(go.Scatter(
@@ -82,19 +85,20 @@ class ResultsProcessor:
                 name='Buy & Hold Value',
                 line=dict(color="#ce93d8")
             ))
-            annotations = [
-                dict(
-                    xref='paper', yref='paper', x=0.25, y=0.95,
-                    xanchor='center', yanchor='bottom',
-                    text=f'Final Value (B&H): ${final_bnh_value:,.2f}',
-                    showarrow=False,
-                    font=dict(size=12)
-                )
-            ]
-        else:
-            annotations = []
 
-        annotations.extend([
+        # Plot Benchmark Values if available
+        if self.benchmark_values is not None and not self.benchmark_values.empty:
+            final_benchmark_value = self.benchmark_values.iloc[-1]
+            fig.add_trace(go.Scatter(
+                x=self.benchmark_values.index,
+                y=self.benchmark_values,
+                mode='lines',
+                name='Benchmark Value',
+                line=dict(color="#ffa726")
+            ))
+
+        # Annotations
+        annotations = [
             dict(
                 xref='paper', yref='paper', x=0.2, y=1,
                 xanchor='center', yanchor='bottom',
@@ -123,7 +127,29 @@ class ResultsProcessor:
                 showarrow=False,
                 font=dict(size=12)
             )
-        ])
+        ]
+
+        if self.buy_and_hold_values is not None:
+            annotations.append(
+                dict(
+                    xref='paper', yref='paper', x=0.25, y=0.95,
+                    xanchor='center', yanchor='bottom',
+                    text=f'Final Value (B&H): ${final_bnh_value:,.2f}',
+                    showarrow=False,
+                    font=dict(size=12)
+                )
+            )
+
+        if self.benchmark_values is not None and not self.benchmark_values.empty:
+            annotations.append(
+                dict(
+                    xref='paper', yref='paper', x=0.5, y=0.95,
+                    xanchor='center', yanchor='bottom',
+                    text=f'Final Value (Benchmark): ${final_benchmark_value:,.2f}',
+                    showarrow=False,
+                    font=dict(size=12)
+                )
+            )
 
         annotations.append(
             dict(
@@ -138,7 +164,7 @@ class ResultsProcessor:
         )
 
         chart_theme = "plotly_dark" if self.theme.lower() == "dark" else "plotly"
-        
+
         fig.update_layout(
             template=chart_theme,
             title=dict(
