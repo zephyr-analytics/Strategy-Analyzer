@@ -1,7 +1,5 @@
 # Portfolio Strategy Analyzer
-
 ## This application was built using Python 3.10.1 and will require an instance of Python installed on your computer to run.
-## Additionally, a requirements file is also attached and those may also be necessary to run the application, depending on system environment.
 
 ## Overview
 This application is designed for comprehensive portfolio analysis.
@@ -54,11 +52,13 @@ Generate trading signals and visualize market opportunities through automated mo
   - **Trading Frequency**: The frequency at which the portfolio strategy is reset. (Default: `'Monthly'`)
 
 #### Moving Average Settings
-- **SMA Window**: The Simple Moving Average window for generating signals. (Default: `21` trading days)
-- **Threshold Asset**: An optional asset whose SMA is used as a benchmark for trading signals. (Default: `None`)
-- **Out of Market Assets**: Assets and weights used for constructing an out-of-market momentum trading strategy. (Default: `{}`)
-- **Number of Assets to Select**: Specifies the number of assets to include based on momentum. (Default: `1`)
-- **Benchmark Asset**: An optional asset used as a benchmark for performance comparison. (Default: `None`)
+  - **Moving Average Window**: The moving average window for generating signals. (trading days)
+  - **Moving Average Threshold Asset**: An optional asset whose moving average is used as a benchmark for trading signals.
+  - **Moving Average Type**: The type of moving average preferred by the user. (Either `EMA` or `SMA`)
+
+#### Momentum Settings:
+  - **Number of Assets to Select**: Specifies the number of assets to include based on momentum. (Default: `1`)
+  - **Remove Negative Momentum**: Removes assets with negative momentum when creating the trading model.
 
 #### Simulation Parameters:
   - **Number of Simulations**: Number of Monte Carlo simulation paths. (Default: `1000`)
@@ -69,17 +69,14 @@ Generate trading signals and visualize market opportunities through automated mo
 ## Example Usage
 
 ### Running a Backtest
-
 1. Load the asset weights file (e.g., `weights.csv`).
 2. Set the backtest parameters.
 3. Run the backtest via the GUI.
 
 ### Performing Monte Carlo Simulation
-
 1. Set the simulation parameters, such as the number of simulations and the time horizon.
 2. Run the simulation and view the results in the GUI.
 
 ### Generating Signals
-
 1. Set the SMA window for generating signals.
 2. Run the signal generation process and view the signals plotted in the GUI.
