@@ -6,7 +6,7 @@ import customtkinter as ctk
 
 from models.models_data import ModelsData
 import utilities as utilities
-
+from data.data_obtain import DataObtainmentProcessor
 
 class SetupTab:
     """
@@ -138,6 +138,15 @@ class SetupTab:
         ctk.CTkEntry(data_frame, textvariable=self.bond_ticker_var).grid(row=data_frame_rows, column=3, sticky="w", padx=5, pady=y_padding)
         self.bond_ticker_var.trace_add("write", self.update_bond_ticker)
         data_frame_rows += 1
+
+        ctk.CTkButton(
+            data_frame,
+            text="Obtain Data",
+            fg_color="#bb8fce",
+            text_color="#000000",
+            hover_color="#8e44ad",
+            command=self.obtain_data,
+        ).grid(row=data_frame_rows, column=1, columnspan=2, padx=5, pady=y_padding)
 
 
         # Trade Settings
@@ -350,6 +359,9 @@ class SetupTab:
         )
         copyright_label.pack()
 
+    def obtain_data(self):
+        data_processor = DataObtainmentProcessor(models_data=self.data_models)
+        data_processor.process()
 
     def clear_bottom_text(self):
         """
