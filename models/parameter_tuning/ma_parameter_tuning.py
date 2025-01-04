@@ -109,13 +109,14 @@ class MaParameterTuning(ParameterTuningProcessor):
             "Moving_Average_Strategy": [
                 f"MA:{key[0]} Freq:{key[1]} Type:{key[2]}" for key in results.keys()
             ],
-            "cagr": [v["cagr"] for v in results.values()],
-            "annual_volatility": [v["annual_volatility"] for v in results.values()],
-            "max_drawdown": [v["max_drawdown"] for v in results.values()],
-            "var": [v["var"] for v in results.values()],
-            "cvar": [v["cvar"] for v in results.values()],
+            "cagr": [round(v["cagr"] * 100, 2) for v in results.values()],
+            "average_annual_return": [round(v["average_annual_return"] * 100, 2) for v in results.values()],
+            "annual_volatility": [round(v["annual_volatility"] * 100, 2) for v in results.values()],
+            "max_drawdown": [round(v["max_drawdown"] * 100, 2) for v in results.values()],
+            "var": [round(v["var"] * 100, 2) for v in results.values()],
+            "cvar": [round(v["cvar"] * 100, 2) for v in results.values()],
             "sharpe_ratio": [
-                v["cagr"] / v["annual_volatility"] if v["annual_volatility"] != 0 else None 
+                round(v["cagr"] / v["annual_volatility"], 2) if v["annual_volatility"] != 0 else None
                 for v in results.values()
             ]
         }
@@ -127,10 +128,15 @@ class MaParameterTuning(ParameterTuningProcessor):
             y='cagr',
             color='sharpe_ratio',
             color_continuous_scale=trimmed_twilight[::-1],
-            hover_data=['Moving_Average_Strategy', 'max_drawdown', 'var', 'cvar'],
+            hover_data=['Moving_Average_Strategy', 'max_drawdown', 'var', 'cvar', "average_annual_return"],
             labels={
                 "cagr": "Compound Annual Growth Rate",
-                "annual_volatility": "Annual Volatility"
+                "annual_volatility": "Annual Volatility",
+                "max_drawdown": "Maximum Drawdown",
+                "cvar": "Conditional Value at Risk",
+                "var": "Value at Risk",
+                "sharpe_ratio": "Sharpe Ratio",
+                "average_annual_return": "Annualized Return"
             },
             title=f"Possible Moving Average Strategies - {self.portfolio_name}"
         )

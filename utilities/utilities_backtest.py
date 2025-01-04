@@ -106,7 +106,7 @@ def calculate_max_drawdown(portfolio_value):
         Maximum drawdown value.
     """
     running_max = portfolio_value.cummax()
-    drawdown = (portfolio_value - running_max) / running_max
+    drawdown = (portfolio_value / running_max) - 1
     max_drawdown = drawdown.min()
     return max_drawdown
 
@@ -178,6 +178,4 @@ def calculate_standard_deviation(returns: pd.Series) -> FloatingPointError:
     float
         Standard deviation of returns.
     """
-    # TODO current standard deviation is based on monthly returns.
-    # TODO annulized standard deviation needs to be created as well along side monthly.
     return returns.std()
