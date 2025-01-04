@@ -92,10 +92,8 @@ class BacktestMomentumPortfolio(BacktestingProcessor):
         dict
             Dictionary of adjusted asset weights.
         """
-        trading_assets = selected_assets[~selected_assets['Asset'].isin(
-            [self.ma_threshold_asset, self.bond_ticker, self.cash_ticker, self.benchmark_asset]
-        )]
-        # TODO this needs to be able to handle ma threshold asset and mom threshold asset.
+        adjusted_weights = self.assets_weights.copy() if selected_assets is None else selected_assets.copy()
+
         def get_replacement_asset():
             """
             Determines the replacement asset (cash or bond) based on SMA.
@@ -134,6 +132,14 @@ class BacktestMomentumPortfolio(BacktestingProcessor):
 
             return price < ma
 
+        if is_below_ma(self.ma_threshold_asset):
+            replacement_asset = get_replacement_asset()
+            return {replacement_asset: 1.0}
+
+        trading_assets = selected_assets[~selected_assets['Asset'].isin(
+            [self.ma_threshold_asset, self.bond_ticker, self.cash_ticker, self.benchmark_asset]
+        )]
+
         adjusted_weights = {}
         total_weight = 0
 
@@ -141,7 +147,6 @@ class BacktestMomentumPortfolio(BacktestingProcessor):
             asset = row['Asset']
             momentum = row['Momentum']
 
-            # Apply conditional logic for filtering negative momentum
             if (filter_negative_momentum and momentum <= 0) or is_below_ma(asset):
                 replacement_asset = get_replacement_asset()
                 adjusted_weights[replacement_asset] = adjusted_weights.get(replacement_asset, 0) + 1
@@ -150,11 +155,11 @@ class BacktestMomentumPortfolio(BacktestingProcessor):
 
             total_weight += 1
 
-        # Normalize weights
         adjusted_weights = {ticker: weight / total_weight for ticker, weight in adjusted_weights.items()}
 
         print(f'{current_date}: Weights: {adjusted_weights}')
         return adjusted_weights
+
 
     def run_backtest(self):
         """

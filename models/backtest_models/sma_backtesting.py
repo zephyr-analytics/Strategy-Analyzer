@@ -102,9 +102,6 @@ class SmaBacktestPortfolio(BacktestingProcessor):
         """
         adjusted_weights = self.assets_weights.copy() if selected_assets is None else selected_assets.copy()
 
-        trading_assets = {ticker: weight for ticker, weight in adjusted_weights.items() 
-                        if ticker not in [self.ma_threshold_asset, self.bond_ticker, self.cash_ticker, self.benchmark_asset]}
-
         def get_replacement_asset():
             """
             Determines the replacement asset (cash or bond) based on SMA.
@@ -142,6 +139,13 @@ class SmaBacktestPortfolio(BacktestingProcessor):
                 raise ValueError("Invalid ma_type. Choose 'SMA' or 'EMA'.")
 
             return price < ma
+
+        if is_below_ma(self.ma_threshold_asset):
+            replacement_asset = get_replacement_asset()
+            return {replacement_asset: 1.0}
+
+        trading_assets = {ticker: weight for ticker, weight in adjusted_weights.items() 
+                        if ticker not in [self.ma_threshold_asset, self.bond_ticker, self.cash_ticker, self.benchmark_asset]}
 
         for ticker in list(trading_assets.keys()):
             if is_below_ma(ticker):

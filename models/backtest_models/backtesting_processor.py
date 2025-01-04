@@ -23,23 +23,6 @@ from results.results_processor import ResultsProcessor
 class BacktestingProcessor(ABC):
     """
     Abstract base class for backtesting portfolios with configurable strategies.
-
-    Attributes
-    ----------
-    assets_weights : dict
-        Dictionary of asset tickers and their corresponding weights in the portfolio.
-    start_date : str
-        The start date for the backtest.
-    end_date : str
-        The end date for the backtest.
-    initial_portfolio_value : float
-        The initial value of the portfolio.
-    trading_frequency : str
-        Frequency of portfolio rebalancing (e.g., 'Monthly', 'Bi-Monthly').
-    data_models : ModelsData
-        The data model instance containing parameters and configurations for the portfolio.
-    _data : DataFrame or None
-        DataFrame to store the adjusted closing prices of the assets.
     """
     def __init__(self, data_models: ModelsData):
         self.data_models = data_models

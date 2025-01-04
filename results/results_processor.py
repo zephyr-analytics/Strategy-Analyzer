@@ -66,7 +66,6 @@ class ResultsProcessor:
 
         fig = go.Figure()
 
-        # Plot Portfolio Value
         fig.add_trace(go.Scatter(
             x=portfolio_value.index,
             y=portfolio_value,
@@ -75,7 +74,6 @@ class ResultsProcessor:
             line=dict(color=line_color)
         ))
 
-        # Plot Buy-and-Hold Values if available
         if self.buy_and_hold_values is not None:
             final_bnh_value = self.buy_and_hold_values.iloc[-1]
             fig.add_trace(go.Scatter(
@@ -86,7 +84,6 @@ class ResultsProcessor:
                 line=dict(color="#ce93d8")
             ))
 
-        # Plot Benchmark Values if available
         if self.benchmark_values is not None and not self.benchmark_values.empty:
             final_benchmark_value = self.benchmark_values.iloc[-1]
             fig.add_trace(go.Scatter(
@@ -97,7 +94,6 @@ class ResultsProcessor:
                 line=dict(color="#9b4aa5")
             ))
 
-        # Annotations
         annotations = [
             dict(
                 xref='paper', yref='paper', x=0.2, y=1,
