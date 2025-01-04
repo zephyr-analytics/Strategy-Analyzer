@@ -132,7 +132,9 @@ class BacktestMomentumPortfolio(BacktestingProcessor):
 
             return price < ma
 
-        if is_below_ma(self.ma_threshold_asset):
+        if not self.ma_threshold_asset:
+            pass
+        elif is_below_ma(self.ma_threshold_asset):
             replacement_asset = get_replacement_asset()
             return {replacement_asset: 1.0}
 
