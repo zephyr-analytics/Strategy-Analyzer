@@ -2,6 +2,8 @@
 Parent module for GUI.
 """
 
+import multiprocessing
+
 import customtkinter as ctk
 
 from gui import *
@@ -91,7 +93,16 @@ class PortfolioAnalyzer(ctk.CTk):
         elif active_tab == "Testing":
             self.testing_tab.update_tab()
 
-
-if __name__ == "__main__":
+def main():
+    """
+    Main entry point for the application.
+    This function ensures that the GUI only runs in the main process.
+    """
     app = PortfolioAnalyzer()
     app.mainloop()
+
+
+if __name__ == "__main__":
+    if multiprocessing.current_process().name == "MainProcess":
+        multiprocessing.freeze_support()
+        main()

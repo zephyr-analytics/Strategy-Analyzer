@@ -1,12 +1,12 @@
 """
-Module for creating sma based porfolio signals.
+Module for creating momentum based parameters.
 """
 
 import os
 import json
+from multiprocessing import Pool
 
 import plotly.express as px
-from concurrent.futures import ProcessPoolExecutor, as_completed
 
 import utilities as utilities
 from models.models_data import ModelsData
@@ -41,7 +41,7 @@ class MomentumParameterTuning(ParameterTuningProcessor):
 
     def get_portfolio_results(self) -> dict:
         """
-        Processes parameters for tuning using multi-processing to utilize all CPU cores.
+        Processes parameters for tuning using joblib to parallelize execution.
 
         Returns
         -------
@@ -56,7 +56,6 @@ class MomentumParameterTuning(ParameterTuningProcessor):
 
         total_assets = len(self.data_models.assets_weights)
 
-        # Create a list of parameter combinations
         parameter_combinations = [
             (ma, frequency, num_assets, ma_type)
             for ma in ma_list
@@ -65,19 +64,11 @@ class MomentumParameterTuning(ParameterTuningProcessor):
             for ma_type in ma_types
         ]
 
-        with ProcessPoolExecutor() as executor:
-            future_to_params = {
-                executor.submit(self.process_combination, ma, frequency, num_assets, ma_type): (ma, frequency, num_assets, ma_type)
-                for ma, frequency, num_assets, ma_type in parameter_combinations
-            }
+        with Pool() as pool:
+            parallel_results = pool.starmap(self.process_combination, parameter_combinations)
 
-            for future in as_completed(future_to_params):
-                params = future_to_params[future]
-                try:
-                    result = future.result()
-                    results[params] = result
-                except Exception as e:
-                    print(f"Error processing {params}: {e}")
+        for params, result in zip(parameter_combinations, parallel_results):
+            results[params] = result
 
         return results
 

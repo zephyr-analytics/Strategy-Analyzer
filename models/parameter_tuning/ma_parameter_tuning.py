@@ -1,12 +1,12 @@
 """
-Module for creating sma based porfolio signals.
+Module for creating ma based parameters.
 """
 
 import os
 import json
+from multiprocessing import Pool
 
 import plotly.express as px
-from concurrent.futures import ProcessPoolExecutor, as_completed
 
 import utilities as utilities
 from models.models_data import ModelsData
@@ -16,7 +16,7 @@ from models.backtest_models.ma_backtesting import MaBacktestPortfolio
 
 class MaParameterTuning(ParameterTuningProcessor):
     """
-    Processor for parameter tuning based on the an SMA portfolio.
+    Processor for parameter tuning based on the a momentum portfolio.
     """
     def __init__(self, models_data: ModelsData):
         """
@@ -33,21 +33,13 @@ class MaParameterTuning(ParameterTuningProcessor):
 
     def process(self):
         """
-        Method for processing within the sma parameter tuning class.
+        Method for processing within the momentum parameter tuning class.
         """
         results = self.get_portfolio_results()
         self.plot_results(results=results)
         self.persist_results(results=results)
 
     def get_portfolio_results(self) -> dict:
-        """
-        Processes parameters for tuning using multi-threading and stores results.
-
-        Returns
-        -------
-        dict
-            A dictionary of backtest results and portfolio statistics from parameter tuning.
-        """
         results = {}
         ma_list = [21, 42, 63, 84, 105, 126, 147, 168, 189, 210, 231, 252]
         trading_frequencies = ["Monthly", "Bi-Monthly", "Quarterly", "Yearly"]
@@ -60,19 +52,11 @@ class MaParameterTuning(ParameterTuningProcessor):
             for ma_type in ma_types
         ]
 
-        with ProcessPoolExecutor() as executor:
-            future_to_params = {
-                executor.submit(self.process_combination, ma, frequency, ma_type): (ma, frequency, ma_type)
-                for ma, frequency, ma_type in parameter_combinations
-            }
+        with Pool() as pool:
+            parallel_results = pool.starmap(self.process_combination, parameter_combinations)
 
-            for future in as_completed(future_to_params):
-                params = future_to_params[future]
-                try:
-                    result = future.result()
-                    results[params] = result
-                except Exception as e:
-                    print(f"Error processing {params}: {e}")
+        for params, result in zip(parameter_combinations, parallel_results):
+            results[params] = result
 
         return results
 
@@ -86,6 +70,8 @@ class MaParameterTuning(ParameterTuningProcessor):
             Moving average window.
         frequency : str
             Trading frequency.
+        num_assets : int
+            Number of assets to select.
         ma_type : str
             Type of moving average (SMA or EMA).
 
@@ -112,7 +98,7 @@ class MaParameterTuning(ParameterTuningProcessor):
 
     def plot_results(self, results: dict):
         """
-        Plot results from the MA strategy testing.
+        Plot results from the momentum strategy testing.
 
         Parameters
         ----------
@@ -175,7 +161,7 @@ class MaParameterTuning(ParameterTuningProcessor):
         Parameters
         ----------
         results : dict
-            The dictionary containing SMA backtest results and portfolio statistics.
+            The dictionary containing momentum backtest results and portfolio statistics.
         """
         current_directory = os.getcwd()
         artifacts_directory = os.path.join(current_directory, "artifacts", "data")
