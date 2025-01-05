@@ -7,6 +7,8 @@ import logging
 import pandas as pd
 
 import utilities as utilities
+from processing_types import run_types
+from logger import logger
 from results.results_processor import ResultsProcessor
 from models.models_data import ModelsData
 from data.portfolio_data import PortfolioData
@@ -41,10 +43,13 @@ class MovingAverageBacktestProcessor(BacktestingProcessor):
         self._calculate_buy_and_hold()
         self._calculate_benchmark()
         self.persist_data()
-        results_processor = ResultsProcessor(self.data_models)
-        results_processor.plot_portfolio_value()
-        results_processor.plot_var_cvar()
-        results_processor.plot_returns_heatmaps()
+        if self.processing_type == run_types.Runs.BACKTEST:
+            results_processor = ResultsProcessor(self.data_models)
+            results_processor.plot_portfolio_value()
+            results_processor.plot_var_cvar()
+            results_processor.plot_returns_heatmaps()
+        else:
+            pass
 
     def calculate_momentum(self, current_date=None):
         pass
