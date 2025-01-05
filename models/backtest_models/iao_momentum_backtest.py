@@ -134,8 +134,15 @@ class BacktestInAndOutMomentumPortfolio(BacktestingProcessor):
                 return True
 
             price = data_source.loc[:current_date, ticker].iloc[-1]
-            sma = data_source.loc[:current_date, ticker].rolling(window=self.ma_period).mean().iloc[-1]
-            return price < sma
+
+            if self.ma_type == "SMA":
+                ma = data_source.loc[:current_date, ticker].rolling(window=self.ma_period).mean().iloc[-1]
+            elif self.ma_type == "EMA":
+                ma = data_source.loc[:current_date, ticker].ewm(span=self.ma_period).mean().iloc[-1]
+            else:
+                raise ValueError("Invalid ma_type. Choose 'SMA' or 'EMA'.")
+
+            return price < ma
 
         def allocate_to_safe_asset(asset_weight: float):
             """
@@ -152,35 +159,32 @@ class BacktestInAndOutMomentumPortfolio(BacktestingProcessor):
                 safe_asset = self.cash_ticker
             adjusted_weights[safe_asset] = adjusted_weights.get(safe_asset, 0) + asset_weight
 
-        # Handle threshold asset logic if applicable
         if self.ma_threshold_asset and is_below_sma(self.ma_threshold_asset, self._data):
             allocate_to_safe_asset(1.0)
             return adjusted_weights
 
-        # Process in-market assets
         if selected_assets is not None:
-            for ticker in selected_assets['Asset']:
+            for ticker, momentum in zip(selected_assets['Asset'], selected_assets['Momentum']):
                 weight = 1 / len(selected_assets)
-                if not is_below_sma(ticker, self._data):
-                    adjusted_weights[ticker] = weight
+                if (self.filter_negative_momentum and momentum <= 0):
+                    allocate_to_safe_asset(weight)
+                elif is_below_sma(ticker, self._data):
+                    allocate_to_safe_asset(weight)
                 else:
-                    # Check out-of-market assets when in-market asset is below SMA
-                    highest_momentum_asset = None
-                    highest_momentum_value = float('-inf')
+                    adjusted_weights[ticker] = weight
 
-                    if selected_out_of_market_assets is not None:
-                        for out_ticker, momentum in zip(selected_out_of_market_assets['Asset'], selected_out_of_market_assets['Momentum']):
-                            if not is_below_sma(out_ticker, self._out_of_market_data):
-                                if momentum > highest_momentum_value:
-                                    highest_momentum_value = momentum
-                                    highest_momentum_asset = out_ticker
+            highest_momentum_asset = None
+            highest_momentum_value = float('-inf')
 
-                    if highest_momentum_asset:
-                        adjusted_weights[highest_momentum_asset] = adjusted_weights.get(highest_momentum_asset, 0) + weight
-                    else:
-                        allocate_to_safe_asset(weight)
+            if selected_out_of_market_assets is not None:
+                for out_ticker, momentum in zip(selected_out_of_market_assets['Asset'], selected_out_of_market_assets['Momentum']):
+                    if not is_below_sma(out_ticker, self._out_of_market_data) and momentum > highest_momentum_value:
+                        highest_momentum_value = momentum
+                        highest_momentum_asset = out_ticker
 
-        # Normalize weights to ensure they sum to 1
+            if highest_momentum_asset:
+                adjusted_weights[highest_momentum_asset] = adjusted_weights.get(highest_momentum_asset, 0) + weight
+
         total_weight = sum(adjusted_weights.values())
         adjusted_weights = {ticker: weight / total_weight for ticker, weight in adjusted_weights.items()}
         print(f'{current_date}: Adjusted Weights: {adjusted_weights}')
@@ -191,7 +195,6 @@ class BacktestInAndOutMomentumPortfolio(BacktestingProcessor):
         """
         Runs the backtest by calculating portfolio values and returns over time.
         """
-        # TODO this only handles instances where num_assets will be the number of out of market assets to select.
         combined_data = pd.concat([self._data, self._out_of_market_data], axis=1).fillna(method='ffill')
 
         monthly_dates = pd.date_range(start=self.start_date, end=self.end_date, freq='M')
