@@ -51,7 +51,8 @@ class ModelsFactory:
             (Models.IN_AND_OUT_OF_MARKET, Runs.BACKTEST): self._run_in_and_out_of_market_backtest,
             (Models.IN_AND_OUT_OF_MARKET, Runs.SIGNALS): self._run_in_and_out_of_market_signals,
             (Models.MA, Runs.PARAMETER_TUNE): self._run_sma_parameter_tune,
-            (Models.MOMENTUM, Runs.PARAMETER_TUNE): self._run_momentum_parameter_tune
+            (Models.MOMENTUM, Runs.PARAMETER_TUNE): self._run_momentum_parameter_tune,
+            (Models.IN_AND_OUT_OF_MARKET, Runs.PARAMETER_TUNE): self._run_iao_momentum_parameter_tune
         }
 
         method = model_run_map.get((model, run_type))
@@ -211,3 +212,14 @@ class ModelsFactory:
         parameter_tune = MomentumParameterTuning(self.data_models)
         parameter_tune.process()
         return "Momentum parameter tuning completed."
+
+    def _run_iao_momentum_parameter_tune(self) -> str:
+        """
+        """
+        if not self.data_models.assets_weights:
+            return "Please load asset weights file."
+        if not self.data_models.out_of_market_tickers:
+            return "Please load out of market assets file."
+        parameter_tune = InAndOutMomentumParameterTuning(self.data_models)
+        parameter_tune.process()
+        return "In and Out Momentum parameter tuning completed."

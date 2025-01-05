@@ -34,11 +34,10 @@ class BacktestInAndOutMomentumPortfolio(BacktestingProcessor):
         """
         super().__init__(data_models=data_models)
 
-        # Class-defined attributes
-        self._data = None  # In-market assets data
-        self._out_of_market_data = None  # Out-of-market assets data
-        self._momentum_data = None  # In-market momentum data
-        self._momentum_data_out_of_market = None  # Out-of-market momentum data
+        self._data = None
+        self._out_of_market_data = None
+        self._momentum_data = None
+        self._momentum_data_out_of_market = None
 
 
     def process(self):
@@ -46,7 +45,7 @@ class BacktestInAndOutMomentumPortfolio(BacktestingProcessor):
         Processes the backtest by fetching data, running the backtest, and generating the plots.
         """
         data_processor = DataObtainmentProcessor(models_data=self.data_models)
-        self._data = data_processor.process()  # Call the method here
+        self._data = data_processor.process()
 
         self._out_of_market_data = self._data[self._data.columns.intersection(self.out_of_market_tickers.keys())].copy()
         self._data = self._data.drop(columns=self._out_of_market_data.columns)
