@@ -32,22 +32,7 @@ class BacktestInAndOutMomentumPortfolio(BacktestingProcessor):
         data_models : ModelsData
             An instance of the ModelsData class containing all relevant parameters and data for backtesting.
         """
-        self.data_models = data_models
-
-        self.assets_weights = data_models.assets_weights
-        self.start_date = data_models.start_date
-        self.end_date = data_models.end_date
-        self.trading_frequency = data_models.trading_frequency
-        self.output_filename = data_models.weights_filename
-        self.rebalance_threshold = 0.02
-        self.weighting_strategy = data_models.weighting_strategy
-        self.sma_period = int(data_models.ma_window)
-        self.bond_ticker = data_models.bond_ticker
-        self.cash_ticker = data_models.cash_ticker
-        self.initial_portfolio_value = int(data_models.initial_portfolio_value)
-        self.num_assets_to_select = int(data_models.num_assets_to_select)
-        self.threshold_asset = str(data_models.ma_threshold_asset)
-        self.out_of_market_tickers = data_models.out_of_market_tickers
+        super().__init__(data_models=data_models)
 
         # Class-defined attributes
         self._data = None  # In-market assets data
@@ -61,29 +46,18 @@ class BacktestInAndOutMomentumPortfolio(BacktestingProcessor):
         Processes the backtest by fetching data, running the backtest, and generating the plots.
         """
         data_processor = DataObtainmentProcessor(models_data=self.data_models)
-        self.data = data_processor.process
+        self._data = data_processor.process()  # Call the method here
 
-        all_tickers = list(self.assets_weights.keys()) + [self.cash_ticker]
+        self._out_of_market_data = self._data[self._data.columns.intersection(self.out_of_market_tickers.keys())].copy()
+        self._data = self._data.drop(columns=self._out_of_market_data.columns)
 
-        if self.threshold_asset != "":
-            all_tickers.append(self.threshold_asset)
-
-        if self.bond_ticker != "":
-            all_tickers.append(self.bond_ticker)
-
-        self._data, message = utilities.fetch_data(all_tickers, self.start_date, self.end_date)
-        print(f"Data was updated for common start dates:\n\n {message}")
-
-        self._out_of_market_data = utilities.fetch_out_of_market_data(self.out_of_market_tickers, self.start_date, self.end_date)
-        print(f"Data was updated for common start dates:\n\n {message}")
-
-        # Calculate momentum for both in-market and out-of-market assets
         self._momentum_data = self._data.copy().pct_change().dropna()
         self._momentum_data_out_of_market = self._out_of_market_data.copy().pct_change().dropna()
 
         self.run_backtest()
         self._get_portfolio_statistics()
         self._calculate_buy_and_hold()
+        self._calculate_benchmark()
         self.persist_data()
         results_processor = ResultsProcessor(self.data_models)
         results_processor.plot_portfolio_value()
@@ -156,8 +130,11 @@ class BacktestInAndOutMomentumPortfolio(BacktestingProcessor):
             data_source : Dataframe
                 Dataframe of price data for portfolio.
             """
+            if ticker not in data_source.columns:
+                return True
+
             price = data_source.loc[:current_date, ticker].iloc[-1]
-            sma = data_source.loc[:current_date, ticker].rolling(window=self.sma_period).mean().iloc[-1]
+            sma = data_source.loc[:current_date, ticker].rolling(window=self.ma_period).mean().iloc[-1]
             return price < sma
 
         def allocate_to_safe_asset(asset_weight: float):
@@ -169,14 +146,14 @@ class BacktestInAndOutMomentumPortfolio(BacktestingProcessor):
             asset_weight : float
                 The weight of the asset to adjust.
             """
-            if self.bond_ticker and not is_below_sma(self.bond_ticker, self._out_of_market_data):
+            if self.bond_ticker and not is_below_sma(self.bond_ticker, self._data):
                 safe_asset = self.bond_ticker
             else:
                 safe_asset = self.cash_ticker
             adjusted_weights[safe_asset] = adjusted_weights.get(safe_asset, 0) + asset_weight
 
         # Handle threshold asset logic if applicable
-        if self.threshold_asset and is_below_sma(self.threshold_asset, self._data):
+        if self.ma_threshold_asset and is_below_sma(self.ma_threshold_asset, self._data):
             allocate_to_safe_asset(1.0)
             return adjusted_weights
 

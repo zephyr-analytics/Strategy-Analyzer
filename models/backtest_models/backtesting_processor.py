@@ -43,6 +43,8 @@ class BacktestingProcessor(ABC):
         self.processing_type = data_models.processing_type
         self.ma_type = data_models.ma_type
         self.benchmark_asset = data_models.benchmark_asset
+        self.out_of_market_tickers = data_models.out_of_market_tickers
+        self.filter_negative_momentum = data_models.negative_mom
 
         self._data = None
         self._momentum_data = None

@@ -32,7 +32,6 @@ class BacktestMomentumPortfolio(BacktestingProcessor):
             An instance of the ModelsData class containing all relevant parameters and data for backtesting.
         """
         super().__init__(data_models=data_models)
-        self.filter_negative_momentum = data_models.negative_mom
 
     def process(self):
         """

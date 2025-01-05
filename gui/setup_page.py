@@ -8,6 +8,7 @@ from models.models_data import ModelsData
 import utilities as utilities
 from data.data_obtain import DataObtainmentProcessor
 
+
 class SetupTab:
     """
     Handles the layout and functionality of the Initial Testing Setup parent.
@@ -420,7 +421,6 @@ class SetupTab:
         ----------
         None
         """
-        self.clear_bottom_text()
         self.data_models.out_of_market_tickers, self.file_name = utilities.load_weights()
 
     def update_start_date(self, *args):

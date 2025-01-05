@@ -25,6 +25,7 @@ class DataObtainmentProcessor():
         self.bond_ticker = self.data_models.bond_ticker
         self.ma_threshold_asset = self.data_models.ma_threshold_asset
         self.benchmark_asset = self.data_models.benchmark_asset
+        self.out_of_market_tickers = self.data_models.out_of_market_tickers
 
     def process(self):
         """
@@ -71,6 +72,8 @@ class DataObtainmentProcessor():
             all_tickers.append(self.bond_ticker)
         if self.benchmark_asset:
             all_tickers.append(self.benchmark_asset)
+        if self.out_of_market_tickers:
+            all_tickers.extend(self.out_of_market_tickers.keys())
 
         df = utilities.fetch_data(
             all_tickers=all_tickers,
@@ -124,6 +127,8 @@ class DataObtainmentProcessor():
             all_tickers.append(self.bond_ticker)
         if self.benchmark_asset:
             all_tickers.append(self.benchmark_asset)
+        if self.out_of_market_tickers:
+            all_tickers.extend(self.out_of_market_tickers.keys())
 
         all_valid = True
 
