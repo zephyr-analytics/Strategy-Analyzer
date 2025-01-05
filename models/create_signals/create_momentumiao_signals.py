@@ -27,7 +27,7 @@ class CreateMomentumInAndOutSignals(SignalsProcessor):
         """
         Generates trading signals by running the backtest and pulling the latest weights.
         """
-        self.backtest_portfolio = IAOMomentumBacktestProcessor(self.data_models)
+        self.backtest_portfolio = IAOMomentumBacktestProcessor(models_data=self.data_models, portfolio_data=self.data_portfolio)
         self.backtest_portfolio.process()
         latest_weights = self.data_models.adjusted_weights
         latest_weights = latest_weights.iloc[-1]

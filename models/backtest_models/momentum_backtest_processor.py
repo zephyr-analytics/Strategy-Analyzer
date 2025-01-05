@@ -8,7 +8,6 @@ import logging
 import pandas as pd
 
 import utilities as utilities
-from processing_types import run_types
 from logger import logger
 from models.models_data import ModelsData
 from data.portfolio_data import PortfolioData
@@ -44,7 +43,7 @@ class MomentumBacktestProcessor(BacktestingProcessor):
         self._calculate_buy_and_hold()
         self._calculate_benchmark()
         self.persist_data()
-        if self.processing_type == run_types.Runs.BACKTEST:
+        if self.processing_type.endswith("BACKTEST"):
             results_processor = ResultsProcessor(self.data_models)
             results_processor.plot_portfolio_value()
             results_processor.plot_var_cvar()

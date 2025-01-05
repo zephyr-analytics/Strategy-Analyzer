@@ -98,7 +98,7 @@ class InAndOutMomentumParameterTuning(ParameterTuningProcessor):
         self.data_models.num_assets_to_select = num_assets
         self.data_models.ma_type = ma_type
 
-        backtest = IAOMomentumBacktestProcessor(self.data_models)
+        backtest = IAOMomentumBacktestProcessor(models_data=self.data_models, portfolio_data=self.data_portfolio)
         backtest.process()
 
         return {
