@@ -29,7 +29,7 @@ class MovingAverageBacktestProcessor(BacktestingProcessor):
         """
         super().__init__(models_data=models_data, portfolio_data=portfolio_data)
 
-
+        print(self.asset_data)
     def process(self):
         """
         Processes the backtest by fetching data, running the backtest, and generating the plots.

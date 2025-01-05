@@ -78,7 +78,7 @@ class PortfolioAnalyzer(ctk.CTk):
 
         # Add Testing Tab
         testing_tab_frame = self.high_level_tab_control.add("Testing")
-        self.testing_tab = TestingTab(testing_tab_frame, models_data=self.data_models)
+        self.testing_tab = TestingTab(testing_tab_frame, models_data=self.data_models, portfolio_data=self.data_portfolio)
 
         # Set initial tab
         self.high_level_tab_control.set("Initial Testing Setup")
