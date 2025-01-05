@@ -10,6 +10,7 @@ import plotly.express as px
 
 import utilities as utilities
 from models.models_data import ModelsData
+from data.portfolio_data import PortfolioData
 from models.parameter_tuning.parameter_tuning_processor import ParameterTuningProcessor
 from models.backtest_models.moving_average_backtest_processor import MovingAverageBacktestProcessor
 
@@ -18,7 +19,7 @@ class MaParameterTuning(ParameterTuningProcessor):
     """
     Processor for parameter tuning based on the a momentum portfolio.
     """
-    def __init__(self, models_data: ModelsData):
+    def __init__(self, models_data: ModelsData, portfolio_data: PortfolioData):
         """
         Initializes the parameter tuning class.
 
@@ -27,7 +28,7 @@ class MaParameterTuning(ParameterTuningProcessor):
         models_data : object
             An instance of the ModelsData class that holds all necessary attributes.
         """
-        super().__init__(models_data)
+        super().__init__(models_data=models_data, portfolio_data=portfolio_data)
         self.theme = models_data.theme_mode
         self.portfolio_name = models_data.weights_filename
 
@@ -84,7 +85,7 @@ class MaParameterTuning(ParameterTuningProcessor):
         self.data_models.trading_frequency = frequency
         self.data_models.ma_type = ma_type
 
-        backtest = MovingAverageBacktestProcessor(self.data_models)
+        backtest = MovingAverageBacktestProcessor(models_data=self.data_models, portfolio_data=self.data_portfolio)
         backtest.process()
 
         return {
