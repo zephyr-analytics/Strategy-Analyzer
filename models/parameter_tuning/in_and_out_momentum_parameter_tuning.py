@@ -151,7 +151,7 @@ class InAndOutMomentumParameterTuning(ParameterTuningProcessor):
                 "sharpe_ratio": "Sharpe Ratio",
                 "average_annual_return": "Annualized Return"
             },
-            title=f"Possible Momentum Strategies - {self.portfolio_name}"
+            title=f"Possible In and Out Momentum Strategies - {self.portfolio_name}"
         )
         chart_theme = "plotly_dark" if self.theme.lower() == "dark" else "plotly"
 

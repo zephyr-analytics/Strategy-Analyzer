@@ -45,14 +45,15 @@ class ModelsFactory:
             (Models.MA, Runs.BACKTEST): self._run_sma_backtest,
             (Models.MA, Runs.SIGNALS): self._run_sma_signals,
             (Models.MA, Runs.SIMULATION): self._run_sma_simulation,
+            (Models.MA, Runs.PARAMETER_TUNE): self._run_sma_parameter_tune,
             (Models.MOMENTUM, Runs.BACKTEST): self._run_momentum_backtest,
             (Models.MOMENTUM, Runs.SIGNALS): self._run_momentum_signals,
             (Models.MOMENTUM, Runs.SIMULATION): self._run_momentum_simulation,
+            (Models.MOMENTUM, Runs.PARAMETER_TUNE): self._run_momentum_parameter_tune,
             (Models.IN_AND_OUT_OF_MARKET, Runs.BACKTEST): self._run_in_and_out_of_market_backtest,
             (Models.IN_AND_OUT_OF_MARKET, Runs.SIGNALS): self._run_in_and_out_of_market_signals,
-            (Models.MA, Runs.PARAMETER_TUNE): self._run_sma_parameter_tune,
-            (Models.MOMENTUM, Runs.PARAMETER_TUNE): self._run_momentum_parameter_tune,
-            (Models.IN_AND_OUT_OF_MARKET, Runs.PARAMETER_TUNE): self._run_iao_momentum_parameter_tune
+            (Models.IN_AND_OUT_OF_MARKET, Runs.PARAMETER_TUNE): self._run_iao_momentum_parameter_tune,
+            (Models.IN_AND_OUT_OF_MARKET, Runs.SIMULATION): self._run_iao_simulation
         }
 
         method = model_run_map.get((model, run_type))
@@ -223,3 +224,16 @@ class ModelsFactory:
         parameter_tune = InAndOutMomentumParameterTuning(self.data_models)
         parameter_tune.process()
         return "In and Out Momentum parameter tuning completed."
+
+    def _run_iao_simulation(self) -> str:
+        """
+        """
+        if not self.data_models.assets_weights:
+            return "Please load asset weights file."
+        if not self.data_models.out_of_market_tickers:
+            return "Please load out of market assets file."
+        backtest = BacktestInAndOutMomentumPortfolio(self.data_models)
+        backtest.process()
+        monte_carlo = MonteCarloSimulation(self.data_models)
+        monte_carlo.process()
+        return "Momentum simulation completed and plots saved."
