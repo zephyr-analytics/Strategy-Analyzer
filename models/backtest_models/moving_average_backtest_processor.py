@@ -2,14 +2,18 @@
 Backtesting processor module.
 """
 
+import logging
+
 import pandas as pd
 
 import utilities as utilities
-
 from results.results_processor import ResultsProcessor
 from models.models_data import ModelsData
 from data.portfolio_data import PortfolioData
 from models.backtest_models.backtesting_processor import BacktestingProcessor
+
+logger = logging.getLogger(__name__)
+
 
 class MovingAverageBacktestProcessor(BacktestingProcessor):
     """
@@ -31,6 +35,7 @@ class MovingAverageBacktestProcessor(BacktestingProcessor):
         """
         Processes the backtest by fetching data, running the backtest, and generating the plots.
         """
+        logger.info(f"Training Moving Average Model for: {self.weights_filename}, Moving Average:{self.ma_period}, Type:{self.ma_type}")
         self.run_backtest()
         self._get_portfolio_statistics()
         self._calculate_buy_and_hold()
@@ -127,7 +132,6 @@ class MovingAverageBacktestProcessor(BacktestingProcessor):
             for ticker in adjusted_weights:
                 adjusted_weights[ticker] /= total_weight
 
-        print(f'{current_date}: Weights: {adjusted_weights}')
         return adjusted_weights
 
     def run_backtest(self):

@@ -1,7 +1,15 @@
+"""
+"""
+
+import logging
+
 import utilities
-from logger import logger
+
 from models.models_data import ModelsData
 from data.portfolio_data import PortfolioData
+
+logger = logging.getLogger(__name__)
+
 
 class DataPreparationProcessor:
     """

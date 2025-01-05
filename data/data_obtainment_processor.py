@@ -2,10 +2,14 @@
 Module for obtaining and saving data to the raw directory.
 """
 
+import logging
 import os
-from logger import logger
+
 import utilities as utilities
 from models.models_data import ModelsData
+
+logger = logging.getLogger(__name__)
+
 
 class DataObtainmentProcessor:
     """
