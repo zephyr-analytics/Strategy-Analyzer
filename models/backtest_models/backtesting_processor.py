@@ -47,6 +47,7 @@ class BacktestingProcessor(ABC):
         self.out_of_market_tickers = self.data_models.out_of_market_tickers
         self.filter_negative_momentum = self.data_models.negative_mom
 
+        self.trading_data = portfolio_data.trading_data
         self.asset_data = portfolio_data.assets_data
         self.benchmark_data = portfolio_data.benchmark_data
         self.bond_data = portfolio_data.bond_data
@@ -143,7 +144,7 @@ class BacktestingProcessor(ABC):
 
         portfolio_values = [self.initial_portfolio_value]
         portfolio_returns = []
-        
+
         monthly_dates = pd.date_range(start=self.start_date, end=self.end_date, freq='M')
         
         for i in range(1, len(monthly_dates)):

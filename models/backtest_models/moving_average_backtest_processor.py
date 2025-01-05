@@ -7,11 +7,9 @@ import pandas as pd
 import utilities as utilities
 
 from results.results_processor import ResultsProcessor
-
 from models.models_data import ModelsData
 from data.portfolio_data import PortfolioData
 from models.backtest_models.backtesting_processor import BacktestingProcessor
-
 
 class MovingAverageBacktestProcessor(BacktestingProcessor):
     """
@@ -29,7 +27,6 @@ class MovingAverageBacktestProcessor(BacktestingProcessor):
         """
         super().__init__(models_data=models_data, portfolio_data=portfolio_data)
 
-        print(self.asset_data)
     def process(self):
         """
         Processes the backtest by fetching data, running the backtest, and generating the plots.
@@ -44,16 +41,10 @@ class MovingAverageBacktestProcessor(BacktestingProcessor):
         results_processor.plot_var_cvar()
         results_processor.plot_returns_heatmaps()
 
-
     def calculate_momentum(self, current_date=None):
         pass
 
-    def adjust_weights(
-            self, 
-            current_date, 
-            selected_assets=None, 
-            selected_out_of_market_assets=None
-        ) -> dict:
+    def adjust_weights(self, current_date, selected_assets=None, selected_out_of_market_assets=None) -> dict:
         """
         Adjusts the weights of the assets based on their SMA and the selected weighting strategy.
 
@@ -82,9 +73,10 @@ class MovingAverageBacktestProcessor(BacktestingProcessor):
             str
                 The replacement asset ticker.
             """
-            if self.bond_ticker and not is_below_ma(self.bond_ticker, self.bond_data):
-                return self.bond_ticker
-            return self.cash_ticker
+            if self.bond_ticker and self.bond_ticker in self.bond_data.columns:
+                if not is_below_ma(self.bond_ticker, self.bond_data):
+                    return self.bond_ticker
+            return self.cash_ticker if self.cash_ticker in self.cash_data.columns else None
 
         def is_below_ma(ticker, data):
             """
@@ -102,6 +94,9 @@ class MovingAverageBacktestProcessor(BacktestingProcessor):
             bool
                 True if the price is below the moving average, False otherwise.
             """
+            if ticker not in data.columns:
+                return False
+
             price = data.loc[:current_date, ticker].iloc[-1]
 
             if self.ma_type == "SMA":
@@ -117,21 +112,23 @@ class MovingAverageBacktestProcessor(BacktestingProcessor):
             pass
         elif is_below_ma(self.ma_threshold_asset, self.ma_threshold_data):
             replacement_asset = get_replacement_asset()
-            return {replacement_asset: 1.0}
+            if replacement_asset:
+                return {replacement_asset: 1.0}
 
         for ticker, weight in list(adjusted_weights.items()):
-            if is_below_ma(ticker, self.asset_data):
+            if ticker in self.asset_data.columns and is_below_ma(ticker, self.asset_data):
                 replacement_asset = get_replacement_asset()
-                adjusted_weights[replacement_asset] = adjusted_weights.get(replacement_asset, 0) + weight
-                adjusted_weights[ticker] = 0
+                if replacement_asset:
+                    adjusted_weights[replacement_asset] = adjusted_weights.get(replacement_asset, 0) + weight
+                    adjusted_weights[ticker] = 0
 
         total_weight = sum(adjusted_weights.values())
-        for ticker in adjusted_weights:
-            adjusted_weights[ticker] /= total_weight
+        if total_weight > 0:
+            for ticker in adjusted_weights:
+                adjusted_weights[ticker] /= total_weight
 
         print(f'{current_date}: Weights: {adjusted_weights}')
         return adjusted_weights
-
 
     def run_backtest(self):
         """
@@ -160,15 +157,19 @@ class MovingAverageBacktestProcessor(BacktestingProcessor):
         for i in range(0, len(monthly_dates), step):
             current_date = monthly_dates[i]
             next_date = monthly_dates[min(i + step, len(monthly_dates) - 1)]
-            last_date_current_month = self.asset_data.index[self.asset_data.index.get_loc(current_date, method='pad')]
+            last_date_current_month = self.trading_data.index[self.trading_data.index.get_loc(current_date, method='pad')]
             adjusted_weights = self.adjust_weights(last_date_current_month)
             previous_value = portfolio_values[-1]
-            month_end_data = self.asset_data.loc[last_date_current_month]
+            month_end_data = self.trading_data.loc[last_date_current_month]
             month_start_data = month_end_data
-            last_date_next_month = self.asset_data.index[self.asset_data.index.get_loc(next_date, method='pad')]
-            next_month_end_data = self.asset_data.loc[last_date_next_month]
-            monthly_returns = (next_month_end_data / month_start_data) - 1
-            month_return = sum([monthly_returns[ticker] * weight for ticker, weight in adjusted_weights.items()])
+
+            last_date_next_month = self.trading_data.index[self.trading_data.index.get_loc(next_date, method='pad')]
+            next_month_end_data = self.trading_data.loc[last_date_next_month]
+
+            monthly_returns = next_month_end_data / month_start_data - 1
+            month_return = sum(
+                [monthly_returns.get(ticker, 0) * weight for ticker, weight in adjusted_weights.items()]
+            )
             new_portfolio_value = previous_value * (1 + month_return)
 
             all_adjusted_weights.append(adjusted_weights)
@@ -177,25 +178,13 @@ class MovingAverageBacktestProcessor(BacktestingProcessor):
 
         self.data_models.adjusted_weights = pd.Series(
             all_adjusted_weights,
-            index=pd.date_range(
-                start=self.start_date,
-                periods=len(all_adjusted_weights),
-                freq=freq
-            )
+            index=pd.date_range(start=self.start_date, periods=len(all_adjusted_weights), freq=freq)
         )
         self.data_models.portfolio_values = pd.Series(
             portfolio_values,
-            index=pd.date_range(
-                start=self.start_date,
-                periods=len(portfolio_values),
-                freq=freq
-            )
+            index=pd.date_range(start=self.start_date, periods=len(portfolio_values), freq=freq)
         )
         self.data_models.portfolio_returns = pd.Series(
             portfolio_returns,
-            index=pd.date_range(
-                start=self.start_date,
-                periods=len(portfolio_returns),
-                freq=freq
-            )
+            index=pd.date_range(start=self.start_date, periods=len(portfolio_returns), freq=freq)
         )

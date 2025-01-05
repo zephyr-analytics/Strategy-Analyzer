@@ -12,6 +12,7 @@ class PortfolioData:
         """
         Initializes the Config class with default values for portfolio parameters.
         """
+        self._trading_data = pd.DataFrame
         self._assets_data = pd.DataFrame
         self._benchmark_data = pd.DataFrame
         self._bond_data = pd.DataFrame
@@ -144,3 +145,24 @@ class PortfolioData:
             value (dict): A dictionary containing the asset weights.
         """
         self._out_of_market_data = value
+
+    
+    @property
+    def trading_data(self):
+        """
+        Gets the asset weights.
+
+        Returns:
+            dict: A dictionary containing the asset weights.
+        """
+        return self._trading_data
+
+    @trading_data.setter
+    def trading_data(self, value):
+        """
+        Sets the asset weights.
+
+        Args:
+            value (dict): A dictionary containing the asset weights.
+        """
+        self._trading_data = value

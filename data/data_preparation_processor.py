@@ -31,18 +31,18 @@ class DataPreparationProcessor:
         """
         full_data = utilities.read_data(self.weights_filename)
 
+        self.data_portfolio.trading_data = full_data
+
         tickers_to_check = (
             set(self.asset_weights.keys()) |
             {self.cash_ticker, self.bond_ticker, self.ma_threshold_asset, self.benchmark_asset} |
             set(self.out_of_market_tickers)
         )
 
-        # Filter the columns based on the tickers to check
         filtered_data = full_data.loc[:, full_data.columns.intersection(tickers_to_check)]
-        print(filtered_data)
-        # Assign the filtered data to the appropriate portfolio attributes
+
         self.data_portfolio.assets_data = filtered_data.loc[:, filtered_data.columns.intersection(self.asset_weights.keys())]
-        print(self.data_portfolio.assets_data)
+
         if self.cash_ticker in filtered_data.columns:
             self.data_portfolio.cash_data = filtered_data[[self.cash_ticker]]
 
