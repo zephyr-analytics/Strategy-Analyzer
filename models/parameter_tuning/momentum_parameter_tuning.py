@@ -10,15 +10,16 @@ import plotly.express as px
 
 import utilities as utilities
 from models.models_data import ModelsData
+from data.portfolio_data import PortfolioData
 from models.parameter_tuning.parameter_tuning_processor import ParameterTuningProcessor
-from models.backtest_models.momentum_backtest import BacktestMomentumPortfolio
+from models.backtest_models.momentum_backtest_processor import MomentumBacktestProcessor
 
 
 class MomentumParameterTuning(ParameterTuningProcessor):
     """
     Processor for parameter tuning based on the a momentum portfolio.
     """
-    def __init__(self, models_data: ModelsData):
+    def __init__(self, models_data: ModelsData, portfolio_data: PortfolioData):
         """
         Initializes the parameter tuning class.
 
@@ -27,7 +28,7 @@ class MomentumParameterTuning(ParameterTuningProcessor):
         models_data : object
             An instance of the ModelsData class that holds all necessary attributes.
         """
-        super().__init__(models_data)
+        super().__init__(models_data=models_data, portfolio_data=portfolio_data)
         self.theme = models_data.theme_mode
         self.portfolio_name = models_data.weights_filename
 
@@ -51,7 +52,7 @@ class MomentumParameterTuning(ParameterTuningProcessor):
         results = {}
         ma_list = [21, 42, 63, 84, 105, 126, 147, 168, 189, 210, 231, 252]
         num_asset_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-        trading_frequencies = ["Monthly", "Bi-Monthly", "Quarterly", "Yearly"]
+        trading_frequencies = ["Monthly", "Bi-Monthly"]
         ma_types = ["SMA", "EMA"]
 
         total_assets = len(self.data_models.assets_weights)
@@ -97,7 +98,7 @@ class MomentumParameterTuning(ParameterTuningProcessor):
         self.data_models.num_assets_to_select = num_assets
         self.data_models.ma_type = ma_type
 
-        backtest = BacktestMomentumPortfolio(self.data_models)
+        backtest = MomentumBacktestProcessor(models_data=self.data_models, portfolio_data=self.data_portfolio)
         backtest.process()
 
         return {
@@ -122,13 +123,14 @@ class MomentumParameterTuning(ParameterTuningProcessor):
             "Momentum_Strategy": [
                 f"MA:{key[0]} Freq:{key[1]} Assets:{key[2]} Type:{key[3]}" for key in results.keys()
             ],
-            "cagr": [v["cagr"] for v in results.values()],
-            "annual_volatility": [v["annual_volatility"] for v in results.values()],
-            "max_drawdown": [v["max_drawdown"] for v in results.values()],
-            "var": [v["var"] for v in results.values()],
-            "cvar": [v["cvar"] for v in results.values()],
+            "cagr": [round(v["cagr"] * 100, 2) for v in results.values()],
+            "average_annual_return": [round(v["average_annual_return"] * 100, 2) for v in results.values()],
+            "annual_volatility": [round(v["annual_volatility"] * 100, 2) for v in results.values()],
+            "max_drawdown": [round(v["max_drawdown"] * 100, 2) for v in results.values()],
+            "var": [round(v["var"] * 100, 2) for v in results.values()],
+            "cvar": [round(v["cvar"] * 100, 2) for v in results.values()],
             "sharpe_ratio": [
-                v["cagr"] / v["annual_volatility"] if v["annual_volatility"] != 0 else None 
+                round(v["cagr"] / v["annual_volatility"], 2) if v["annual_volatility"] != 0 else None
                 for v in results.values()
             ]
         }
@@ -140,10 +142,15 @@ class MomentumParameterTuning(ParameterTuningProcessor):
             y='cagr',
             color='sharpe_ratio',
             color_continuous_scale=trimmed_twilight[::-1],
-            hover_data=['Momentum_Strategy', 'max_drawdown', 'var', 'cvar'],
+            hover_data=['Momentum_Strategy', 'max_drawdown', 'var', 'cvar', "average_annual_return"],
             labels={
                 "cagr": "Compound Annual Growth Rate",
-                "annual_volatility": "Annual Volatility"
+                "annual_volatility": "Annual Volatility",
+                "max_drawdown": "Maximum Drawdown",
+                "cvar": "Conditional Value at Risk",
+                "var": "Value at Risk",
+                "sharpe_ratio": "Sharpe Ratio",
+                "average_annual_return": "Annualized Return"
             },
             title=f"Possible Momentum Strategies - {self.portfolio_name}"
         )

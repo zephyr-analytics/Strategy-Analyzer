@@ -15,8 +15,8 @@ import pandas as pd
 import utilities as utilities
 
 from processing_types import *
-from data.data_obtain import DataObtainmentProcessor
 from models.models_data import ModelsData
+from data.portfolio_data import PortfolioData
 from results.results_processor import ResultsProcessor
 
 
@@ -24,28 +24,36 @@ class BacktestingProcessor(ABC):
     """
     Abstract base class for backtesting portfolios with configurable strategies.
     """
-    def __init__(self, data_models: ModelsData):
-        self.data_models = data_models
+    def __init__(self, models_data: ModelsData, portfolio_data: PortfolioData):
+        self.data_models = models_data
 
-        self.assets_weights = data_models.assets_weights
-        self.start_date = data_models.start_date
-        self.end_date = data_models.end_date
-        self.trading_frequency = data_models.trading_frequency
-        self.output_filename = data_models.weights_filename
+        self.assets_weights = self.data_models.assets_weights
+        self.weights_filename = self.data_models.weights_filename
+        self.start_date = self.data_models.start_date
+        self.end_date = self.data_models.end_date
+        self.trading_frequency = self.data_models.trading_frequency
+        self.output_filename = self.data_models.weights_filename
         self.rebalance_threshold = 0.02
-        self.weighting_strategy = data_models.weighting_strategy
-        self.ma_period = int(data_models.ma_window)
-        self.bond_ticker = str(data_models.bond_ticker)
-        self.cash_ticker = str(data_models.cash_ticker)
-        self.initial_portfolio_value = int(data_models.initial_portfolio_value)
-        self.num_assets_to_select = int(data_models.num_assets_to_select)
-        self.ma_threshold_asset = str(data_models.ma_threshold_asset)
-        self.processing_type = data_models.processing_type
-        self.ma_type = data_models.ma_type
-        self.benchmark_asset = data_models.benchmark_asset
+        self.weighting_strategy = self.data_models.weighting_strategy
+        self.ma_period = int(self.data_models.ma_window)
+        self.bond_ticker = str(self.data_models.bond_ticker)
+        self.cash_ticker = str(self.data_models.cash_ticker)
+        self.initial_portfolio_value = int(self.data_models.initial_portfolio_value)
+        self.num_assets_to_select = int(self.data_models.num_assets_to_select)
+        self.ma_threshold_asset = str(self.data_models.ma_threshold_asset)
+        self.processing_type = self.data_models.processing_type
+        self.ma_type = self.data_models.ma_type
+        self.benchmark_asset = self.data_models.benchmark_asset
+        self.out_of_market_tickers = self.data_models.out_of_market_tickers
+        self.filter_negative_momentum = self.data_models.negative_mom
 
-        self._data = None
-        self._momentum_data = None
+        self.trading_data = portfolio_data.trading_data
+        self.asset_data = portfolio_data.assets_data
+        self.benchmark_data = portfolio_data.benchmark_data
+        self.bond_data = portfolio_data.bond_data
+        self.cash_data = portfolio_data.cash_data
+        self.ma_threshold_data = portfolio_data.ma_threshold_data
+        self.out_of_market_data = portfolio_data.out_of_market_data
 
 
     @abstractmethod
@@ -132,19 +140,18 @@ class BacktestingProcessor(ABC):
         """
         Calculates the buy-and-hold performance of the portfolio with the same assets and weights over the time frame.
         """
-        data_processor = DataObtainmentProcessor(models_data=self.data_models)
-        self._bnh_data = data_processor.process()
+        self.bnh_data = self.asset_data
 
         portfolio_values = [self.initial_portfolio_value]
         portfolio_returns = []
-        
+
         monthly_dates = pd.date_range(start=self.start_date, end=self.end_date, freq='M')
         
         for i in range(1, len(monthly_dates)):
-            start_index = self._bnh_data.index.get_indexer([monthly_dates[i-1]], method='nearest')[0]
-            end_index = self._bnh_data.index.get_indexer([monthly_dates[i]], method='nearest')[0]
-            start_data = self._bnh_data.iloc[start_index]
-            end_data = self._bnh_data.iloc[end_index]
+            start_index = self.bnh_data.index.get_indexer([monthly_dates[i-1]], method='nearest')[0]
+            end_index = self.bnh_data.index.get_indexer([monthly_dates[i]], method='nearest')[0]
+            start_data = self.bnh_data.iloc[start_index]
+            end_data = self.bnh_data.iloc[end_index]
 
             previous_value = portfolio_values[-1]
             monthly_returns = (end_data / start_data) - 1
@@ -164,31 +171,27 @@ class BacktestingProcessor(ABC):
         if not self.benchmark_asset:
             return
         else:
-            data_processor = DataObtainmentProcessor(models_data=self.data_models)
-            processed_data = data_processor.process()
+            benchmark_values = [self.initial_portfolio_value]
+            benchmark_returns = []
 
-        self._benchmark_data = processed_data.loc[:, [self.benchmark_asset]] if self.benchmark_asset in processed_data.columns else None
-        benchmark_values = [self.initial_portfolio_value]
-        benchmark_returns = []
+            monthly_dates = pd.date_range(start=self.start_date, end=self.end_date, freq='M')
 
-        monthly_dates = pd.date_range(start=self.start_date, end=self.end_date, freq='M')
+            for i in range(1, len(monthly_dates)):
+                start_index = self.benchmark_data.index.get_indexer([monthly_dates[i-1]], method='nearest')[0]
+                end_index = self.benchmark_data.index.get_indexer([monthly_dates[i]], method='nearest')[0]
 
-        for i in range(1, len(monthly_dates)):
-            start_index = self._benchmark_data.index.get_indexer([monthly_dates[i-1]], method='nearest')[0]
-            end_index = self._benchmark_data.index.get_indexer([monthly_dates[i]], method='nearest')[0]
+                start_price = self.benchmark_data.iloc[start_index][self.benchmark_asset]
+                end_price = self.benchmark_data.iloc[end_index][self.benchmark_asset]
 
-            start_price = self._benchmark_data.iloc[start_index][self.benchmark_asset]
-            end_price = self._benchmark_data.iloc[end_index][self.benchmark_asset]
+                monthly_return = (end_price / start_price) - 1
 
-            monthly_return = (end_price / start_price) - 1
-
-            previous_value = benchmark_values[-1]
-            new_benchmark_value = previous_value * (1 + monthly_return)
-            benchmark_values.append(new_benchmark_value)
-            benchmark_returns.append(monthly_return)
- 
-        self.data_models.benchmark_values = pd.Series(benchmark_values, index=monthly_dates[:len(benchmark_values)])
-        self.data_models.benchmark_returns = pd.Series(benchmark_returns, index=monthly_dates[1:len(benchmark_returns)+1])
+                previous_value = benchmark_values[-1]
+                new_benchmark_value = previous_value * (1 + monthly_return)
+                benchmark_values.append(new_benchmark_value)
+                benchmark_returns.append(monthly_return)
+    
+            self.data_models.benchmark_values = pd.Series(benchmark_values, index=monthly_dates[:len(benchmark_values)])
+            self.data_models.benchmark_returns = pd.Series(benchmark_returns, index=monthly_dates[1:len(benchmark_returns)+1])
 
 
 

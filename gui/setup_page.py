@@ -5,16 +5,20 @@ Module for creating the setup page.
 import customtkinter as ctk
 
 from models.models_data import ModelsData
+from data.portfolio_data import PortfolioData
 import utilities as utilities
-from data.data_obtain import DataObtainmentProcessor
+from data.data_obtainment_processor import DataObtainmentProcessor
+from data.data_preparation_processor import DataPreparationProcessor
+
 
 class SetupTab:
     """
     Handles the layout and functionality of the Initial Testing Setup parent.
     """
 
-    def __init__(self, parent, models_data: ModelsData):
+    def __init__(self, parent, models_data: ModelsData, portfolio_data: PortfolioData):
         self.data_models = models_data
+        self.data_portfolio = portfolio_data
 
         self.parent = parent
         self.bold_font = ctk.CTkFont(size=12, weight="bold", family="Arial")
@@ -146,7 +150,16 @@ class SetupTab:
             text_color="#000000",
             hover_color="#8e44ad",
             command=self.obtain_data,
-        ).grid(row=data_frame_rows, column=1, columnspan=2, padx=5, pady=y_padding)
+        ).grid(row=data_frame_rows, column=0, columnspan=2, padx=5, pady=y_padding)
+
+        ctk.CTkButton(
+            data_frame,
+            text="Prepare Data",
+            fg_color="#bb8fce",
+            text_color="#000000",
+            hover_color="#8e44ad",
+            command=self.prepare_data,
+        ).grid(row=data_frame_rows, column=2, columnspan=2, padx=5, pady=y_padding)
 
 
         # Trade Settings
@@ -360,8 +373,16 @@ class SetupTab:
         copyright_label.pack()
 
     def obtain_data(self):
-        data_processor = DataObtainmentProcessor(models_data=self.data_models)
-        data_processor.process()
+        """
+        """
+        data_obtain = DataObtainmentProcessor(models_data=self.data_models)
+        data_obtain.process()
+
+    def prepare_data(self):
+        """
+        """
+        data_prepare = DataPreparationProcessor(models_data=self.data_models, portfolio_data=self.data_portfolio)
+        data_prepare.process()
 
     def clear_bottom_text(self):
         """
@@ -420,7 +441,6 @@ class SetupTab:
         ----------
         None
         """
-        self.clear_bottom_text()
         self.data_models.out_of_market_tickers, self.file_name = utilities.load_weights()
 
     def update_start_date(self, *args):

@@ -9,6 +9,7 @@ from plotly.subplots import make_subplots
 
 import utilities as utilities
 from models.models_data import ModelsData
+from data.portfolio_data import PortfolioData
 
 
 class SignalsProcessor(ABC):
@@ -16,7 +17,7 @@ class SignalsProcessor(ABC):
     Abstract base class for creating portfolio signals.
     """
 
-    def __init__(self, models_data: ModelsData):
+    def __init__(self, models_data: ModelsData, portfolio_data: PortfolioData):
         """
         Initializes the SignalProcessor class.
 
@@ -26,6 +27,8 @@ class SignalsProcessor(ABC):
             An instance of the ModelsData class that holds all necessary attributes.
         """
         self.data_models = models_data
+        self.data_portfolio = portfolio_data
+
         self.initial_portfolio_value = models_data.initial_portfolio_value
         self.assets_weights = models_data.assets_weights
         self.bond_ticker = models_data.bond_ticker
