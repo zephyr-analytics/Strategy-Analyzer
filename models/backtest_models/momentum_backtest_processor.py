@@ -57,10 +57,11 @@ class MomentumBacktestProcessor(BacktestingProcessor):
         pd.Series
             Series of momentum values for each asset.
         """
-        momentum_3m = (self.asset_data.loc[:current_date].iloc[-63:] + 1).prod() - 1
-        momentum_6m = (self.asset_data.loc[:current_date].iloc[-126:] + 1).prod() - 1
-        momentum_9m = (self.asset_data.loc[:current_date].iloc[-189:] + 1).prod() - 1
-        momentum_12m = (self.asset_data.loc[:current_date].iloc[-252:] + 1).prod() - 1
+        momentum_data = self.asset_data.copy().pct_change().dropna()
+        momentum_3m = (momentum_data.loc[:current_date].iloc[-63:] + 1).prod() - 1
+        momentum_6m = (momentum_data.loc[:current_date].iloc[-126:] + 1).prod() - 1
+        momentum_9m = (momentum_data.loc[:current_date].iloc[-189:] + 1).prod() - 1
+        momentum_12m = (momentum_data.loc[:current_date].iloc[-252:] + 1).prod() - 1
         return (momentum_3m + momentum_6m + momentum_9m + momentum_12m) / 4
 
     def adjust_weights(self, current_date: datetime, selected_assets: pd.DataFrame, filter_negative_momentum: bool, selected_out_of_market_assets=None) -> dict:
