@@ -9,39 +9,15 @@ import utilities as utilities
 from results.results_processor import ResultsProcessor
 import warnings
 
-from data.data_obtain import DataObtainmentProcessor
 from models.models_data import ModelsData
 from models.backtest_models.backtesting_processor import BacktestingProcessor
 
 warnings.filterwarnings("ignore")
 
 
-class MaBacktestPortfolio(BacktestingProcessor):
+class MovingAverageBacktestProcessor(BacktestingProcessor):
     """
     A class to backtest a static portfolio with adjustable weights based on Simple Moving Average (SMA).
-
-    Attributes
-    ----------
-    assets_weights : dict
-        Dictionary of asset tickers and their corresponding weights in the portfolio.
-    start_date : str
-        The start date for the backtest.
-    end_date : str
-        The end date for the backtest.
-    ma_period : int
-        The period for calculating the Simple Moving Average (SMA). Default is 168.
-    bond_ticker : str
-        The ticker symbol for the bond asset. Default is 'BND'.
-    cash_ticker : str
-        The ticker symbol for the cash asset. Default is 'SHV'.
-    initial_portfolio_value : float
-        The initial value of the portfolio. Default is 10000.
-    _data : DataFrame or None
-        DataFrame to store the adjusted closing prices of the assets.
-    _portfolio_value : Series
-        Series to store the portfolio values over time.
-    _returns : Series
-        Series to store the portfolio returns over time.
     """
 
     def __init__(self, data_models: ModelsData):
@@ -54,15 +30,13 @@ class MaBacktestPortfolio(BacktestingProcessor):
             An instance of the ModelsData class containing all relevant parameters and data for backtesting.
         """
         super().__init__(data_models=data_models)
-
+        self._data = self.data.copy()
+        self._filtered_data = self._data[self._data.columns.intersection(self.assets_weights.keys())]
 
     def process(self):
         """
         Processes the backtest by fetching data, running the backtest, and generating the plots.
         """
-        data_processor = DataObtainmentProcessor(models_data=self.data_models)
-        self._data = data_processor.process()
-
         self.run_backtest()
         self._get_portfolio_statistics()
         self._calculate_buy_and_hold()
@@ -73,9 +47,9 @@ class MaBacktestPortfolio(BacktestingProcessor):
         results_processor.plot_var_cvar()
         results_processor.plot_returns_heatmaps()
 
+
     def calculate_momentum(self, current_date=None):
         pass
-
 
     def adjust_weights(
             self, 
@@ -129,12 +103,12 @@ class MaBacktestPortfolio(BacktestingProcessor):
             bool
                 True if the price is below the moving average, False otherwise.
             """
-            price = self._data.loc[:current_date, ticker].iloc[-1]
+            price = self._filtered_data.loc[:current_date, ticker].iloc[-1]
 
             if self.ma_type == "SMA":
-                ma = self._data.loc[:current_date, ticker].rolling(window=self.ma_period).mean().iloc[-1]
+                ma = self._filtered_data.loc[:current_date, ticker].rolling(window=self.ma_period).mean().iloc[-1]
             elif self.ma_type == "EMA":
-                ma = self._data.loc[:current_date, ticker].ewm(span=self.ma_period).mean().iloc[-1]
+                ma = self._filtered_data.loc[:current_date, ticker].ewm(span=self.ma_period).mean().iloc[-1]
             else:
                 raise ValueError("Invalid ma_type. Choose 'SMA' or 'EMA'.")
 
@@ -146,13 +120,10 @@ class MaBacktestPortfolio(BacktestingProcessor):
             replacement_asset = get_replacement_asset()
             return {replacement_asset: 1.0}
 
-        trading_assets = {ticker: weight for ticker, weight in adjusted_weights.items() 
-                        if ticker not in [self.ma_threshold_asset, self.bond_ticker, self.cash_ticker, self.benchmark_asset]}
-
-        for ticker in list(trading_assets.keys()):
+        for ticker, weight in list(adjusted_weights.items()):
             if is_below_ma(ticker):
                 replacement_asset = get_replacement_asset()
-                adjusted_weights[replacement_asset] = adjusted_weights.get(replacement_asset, 0) + trading_assets[ticker]
+                adjusted_weights[replacement_asset] = adjusted_weights.get(replacement_asset, 0) + weight
                 adjusted_weights[ticker] = 0
 
         total_weight = sum(adjusted_weights.values())
@@ -190,13 +161,13 @@ class MaBacktestPortfolio(BacktestingProcessor):
         for i in range(0, len(monthly_dates), step):
             current_date = monthly_dates[i]
             next_date = monthly_dates[min(i + step, len(monthly_dates) - 1)]
-            last_date_current_month = self._data.index[self._data.index.get_loc(current_date, method='pad')]
+            last_date_current_month = self._filtered_data.index[self._filtered_data.index.get_loc(current_date, method='pad')]
             adjusted_weights = self.adjust_weights(last_date_current_month)
             previous_value = portfolio_values[-1]
-            month_end_data = self._data.loc[last_date_current_month]
+            month_end_data = self._filtered_data.loc[last_date_current_month]
             month_start_data = month_end_data
-            last_date_next_month = self._data.index[self._data.index.get_loc(next_date, method='pad')]
-            next_month_end_data = self._data.loc[last_date_next_month]
+            last_date_next_month = self._filtered_data.index[self._filtered_data.index.get_loc(next_date, method='pad')]
+            next_month_end_data = self._filtered_data.loc[last_date_next_month]
             monthly_returns = (next_month_end_data / month_start_data) - 1
             month_return = sum([monthly_returns[ticker] * weight for ticker, weight in adjusted_weights.items()])
             new_portfolio_value = previous_value * (1 + month_return)

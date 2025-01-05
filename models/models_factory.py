@@ -73,7 +73,7 @@ class ModelsFactory:
         """
         if not self.data_models.assets_weights:
             return "Please load asset weights file."
-        backtest = MaBacktestPortfolio(self.data_models)
+        backtest = MovingAverageBacktestProcessor(self.data_models)
         backtest.process()
         return "MA backtest completed and plots saved."
 
@@ -103,7 +103,7 @@ class ModelsFactory:
         """
         if not self.data_models.assets_weights:
             return "Please load asset weights file."
-        backtest = MaBacktestPortfolio(self.data_models)
+        backtest = MovingAverageBacktestProcessor(self.data_models)
         backtest.process()
         monte_carlo = MonteCarloSimulation(self.data_models)
         monte_carlo.process()
@@ -120,7 +120,7 @@ class ModelsFactory:
         """
         if not self.data_models.assets_weights:
             return "Please load asset weights file."
-        backtest = BacktestMomentumPortfolio(self.data_models)
+        backtest = MomentumBacktestProcessor(self.data_models)
         backtest.process()
         return "Momentum backtest completed and plots saved."
 
@@ -150,7 +150,7 @@ class ModelsFactory:
         """
         if not self.data_models.assets_weights:
             return "Please load asset weights file."
-        backtest = BacktestMomentumPortfolio(self.data_models)
+        backtest = MomentumBacktestProcessor(self.data_models)
         backtest.process()
         monte_carlo = MonteCarloSimulation(self.data_models)
         monte_carlo.process()

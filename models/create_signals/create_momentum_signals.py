@@ -3,7 +3,7 @@ Module for creating momentum trading signals.
 """
 
 from models.create_signals.signals_processor import SignalsProcessor
-from models.backtest_models.momentum_backtest import BacktestMomentumPortfolio
+from models.backtest_models.momentum_backtest_processor import MomentumBacktestProcessor
 
 
 class CreateMomentumSignals(SignalsProcessor):
@@ -26,7 +26,7 @@ class CreateMomentumSignals(SignalsProcessor):
         """
         Generates trading signals by running the backtest and pulling the latest weights.
         """
-        self.backtest_portfolio = BacktestMomentumPortfolio(self.data_models)
+        self.backtest_portfolio = MomentumBacktestProcessor(self.data_models)
         self.backtest_portfolio.process()
         latest_weights = self.data_models.adjusted_weights
         latest_weights = latest_weights.iloc[-1]

@@ -11,7 +11,7 @@ import plotly.express as px
 import utilities as utilities
 from models.models_data import ModelsData
 from models.parameter_tuning.parameter_tuning_processor import ParameterTuningProcessor
-from models.backtest_models.ma_backtesting import MaBacktestPortfolio
+from models.backtest_models.moving_average_backtest_processor import MovingAverageBacktestProcessor
 
 
 class MaParameterTuning(ParameterTuningProcessor):
@@ -84,7 +84,7 @@ class MaParameterTuning(ParameterTuningProcessor):
         self.data_models.trading_frequency = frequency
         self.data_models.ma_type = ma_type
 
-        backtest = MaBacktestPortfolio(self.data_models)
+        backtest = MovingAverageBacktestProcessor(self.data_models)
         backtest.process()
 
         return {

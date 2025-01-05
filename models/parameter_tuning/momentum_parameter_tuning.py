@@ -11,7 +11,7 @@ import plotly.express as px
 import utilities as utilities
 from models.models_data import ModelsData
 from models.parameter_tuning.parameter_tuning_processor import ParameterTuningProcessor
-from models.backtest_models.momentum_backtest import BacktestMomentumPortfolio
+from models.backtest_models.momentum_backtest_processor import MomentumBacktestProcessor
 
 
 class MomentumParameterTuning(ParameterTuningProcessor):
@@ -97,7 +97,7 @@ class MomentumParameterTuning(ParameterTuningProcessor):
         self.data_models.num_assets_to_select = num_assets
         self.data_models.ma_type = ma_type
 
-        backtest = BacktestMomentumPortfolio(self.data_models)
+        backtest = MomentumBacktestProcessor(self.data_models)
         backtest.process()
 
         return {

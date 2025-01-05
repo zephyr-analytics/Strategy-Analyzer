@@ -9,7 +9,6 @@ import pandas as pd
 
 import utilities as utilities
 
-from data.data_obtain import DataObtainmentProcessor
 from models.models_data import ModelsData
 from models.backtest_models.backtesting_processor import BacktestingProcessor
 from results.results_processor import ResultsProcessor
@@ -17,7 +16,7 @@ from results.results_processor import ResultsProcessor
 warnings.filterwarnings("ignore")
 
 
-class BacktestMomentumPortfolio(BacktestingProcessor):
+class MomentumBacktestProcessor(BacktestingProcessor):
     """
     A class to backtest a static portfolio with adjustable weights based on Simple Moving Average (SMA).
     """
@@ -32,15 +31,14 @@ class BacktestMomentumPortfolio(BacktestingProcessor):
             An instance of the ModelsData class containing all relevant parameters and data for backtesting.
         """
         super().__init__(data_models=data_models)
+        self._data = self.data.copy()
+        self._momentum_data = self._data.copy().pct_change().dropna()
+        self._filtered_data = self._data[self._data.columns.intersection(self.assets_weights.keys())]
 
     def process(self):
         """
         Processes the backtest by fetching data, running the backtest, and generating the plots.
         """
-        data_processor = DataObtainmentProcessor(models_data=self.data_models)
-        self._data = data_processor.process()
-
-        self._momentum_data = self._data.copy().pct_change().dropna()
         self.run_backtest()
         self._get_portfolio_statistics()
         self._calculate_buy_and_hold()
@@ -51,15 +49,19 @@ class BacktestMomentumPortfolio(BacktestingProcessor):
         results_processor.plot_var_cvar()
         results_processor.plot_returns_heatmaps()
 
-
-    def calculate_momentum(self, current_date: datetime) -> float:
+    def calculate_momentum(self, current_date: datetime) -> pd.Series:
         """
         Calculate average momentum based on 3, 6, 9, and 12-month cumulative returns.
-        
+
         Parameters
         ----------
         current_date : datetime
             The current date for which the weights are being adjusted.
+
+        Returns
+        -------
+        pd.Series
+            Series of momentum values for each asset.
         """
         momentum_3m = (self._momentum_data.loc[:current_date].iloc[-63:] + 1).prod() - 1
         momentum_6m = (self._momentum_data.loc[:current_date].iloc[-126:] + 1).prod() - 1
@@ -68,12 +70,12 @@ class BacktestMomentumPortfolio(BacktestingProcessor):
         return (momentum_3m + momentum_6m + momentum_9m + momentum_12m) / 4
 
     def adjust_weights(
-            self,
-            current_date: datetime,
-            selected_assets: pd.DataFrame,
-            filter_negative_momentum: bool,
-            selected_out_of_market_assets=None
-        ) -> dict:
+        self,
+        current_date: datetime,
+        selected_assets: pd.DataFrame,
+        filter_negative_momentum: bool,
+        selected_out_of_market_assets=None,
+    ) -> dict:
         """
         Adjusts the weights of the selected assets based on their SMA and the selected weighting strategy.
 
@@ -96,7 +98,7 @@ class BacktestMomentumPortfolio(BacktestingProcessor):
         def get_replacement_asset():
             """
             Determines the replacement asset (cash or bond) based on SMA.
-            
+
             Returns
             -------
             str
@@ -120,12 +122,12 @@ class BacktestMomentumPortfolio(BacktestingProcessor):
             bool
                 True if the price is below the moving average, False otherwise.
             """
-            price = self._data.loc[:current_date, ticker].iloc[-1]
+            price = self._filtered_data.loc[:current_date, ticker].iloc[-1]
 
             if self.ma_type == "SMA":
-                ma = self._data.loc[:current_date, ticker].rolling(window=self.ma_period).mean().iloc[-1]
+                ma = self._filtered_data.loc[:current_date, ticker].rolling(window=self.ma_period).mean().iloc[-1]
             elif self.ma_type == "EMA":
-                ma = self._data.loc[:current_date, ticker].ewm(span=self.ma_period).mean().iloc[-1]
+                ma = self._filtered_data.loc[:current_date, ticker].ewm(span=self.ma_period).mean().iloc[-1]
             else:
                 raise ValueError("Invalid ma_type. Choose 'SMA' or 'EMA'.")
 
@@ -137,14 +139,10 @@ class BacktestMomentumPortfolio(BacktestingProcessor):
             replacement_asset = get_replacement_asset()
             return {replacement_asset: 1.0}
 
-        trading_assets = selected_assets[~selected_assets['Asset'].isin(
-            [self.ma_threshold_asset, self.bond_ticker, self.cash_ticker, self.benchmark_asset]
-        )]
-
         adjusted_weights = {}
         total_weight = 0
 
-        for _, row in trading_assets.iterrows():
+        for _, row in selected_assets.iterrows():
             asset = row['Asset']
             momentum = row['Momentum']
 
@@ -160,7 +158,6 @@ class BacktestMomentumPortfolio(BacktestingProcessor):
 
         print(f'{current_date}: Weights: {adjusted_weights}')
         return adjusted_weights
-
 
     def run_backtest(self):
         """
@@ -189,21 +186,19 @@ class BacktestMomentumPortfolio(BacktestingProcessor):
         for i in range(0, len(monthly_dates), step):
             current_date = monthly_dates[i]
             next_date = monthly_dates[min(i + step, len(monthly_dates) - 1)]
-            last_date_current_month = self._data.index[self._data.index.get_loc(current_date, method='pad')]
+            last_date_current_month = self._filtered_data.index[self._filtered_data.index.get_loc(current_date, method='pad')]
 
-            # Calculate momentum
             momentum = self.calculate_momentum(last_date_current_month)
 
-            # Select assets based on momentum
             selected_assets = pd.DataFrame({'Asset': momentum.nlargest(self.num_assets_to_select).index, 'Momentum': momentum.nlargest(self.num_assets_to_select).values})
-            print(selected_assets)
-            # Adjust weights based on the selected assets
+            selected_assets = selected_assets[selected_assets['Asset'].isin(self.assets_weights.keys())]
+
             adjusted_weights = self.adjust_weights(last_date_current_month, selected_assets, self.filter_negative_momentum)
 
             previous_value = portfolio_values[-1]
-            month_end_data = self._data.loc[last_date_current_month]
-            last_date_next_month = self._data.index[self._data.index.get_loc(next_date, method='pad')]
-            next_month_end_data = self._data.loc[last_date_next_month]
+            month_end_data = self._filtered_data.loc[last_date_current_month]
+            last_date_next_month = self._filtered_data.index[self._filtered_data.index.get_loc(next_date, method='pad')]
+            next_month_end_data = self._filtered_data.loc[last_date_next_month]
             monthly_returns = (next_month_end_data / month_end_data) - 1
             month_return = sum([monthly_returns[ticker] * weight for ticker, weight in adjusted_weights.items()])
             new_portfolio_value = previous_value * (1 + month_return)

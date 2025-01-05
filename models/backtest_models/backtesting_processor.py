@@ -28,6 +28,7 @@ class BacktestingProcessor(ABC):
         self.data_models = data_models
 
         self.assets_weights = data_models.assets_weights
+        self.weights_filename = data_models.weights_filename
         self.start_date = data_models.start_date
         self.end_date = data_models.end_date
         self.trading_frequency = data_models.trading_frequency
@@ -46,8 +47,7 @@ class BacktestingProcessor(ABC):
         self.out_of_market_tickers = data_models.out_of_market_tickers
         self.filter_negative_momentum = data_models.negative_mom
 
-        self._data = None
-        self._momentum_data = None
+        self.data = utilities.read_data(weights_filename=self.weights_filename)
 
 
     @abstractmethod
@@ -134,8 +134,7 @@ class BacktestingProcessor(ABC):
         """
         Calculates the buy-and-hold performance of the portfolio with the same assets and weights over the time frame.
         """
-        data_processor = DataObtainmentProcessor(models_data=self.data_models)
-        self._bnh_data = data_processor.process()
+        self._bnh_data = self.data.copy().drop(columns=[self.cash_ticker, self.bond_ticker])
 
         portfolio_values = [self.initial_portfolio_value]
         portfolio_returns = []
