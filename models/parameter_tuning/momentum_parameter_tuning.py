@@ -10,6 +10,7 @@ import plotly.express as px
 
 import utilities as utilities
 from models.models_data import ModelsData
+from data.portfolio_data import PortfolioData
 from models.parameter_tuning.parameter_tuning_processor import ParameterTuningProcessor
 from models.backtest_models.momentum_backtest_processor import MomentumBacktestProcessor
 
@@ -18,7 +19,7 @@ class MomentumParameterTuning(ParameterTuningProcessor):
     """
     Processor for parameter tuning based on the a momentum portfolio.
     """
-    def __init__(self, models_data: ModelsData):
+    def __init__(self, models_data: ModelsData, portfolio_data: PortfolioData):
         """
         Initializes the parameter tuning class.
 
@@ -27,7 +28,7 @@ class MomentumParameterTuning(ParameterTuningProcessor):
         models_data : object
             An instance of the ModelsData class that holds all necessary attributes.
         """
-        super().__init__(models_data)
+        super().__init__(models_data=models_data, portfolio_data=portfolio_data)
         self.theme = models_data.theme_mode
         self.portfolio_name = models_data.weights_filename
 
@@ -51,7 +52,7 @@ class MomentumParameterTuning(ParameterTuningProcessor):
         results = {}
         ma_list = [21, 42, 63, 84, 105, 126, 147, 168, 189, 210, 231, 252]
         num_asset_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-        trading_frequencies = ["Monthly", "Bi-Monthly", "Quarterly", "Yearly"]
+        trading_frequencies = ["Monthly", "Bi-Monthly"]
         ma_types = ["SMA", "EMA"]
 
         total_assets = len(self.data_models.assets_weights)
@@ -97,7 +98,7 @@ class MomentumParameterTuning(ParameterTuningProcessor):
         self.data_models.num_assets_to_select = num_assets
         self.data_models.ma_type = ma_type
 
-        backtest = MomentumBacktestProcessor(self.data_models)
+        backtest = MomentumBacktestProcessor(models_data=self.data_models, portfolio_data=self.data_portfolio)
         backtest.process()
 
         return {

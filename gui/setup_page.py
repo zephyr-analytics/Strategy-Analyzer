@@ -150,7 +150,16 @@ class SetupTab:
             text_color="#000000",
             hover_color="#8e44ad",
             command=self.obtain_data,
-        ).grid(row=data_frame_rows, column=1, columnspan=2, padx=5, pady=y_padding)
+        ).grid(row=data_frame_rows, column=0, columnspan=2, padx=5, pady=y_padding)
+
+        ctk.CTkButton(
+            data_frame,
+            text="Prepare Data",
+            fg_color="#bb8fce",
+            text_color="#000000",
+            hover_color="#8e44ad",
+            command=self.prepare_data,
+        ).grid(row=data_frame_rows, column=2, columnspan=2, padx=5, pady=y_padding)
 
 
         # Trade Settings
@@ -364,8 +373,14 @@ class SetupTab:
         copyright_label.pack()
 
     def obtain_data(self):
+        """
+        """
         data_obtain = DataObtainmentProcessor(models_data=self.data_models)
         data_obtain.process()
+
+    def prepare_data(self):
+        """
+        """
         data_prepare = DataPreparationProcessor(models_data=self.data_models, portfolio_data=self.data_portfolio)
         data_prepare.process()
 

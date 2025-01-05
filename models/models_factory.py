@@ -122,7 +122,7 @@ class ModelsFactory:
         """
         if not self.data_models.assets_weights:
             return "Please load asset weights file."
-        backtest = MomentumBacktestProcessor(self.data_models)
+        backtest = MomentumBacktestProcessor(models_data=self.data_models, portfolio_data=self.data_portfolio)
         backtest.process()
         return "Momentum backtest completed and plots saved."
 
@@ -212,7 +212,7 @@ class ModelsFactory:
         """
         if not self.data_models.assets_weights:
             return "Please load asset weights file."
-        parameter_tune = MomentumParameterTuning(self.data_models)
+        parameter_tune = MomentumParameterTuning(models_data=self.data_models, portfolio_data=self.data_portfolio)
         parameter_tune.process()
         return "Momentum parameter tuning completed."
 

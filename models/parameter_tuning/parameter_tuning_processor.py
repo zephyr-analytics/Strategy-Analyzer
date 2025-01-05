@@ -6,14 +6,14 @@ from abc import ABC, abstractmethod
 
 import utilities as utilities
 from models.models_data import ModelsData
-
+from data.portfolio_data import PortfolioData
 
 class ParameterTuningProcessor(ABC):
     """
     Abstract base class for creating portfolio signals.
     """
 
-    def __init__(self, models_data: ModelsData):
+    def __init__(self, models_data: ModelsData, portfolio_data: PortfolioData):
         """
         Initializes the SignalProcessor class.
 
@@ -23,6 +23,7 @@ class ParameterTuningProcessor(ABC):
             An instance of the ModelsData class that holds all necessary attributes.
         """
         self.data_models = models_data
+        self.data_portfolio = portfolio_data
 
     @abstractmethod
     def process(self):
