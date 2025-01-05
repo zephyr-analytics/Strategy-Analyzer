@@ -3,10 +3,9 @@ Module for obtaining and saving data to the raw directory.
 """
 
 import os
-
+from logger import logger
 import utilities as utilities
 from models.models_data import ModelsData
-
 
 class DataObtainmentProcessor:
     """
@@ -29,9 +28,12 @@ class DataObtainmentProcessor:
         """
         Main method to fetch and save data to the raw directory.
         """
-        file_path = self.fetch_and_save_data()
-        print(f"Data saved to {file_path}.")
-        return file_path
+        try:
+            logger.info(f"Obtaining Data for {self.weights_filename}.")
+            self.fetch_and_save_data()
+        except Exception as e:
+            logger.error(f"Error occurred during data processing: {e}")
+            raise
 
     def fetch_and_save_data(self):
         """
@@ -55,12 +57,11 @@ class DataObtainmentProcessor:
 
         file_path = os.path.join(data_directory, f"{self.weights_filename}.csv")
 
+        logger.info("Fetching data for tickers: %s", all_tickers)
         df = utilities.fetch_data(
             all_tickers=all_tickers,
             start_date=self.start_date,
             end_date=self.end_date,
         )
         utilities.write_raw_dataframe_to_csv(dataframe=df, file_path=file_path)
-        print(f"Data successfully saved to {file_path}.")
-
-        return file_path
+        logger.info(f"Data successfully saved to {file_path}.")

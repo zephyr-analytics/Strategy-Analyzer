@@ -1,0 +1,77 @@
+2025-01-05 15:23:04,600 - DataObtainmentProcessor - INFO - Fetching data for tickers: ['AMZN', 'AXP', 'AMGN', 'AAPL', 'BA', 'CAT', 'CSCO', 'CVX', 'GS', 'HD', 'HON', 'IBM', 'JNJ', 'KO', 'JPM', 'MCD', 'MMM', 'MRK', 'MSFT', 'NKE', 'PG', 'SHW', 'TRV', 'UNH', 'CRM', 'NVDA', 'VZ', 'V', 'WMT', 'DIS', 'SHV', 'BND']
+2025-01-05 15:23:05,928 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:23:05,958 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:23:05,974 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:23:06,016 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:23:06,023 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:23:06,062 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:23:06,062 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:23:06,099 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:23:06,183 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:23:06,253 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:23:06,318 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:23:06,368 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:23:06,421 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:23:06,429 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:23:06,487 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:23:06,510 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:23:06,553 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:23:06,553 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:23:06,591 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:23:06,757 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:23:06,884 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:23:07,118 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:23:07,246 - DataObtainmentProcessor - INFO - Data successfully saved to C:\Users\monic\Actual Drive Storage\Back_Testing_Script\Back_testing_script\artifacts\raw\Dow 30.csv.
+2025-01-05 15:27:47,843 - DataObtainmentProcessor - INFO - Obtaining Data for Dow 30.
+2025-01-05 15:27:47,844 - DataObtainmentProcessor - INFO - Fetching data for tickers: ['AMZN', 'AXP', 'AMGN', 'AAPL', 'BA', 'CAT', 'CSCO', 'CVX', 'GS', 'HD', 'HON', 'IBM', 'JNJ', 'KO', 'JPM', 'MCD', 'MMM', 'MRK', 'MSFT', 'NKE', 'PG', 'SHW', 'TRV', 'UNH', 'CRM', 'NVDA', 'VZ', 'V', 'WMT', 'DIS', 'SHV', 'BND']
+2025-01-05 15:27:48,778 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:27:48,778 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:27:48,788 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:27:48,790 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:27:48,817 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:27:48,855 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:27:48,856 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:27:48,879 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:27:48,896 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:27:48,896 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:27:48,907 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:27:48,926 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:27:48,927 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:27:48,950 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:27:48,950 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:27:48,976 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:27:48,981 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:27:49,023 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:27:49,055 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:27:49,067 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:27:49,074 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:27:49,081 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:27:49,448 - DataObtainmentProcessor - INFO - Data successfully saved to C:\Users\monic\Actual Drive Storage\Back_Testing_Script\Back_testing_script\artifacts\raw\Dow 30.csv.
+2025-01-05 15:27:51,782 - DataObtainmentProcessor - INFO - Preparaing Data for Dow 30
+2025-01-05 15:29:18,877 - DataObtainmentProcessor - INFO - Obtaining Data for Dow 30.
+2025-01-05 15:29:18,879 - DataObtainmentProcessor - INFO - Fetching data for tickers: ['AMZN', 'AXP', 'AMGN', 'AAPL', 'BA', 'CAT', 'CSCO', 'CVX', 'GS', 'HD', 'HON', 'IBM', 'JNJ', 'KO', 'JPM', 'MCD', 'MMM', 'MRK', 'MSFT', 'NKE', 'PG', 'SHW', 'TRV', 'UNH', 'CRM', 'NVDA', 'VZ', 'V', 'WMT', 'DIS', 'SHV', 'BND']
+2025-01-05 15:29:19,884 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:29:19,890 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:29:19,891 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:29:19,892 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:29:19,905 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:29:19,951 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:29:19,957 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:29:19,960 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:29:19,984 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:29:19,984 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:29:20,108 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:29:20,109 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:29:20,118 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:29:20,150 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:29:20,162 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:29:20,171 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:29:20,203 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:29:20,224 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:29:20,247 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:29:20,261 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:29:20,487 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:29:20,601 - urllib3.connectionpool - WARNING - Connection pool is full, discarding connection: query2.finance.yahoo.com. Connection pool size: 10
+2025-01-05 15:29:20,730 - DataObtainmentProcessor - INFO - Data successfully saved to C:\Users\monic\Actual Drive Storage\Back_Testing_Script\Back_testing_script\artifacts\raw\Dow 30.csv.
+2025-01-05 15:29:22,292 - DataObtainmentProcessor - INFO - Preparaing Data for Dow 30.
+2025-01-05 15:29:22,307 - DataObtainmentProcessor - INFO - Data successfully prepared.

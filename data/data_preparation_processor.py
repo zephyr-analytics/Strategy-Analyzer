@@ -1,4 +1,5 @@
 import utilities
+from logger import logger
 from models.models_data import ModelsData
 from data.portfolio_data import PortfolioData
 
@@ -23,6 +24,7 @@ class DataPreparationProcessor:
         """
         Main method to check, load, and validate data.
         """
+        logger.info(f"Preparaing Data for {self.weights_filename}.")
         self.read_data()
 
     def read_data(self):
@@ -58,3 +60,5 @@ class DataPreparationProcessor:
         out_of_market_data = filtered_data.loc[:, filtered_data.columns.intersection(self.out_of_market_tickers)]
         if not out_of_market_data.empty:
             self.data_portfolio.out_of_market_data = out_of_market_data
+
+        logger.info("Data successfully prepared.")
