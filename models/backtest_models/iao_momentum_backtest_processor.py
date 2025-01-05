@@ -3,27 +3,28 @@ Module for backtesting in and out of market momentum assets.
 """
 
 import datetime
-import warnings
+import logging
 
 import pandas as pd
 
 import utilities as utilities
-
-from data.data_obtainment_processor import DataObtainmentProcessor
+from processing_types import run_types
+from logger import logger
 from models.models_data import ModelsData
+from data.portfolio_data import PortfolioData
 from models.backtest_models.backtesting_processor import BacktestingProcessor
 from results.results_processor import ResultsProcessor
 
-warnings.filterwarnings("ignore")
+logger = logging.getLogger(__name__)
 
 
-class BacktestInAndOutMomentumPortfolio(BacktestingProcessor):
+class IAOMomentumBacktestProcessor(BacktestingProcessor):
     """
     A class to backtest a static portfolio with adjustable weights based on Simple Moving Average (SMA),
     with momentum calculations for both in-market and out-of-market assets.
     """
 
-    def __init__(self, data_models: ModelsData):
+    def __init__(self, models_data: ModelsData, portfolio_data: PortfolioData):
         """
         Initializes the BacktestMomentumPortfolio class with data from ModelsData.
 
@@ -32,37 +33,24 @@ class BacktestInAndOutMomentumPortfolio(BacktestingProcessor):
         data_models : ModelsData
             An instance of the ModelsData class containing all relevant parameters and data for backtesting.
         """
-        super().__init__(data_models=data_models)
-
-        self._data = None
-        self._out_of_market_data = None
-        self._momentum_data = None
-        self._momentum_data_out_of_market = None
-
+        super().__init__(models_data=models_data, portfolio_data=portfolio_data)
 
     def process(self):
         """
         Processes the backtest by fetching data, running the backtest, and generating the plots.
         """
-        data_processor = DataObtainmentProcessor(models_data=self.data_models)
-        self._data = data_processor.process()
-
-        self._out_of_market_data = self._data[self._data.columns.intersection(self.out_of_market_tickers.keys())].copy()
-        self._data = self._data.drop(columns=self._out_of_market_data.columns)
-
-        self._momentum_data = self._data.copy().pct_change().dropna()
-        self._momentum_data_out_of_market = self._out_of_market_data.copy().pct_change().dropna()
-
         self.run_backtest()
         self._get_portfolio_statistics()
         self._calculate_buy_and_hold()
         self._calculate_benchmark()
         self.persist_data()
-        results_processor = ResultsProcessor(self.data_models)
-        results_processor.plot_portfolio_value()
-        results_processor.plot_var_cvar()
-        results_processor.plot_returns_heatmaps()
-
+        if self.processing_type == run_types.Runs.BACKTEST:
+            results_processor = ResultsProcessor(self.data_models)
+            results_processor.plot_portfolio_value()
+            results_processor.plot_var_cvar()
+            results_processor.plot_returns_heatmaps()
+        else:
+            pass
 
     def calculate_momentum(self, current_date: datetime) -> tuple:
         """
@@ -78,16 +66,18 @@ class BacktestInAndOutMomentumPortfolio(BacktestingProcessor):
         tuple
             in_market_momentum and out_of_market_momentum
         """
-        momentum_3m = (self._momentum_data.loc[:current_date].iloc[-63:] + 1).prod() - 1
-        momentum_6m = (self._momentum_data.loc[:current_date].iloc[-126:] + 1).prod() - 1
-        momentum_9m = (self._momentum_data.loc[:current_date].iloc[-189:] + 1).prod() - 1
-        momentum_12m = (self._momentum_data.loc[:current_date].iloc[-252:] + 1).prod() - 1
+        momentum_data = self.asset_data.copy().pct_change().dropna()
+        momentum_3m = (momentum_data.loc[:current_date].iloc[-63:] + 1).prod() - 1
+        momentum_6m = (momentum_data.loc[:current_date].iloc[-126:] + 1).prod() - 1
+        momentum_9m = (momentum_data.loc[:current_date].iloc[-189:] + 1).prod() - 1
+        momentum_12m = (momentum_data.loc[:current_date].iloc[-252:] + 1).prod() - 1
         in_market_momentum = (momentum_3m + momentum_6m + momentum_9m + momentum_12m) / 4
 
-        momentum_3m_out = (self._momentum_data_out_of_market.loc[:current_date].iloc[-63:] + 1).prod() - 1
-        momentum_6m_out = (self._momentum_data_out_of_market.loc[:current_date].iloc[-126:] + 1).prod() - 1
-        momentum_9m_out = (self._momentum_data_out_of_market.loc[:current_date].iloc[-189:] + 1).prod() - 1
-        momentum_12m_out = (self._momentum_data_out_of_market.loc[:current_date].iloc[-252:] + 1).prod() - 1
+        momentum_data_out_of_market = self.out_of_market_data.copy().pct_change().dropna()
+        momentum_3m_out = (momentum_data_out_of_market.loc[:current_date].iloc[-63:] + 1).prod() - 1
+        momentum_6m_out = (momentum_data_out_of_market.loc[:current_date].iloc[-126:] + 1).prod() - 1
+        momentum_9m_out = (momentum_data_out_of_market.loc[:current_date].iloc[-189:] + 1).prod() - 1
+        momentum_12m_out = (momentum_data_out_of_market.loc[:current_date].iloc[-252:] + 1).prod() - 1
         out_of_market_momentum = (momentum_3m_out + momentum_6m_out + momentum_9m_out + momentum_12m_out) / 4
 
         return in_market_momentum, out_of_market_momentum

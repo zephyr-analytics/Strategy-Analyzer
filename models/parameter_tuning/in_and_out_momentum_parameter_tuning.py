@@ -10,15 +10,16 @@ import plotly.express as px
 
 import utilities as utilities
 from models.models_data import ModelsData
+from data.portfolio_data import PortfolioData
 from models.parameter_tuning.parameter_tuning_processor import ParameterTuningProcessor
-from models.backtest_models.iao_momentum_backtest import BacktestInAndOutMomentumPortfolio
+from models.backtest_models.iao_momentum_backtest_processor import IAOMomentumBacktestProcessor
 
 
 class InAndOutMomentumParameterTuning(ParameterTuningProcessor):
     """
     Processor for parameter tuning based on the a momentum portfolio.
     """
-    def __init__(self, models_data: ModelsData):
+    def __init__(self, models_data: ModelsData, portfolio_data: PortfolioData):
         """
         Initializes the parameter tuning class.
 
@@ -27,7 +28,7 @@ class InAndOutMomentumParameterTuning(ParameterTuningProcessor):
         models_data : object
             An instance of the ModelsData class that holds all necessary attributes.
         """
-        super().__init__(models_data)
+        super().__init__(models_data=models_data, portfolio_data=portfolio_data)
         self.theme = models_data.theme_mode
         self.portfolio_name = models_data.weights_filename
 
@@ -97,7 +98,7 @@ class InAndOutMomentumParameterTuning(ParameterTuningProcessor):
         self.data_models.num_assets_to_select = num_assets
         self.data_models.ma_type = ma_type
 
-        backtest = BacktestInAndOutMomentumPortfolio(self.data_models)
+        backtest = IAOMomentumBacktestProcessor(self.data_models)
         backtest.process()
 
         return {

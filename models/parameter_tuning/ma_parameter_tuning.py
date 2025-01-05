@@ -15,7 +15,7 @@ from models.parameter_tuning.parameter_tuning_processor import ParameterTuningPr
 from models.backtest_models.moving_average_backtest_processor import MovingAverageBacktestProcessor
 
 
-class MaParameterTuning(ParameterTuningProcessor):
+class MovingAverageParameterTuning(ParameterTuningProcessor):
     """
     Processor for parameter tuning based on the a momentum portfolio.
     """
