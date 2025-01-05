@@ -33,29 +33,6 @@ def fetch_data(all_tickers, start_date, end_date):
     return data
 
 
-def fetch_out_of_market_data(assets_tickers, start_date, end_date):
-    """
-    Fetches the adjusted closing prices of the assets.
-
-    Parameters
-    ----------
-    assets_weights : dict
-        Dictionary of asset tickers and their corresponding weights in the portfolio.
-    start_date : str
-        The start date for fetching the data.
-    end_date : str
-        The end date for fetching the data.
-
-    Returns
-    -------
-    DataFrame
-        DataFrame containing the adjusted closing prices of the assets.
-    """
-    all_tickers = list(assets_tickers.keys())
-    data = yf.download(all_tickers, start=start_date, end=end_date)['Adj Close']
-    return data
-
-
 def load_weights():
     """
     Opens a file dialog to select a CSV file containing asset weights, and loads it into a dictionary.
@@ -72,6 +49,26 @@ def load_weights():
         filename = os.path.basename(file_path)
         return weights, filename
     return {}, ""
+
+
+def read_data(weights_filename: str):
+    """
+    Reads a CSV file from the 'artifacts/raw' directory and returns a DataFrame.
+
+    Parameters
+    ----------
+    weights_filename : str
+        String representing the filename to be selected from directory.
+
+    Returns
+    -------
+    Dataframe
+        Dataframe of data used for model creation.
+    """
+    current_directory = os.getcwd()
+    file_path = os.path.join(current_directory, 'artifacts', 'raw', f"{weights_filename}.csv")
+    df = pd.read_csv(file_path, index_col=0, parse_dates=True)
+    return df
 
 
 def strip_csv_extension(filename):
@@ -111,6 +108,7 @@ def save_html(fig, filename, weights_filename, ma_type, processing_type, num_ass
     file_path = os.path.join(artifacts_directory, f"{current_date}_{processing_type}_{ma_type}{sma_window}_assets{num_assets}_{trading_frequency}_{filename}.html")
     fig.write_html(file_path)
 
+
 def save_fig(fig, weights_filename, processing_type):
     """
     """
@@ -121,6 +119,7 @@ def save_fig(fig, weights_filename, processing_type):
 
     file_path = os.path.join(artifacts_directory, f"{current_date}_{processing_type}.html")
     fig.write_html(file_path)
+
 
 def save_dataframe_to_csv(data, output_filename, processing_type, num_assets):
     """

@@ -1,5 +1,5 @@
 """
-Module for creating ma based parameters.
+Module for creating momentum based parameters.
 """
 
 import os
@@ -10,16 +10,15 @@ import plotly.express as px
 
 import utilities as utilities
 from models.models_data import ModelsData
-from data.portfolio_data import PortfolioData
 from models.parameter_tuning.parameter_tuning_processor import ParameterTuningProcessor
-from models.backtest_models.moving_average_backtest_processor import MovingAverageBacktestProcessor
+from models.backtest_models.iao_momentum_backtest import BacktestInAndOutMomentumPortfolio
 
 
-class MaParameterTuning(ParameterTuningProcessor):
+class InAndOutMomentumParameterTuning(ParameterTuningProcessor):
     """
     Processor for parameter tuning based on the a momentum portfolio.
     """
-    def __init__(self, models_data: ModelsData, portfolio_data: PortfolioData):
+    def __init__(self, models_data: ModelsData):
         """
         Initializes the parameter tuning class.
 
@@ -28,7 +27,7 @@ class MaParameterTuning(ParameterTuningProcessor):
         models_data : object
             An instance of the ModelsData class that holds all necessary attributes.
         """
-        super().__init__(models_data=models_data, portfolio_data=portfolio_data)
+        super().__init__(models_data)
         self.theme = models_data.theme_mode
         self.portfolio_name = models_data.weights_filename
 
@@ -41,15 +40,27 @@ class MaParameterTuning(ParameterTuningProcessor):
         self.persist_results(results=results)
 
     def get_portfolio_results(self) -> dict:
+        """
+        Processes parameters for tuning using joblib to parallelize execution.
+
+        Returns
+        -------
+        dict
+            A dictionary of backtest results and portfolio statistics from parameter tuning.
+        """
         results = {}
         ma_list = [21, 42, 63, 84, 105, 126, 147, 168, 189, 210, 231, 252]
+        num_asset_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
         trading_frequencies = ["Monthly", "Bi-Monthly", "Quarterly", "Yearly"]
         ma_types = ["SMA", "EMA"]
 
+        total_assets = len(self.data_models.assets_weights)
+
         parameter_combinations = [
-            (ma, frequency, ma_type) 
-            for ma in ma_list 
-            for frequency in trading_frequencies 
+            (ma, frequency, num_assets, ma_type)
+            for ma in ma_list
+            for frequency in trading_frequencies
+            for num_assets in num_asset_list if num_assets <= total_assets
             for ma_type in ma_types
         ]
 
@@ -61,7 +72,7 @@ class MaParameterTuning(ParameterTuningProcessor):
 
         return results
 
-    def process_combination(self, ma, frequency, ma_type) -> dict:
+    def process_combination(self, ma, frequency, num_assets, ma_type) -> dict:
         """
         Processes a single parameter combination and returns the backtest results.
 
@@ -83,9 +94,10 @@ class MaParameterTuning(ParameterTuningProcessor):
         """
         self.data_models.ma_window = ma
         self.data_models.trading_frequency = frequency
+        self.data_models.num_assets_to_select = num_assets
         self.data_models.ma_type = ma_type
 
-        backtest = MovingAverageBacktestProcessor(models_data=self.data_models, portfolio_data=self.data_portfolio)
+        backtest = BacktestInAndOutMomentumPortfolio(self.data_models)
         backtest.process()
 
         return {
@@ -107,8 +119,8 @@ class MaParameterTuning(ParameterTuningProcessor):
             Dictionary of results from parameter tuning.
         """
         data = {
-            "Moving_Average_Strategy": [
-                f"MA:{key[0]} Freq:{key[1]} Type:{key[2]}" for key in results.keys()
+            "Momentum_Strategy": [
+                f"MA:{key[0]} Freq:{key[1]} Assets:{key[2]} Type:{key[3]}" for key in results.keys()
             ],
             "cagr": [round(v["cagr"] * 100, 2) for v in results.values()],
             "average_annual_return": [round(v["average_annual_return"] * 100, 2) for v in results.values()],
@@ -129,7 +141,7 @@ class MaParameterTuning(ParameterTuningProcessor):
             y='cagr',
             color='sharpe_ratio',
             color_continuous_scale=trimmed_twilight[::-1],
-            hover_data=['Moving_Average_Strategy', 'max_drawdown', 'var', 'cvar', "average_annual_return"],
+            hover_data=['Momentum_Strategy', 'max_drawdown', 'var', 'cvar', "average_annual_return"],
             labels={
                 "cagr": "Compound Annual Growth Rate",
                 "annual_volatility": "Annual Volatility",
@@ -139,7 +151,7 @@ class MaParameterTuning(ParameterTuningProcessor):
                 "sharpe_ratio": "Sharpe Ratio",
                 "average_annual_return": "Annualized Return"
             },
-            title=f"Possible Moving Average Strategies - {self.portfolio_name}"
+            title=f"Possible In and Out Momentum Strategies - {self.portfolio_name}"
         )
         chart_theme = "plotly_dark" if self.theme.lower() == "dark" else "plotly"
 
@@ -174,8 +186,10 @@ class MaParameterTuning(ParameterTuningProcessor):
         artifacts_directory = os.path.join(current_directory, "artifacts", "data")
         os.makedirs(artifacts_directory, exist_ok=True)
 
-        full_path = os.path.join(artifacts_directory, "sma_parameter_tune.json")
-        results_serializable = {f"MA_{key[0]}_Freq_{key[1]}": value for key, value in results.items()}
+        full_path = os.path.join(artifacts_directory, "momentum_parameter_tune.json")
+        results_serializable = {
+            f"MA_{key[0]}_Freq_{key[1]}_Assets_{key[2]}": value for key, value in results.items()
+        }
         with open(full_path, 'w') as json_file:
             json.dump(results_serializable, json_file, indent=4)
         print(f"Results successfully saved to {full_path}")

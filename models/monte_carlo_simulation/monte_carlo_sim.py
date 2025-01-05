@@ -23,7 +23,7 @@ class MonteCarloSimulation:
         Number of years to simulate.
     """
 
-    def __init__(self, data_models: ModelsData):
+    def __init__(self, models_data: ModelsData):
         """
         Initializes the MonteCarloSimulation with portfolio statistics and simulation parameters.
 
@@ -38,16 +38,17 @@ class MonteCarloSimulation:
         simulation_horizon : int, optional
             Number of years to simulate (default is 10).
         """
-        self.data_models = data_models
-        self.num_simulations = data_models.num_simulations
-        self.simulation_horizon = data_models.simulation_horizon
-        self.output_filename = data_models.weights_filename
-        self.annual_volatility = data_models.annual_volatility
-        self.average_annual_return = data_models.average_annual_return
-        self.portfolio_returns = data_models.portfolio_returns
-        self.initial_portfolio_value = data_models.initial_portfolio_value
-        self.contribution = data_models.contribution
-        self.contribution_frequency = data_models.contribution_frequency
+        self.data_models = models_data
+
+        self.num_simulations = self.data_models.num_simulations
+        self.simulation_horizon = self.data_models.simulation_horizon
+        self.output_filename = self.data_models.weights_filename
+        self.annual_volatility = self.data_models.annual_volatility
+        self.average_annual_return = self.data_models.average_annual_return
+        self.portfolio_returns = self.data_models.portfolio_returns
+        self.initial_portfolio_value = self.data_models.initial_portfolio_value
+        self.contribution = self.data_models.contribution
+        self.contribution_frequency = self.data_models.contribution_frequency
 
 
     def process(self):

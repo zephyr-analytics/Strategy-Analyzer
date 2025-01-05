@@ -8,13 +8,14 @@ from models.backtest_models import *
 from models.monte_carlo_simulation import *
 from models.parameter_tuning import *
 from models.models_data import ModelsData
+from data.portfolio_data import PortfolioData
 
 
 class ModelsFactory:
     """
     Factory class to handle model processing based on the provided enum types.
     """
-    def __init__(self, data_models: ModelsData):
+    def __init__(self, models_data: ModelsData, portfolio_data: PortfolioData):
         """
         Initializes the ModelsFactory with the provided data models.
 
@@ -23,7 +24,8 @@ class ModelsFactory:
         data_models : ModelsData
             An instance of ModelsData containing the relevant data.
         """
-        self.data_models = data_models
+        self.data_models = models_data
+        self.data_portfolio = portfolio_data
 
     def run(self, model: Models, run_type: Runs) -> str:
         """
@@ -42,16 +44,18 @@ class ModelsFactory:
             Result message indicating the outcome of the operation.
         """
         model_run_map = {
-            (Models.MA, Runs.BACKTEST): self._run_sma_backtest,
-            (Models.MA, Runs.SIGNALS): self._run_sma_signals,
-            (Models.MA, Runs.SIMULATION): self._run_sma_simulation,
+            (Models.MA, Runs.BACKTEST): self._run_ma_backtest,
+            (Models.MA, Runs.SIGNALS): self._run_ma_signals,
+            (Models.MA, Runs.SIMULATION): self._run_ma_simulation,
+            (Models.MA, Runs.PARAMETER_TUNE): self._run_ma_parameter_tune,
             (Models.MOMENTUM, Runs.BACKTEST): self._run_momentum_backtest,
             (Models.MOMENTUM, Runs.SIGNALS): self._run_momentum_signals,
             (Models.MOMENTUM, Runs.SIMULATION): self._run_momentum_simulation,
+            (Models.MOMENTUM, Runs.PARAMETER_TUNE): self._run_momentum_parameter_tune,
             (Models.IN_AND_OUT_OF_MARKET, Runs.BACKTEST): self._run_in_and_out_of_market_backtest,
             (Models.IN_AND_OUT_OF_MARKET, Runs.SIGNALS): self._run_in_and_out_of_market_signals,
-            (Models.MA, Runs.PARAMETER_TUNE): self._run_sma_parameter_tune,
-            (Models.MOMENTUM, Runs.PARAMETER_TUNE): self._run_momentum_parameter_tune
+            (Models.IN_AND_OUT_OF_MARKET, Runs.PARAMETER_TUNE): self._run_iao_momentum_parameter_tune,
+            (Models.IN_AND_OUT_OF_MARKET, Runs.SIMULATION): self._run_iao_simulation
         }
 
         method = model_run_map.get((model, run_type))
@@ -60,7 +64,7 @@ class ModelsFactory:
         self.data_models.processing_type = f"{model.name}_{run_type.name}"
         return method()
 
-    def _run_sma_backtest(self) -> str:
+    def _run_ma_backtest(self) -> str:
         """
         Executes the SMA backtest process.
 
@@ -71,11 +75,11 @@ class ModelsFactory:
         """
         if not self.data_models.assets_weights:
             return "Please load asset weights file."
-        backtest = MaBacktestPortfolio(self.data_models)
+        backtest = MovingAverageBacktestProcessor(models_data=self.data_models, portfolio_data=self.data_portfolio)
         backtest.process()
         return "MA backtest completed and plots saved."
 
-    def _run_sma_signals(self) -> str:
+    def _run_ma_signals(self) -> str:
         """
         Executes the SMA signals generation process.
 
@@ -86,11 +90,11 @@ class ModelsFactory:
         """
         if not self.data_models.assets_weights:
             return "Please load asset weights file."
-        create_signals = CreateMaSignals(self.data_models)
+        create_signals = CreateMovingAverageSignals(models_data=self.data_models, portfolio_data=self.data_portfolio)
         create_signals.process()
         return f"MA signals generated for {self.data_models.end_date}."
 
-    def _run_sma_simulation(self) -> str:
+    def _run_ma_simulation(self) -> str:
         """
         Executes the SMA Monte Carlo simulation process.
 
@@ -101,9 +105,9 @@ class ModelsFactory:
         """
         if not self.data_models.assets_weights:
             return "Please load asset weights file."
-        backtest = MaBacktestPortfolio(self.data_models)
+        backtest = MovingAverageBacktestProcessor(models_data=self.data_models, portfolio_data=self.data_portfolio)
         backtest.process()
-        monte_carlo = MonteCarloSimulation(self.data_models)
+        monte_carlo = MonteCarloSimulation(models_data=self.data_models)
         monte_carlo.process()
         return "MA simulation completed and plots saved."
 
@@ -118,7 +122,7 @@ class ModelsFactory:
         """
         if not self.data_models.assets_weights:
             return "Please load asset weights file."
-        backtest = BacktestMomentumPortfolio(self.data_models)
+        backtest = MomentumBacktestProcessor(models_data=self.data_models, portfolio_data=self.data_portfolio)
         backtest.process()
         return "Momentum backtest completed and plots saved."
 
@@ -133,7 +137,7 @@ class ModelsFactory:
         """
         if not self.data_models.assets_weights:
             return "Please load asset weights file."
-        create_signals = CreateMomentumSignals(self.data_models)
+        create_signals = CreateMomentumSignals(models_data=self.data_models, portfolio_data=self.data_portfolio)
         create_signals.process()
         return f"Momentum signals generated for {self.data_models.end_date}."
 
@@ -148,9 +152,9 @@ class ModelsFactory:
         """
         if not self.data_models.assets_weights:
             return "Please load asset weights file."
-        backtest = BacktestMomentumPortfolio(self.data_models)
+        backtest = MomentumBacktestProcessor(models_data=self.data_models, portfolio_data=self.data_portfolio)
         backtest.process()
-        monte_carlo = MonteCarloSimulation(self.data_models)
+        monte_carlo = MonteCarloSimulation(models_data=self.data_models)
         monte_carlo.process()
         return "Momentum simulation completed and plots saved."
 
@@ -188,7 +192,7 @@ class ModelsFactory:
         signals.process()
         return "In and Out of Market signals completed and plots saved."
 
-    def _run_sma_parameter_tune(self) -> str:
+    def _run_ma_parameter_tune(self) -> str:
         """
         Executes the SMA parameter tune processor.
 
@@ -199,7 +203,7 @@ class ModelsFactory:
         """
         if not self.data_models.assets_weights:
             return "Please load asset weights file."
-        parameter_tune = MaParameterTuning(self.data_models)
+        parameter_tune = MaParameterTuning(models_data=self.data_models, portfolio_data=self.data_portfolio)
         parameter_tune.process()
         return "MA parameter tuning completed."
 
@@ -208,6 +212,30 @@ class ModelsFactory:
         """
         if not self.data_models.assets_weights:
             return "Please load asset weights file."
-        parameter_tune = MomentumParameterTuning(self.data_models)
+        parameter_tune = MomentumParameterTuning(models_data=self.data_models, portfolio_data=self.data_portfolio)
         parameter_tune.process()
         return "Momentum parameter tuning completed."
+
+    def _run_iao_momentum_parameter_tune(self) -> str:
+        """
+        """
+        if not self.data_models.assets_weights:
+            return "Please load asset weights file."
+        if not self.data_models.out_of_market_tickers:
+            return "Please load out of market assets file."
+        parameter_tune = InAndOutMomentumParameterTuning(self.data_models)
+        parameter_tune.process()
+        return "In and Out Momentum parameter tuning completed."
+
+    def _run_iao_simulation(self) -> str:
+        """
+        """
+        if not self.data_models.assets_weights:
+            return "Please load asset weights file."
+        if not self.data_models.out_of_market_tickers:
+            return "Please load out of market assets file."
+        backtest = BacktestInAndOutMomentumPortfolio(self.data_models)
+        backtest.process()
+        monte_carlo = MonteCarloSimulation(self.data_models)
+        monte_carlo.process()
+        return "Momentum simulation completed and plots saved."
