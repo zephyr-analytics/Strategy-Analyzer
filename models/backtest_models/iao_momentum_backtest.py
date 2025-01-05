@@ -9,7 +9,7 @@ import pandas as pd
 
 import utilities as utilities
 
-from data.data_obtain import DataObtainmentProcessor
+from data.data_obtainment_processor import DataObtainmentProcessor
 from models.models_data import ModelsData
 from models.backtest_models.backtesting_processor import BacktestingProcessor
 from results.results_processor import ResultsProcessor

@@ -112,11 +112,9 @@ class DataObtainmentProcessor:
         Reads data from a CSV file, ensures the date column is properly formatted as a datetime index,
         drops duplicate index values, and sorts the index.
         """
-        # Load the data and ensure datetime index
         data = pd.read_csv(file_path, parse_dates=True, index_col=0)
         data.index = pd.to_datetime(data.index)
 
-        # Drop duplicate index values and sort the index
         data = data[~data.index.duplicated(keep='first')].sort_index()
 
         print("Data loaded successfully with duplicates removed and index sorted.")
@@ -128,10 +126,8 @@ class DataObtainmentProcessor:
         Validates the contents of the loaded DataFrame. Handles missing columns, misaligned date ranges,
         and ensures no duplicate data is introduced during fetching or appending. Allows a ±5-day variance.
         """
-        # Drop duplicate index values and sort the index
         dataframe = dataframe[~dataframe.index.duplicated(keep='first')].sort_index()
 
-        # Calculate the ±5-day variance
         start_date_buffered = to_datetime(self.start_date) - timedelta(days=5)
         end_date_buffered = to_datetime(self.end_date) + timedelta(days=5)
 
@@ -156,14 +152,12 @@ class DataObtainmentProcessor:
                 end_date=end_date_buffered,
             )
 
-            # Use combine_first() to avoid appending duplicate data
             dataframe = dataframe.combine_first(missing_data).sort_index()
 
             file_path = os.path.join(os.getcwd(), "artifacts", "raw", f"{self.weights_filename}.csv")
             utilities.write_raw_dataframe_to_csv(dataframe=dataframe, file_path=file_path)
             print(f"Missing data added and saved to {file_path}.")
 
-        # Adjust the date range if necessary
         if dataframe.index.min() > start_date_buffered or dataframe.index.max() < end_date_buffered:
             print(f"Data range misaligned. Adjusting to match {start_date_buffered} to {end_date_buffered}...")
 
@@ -177,17 +171,14 @@ class DataObtainmentProcessor:
                     end_date=end_date_buffered if missing_end else dataframe.index.max(),
                 )
 
-                # Use combine_first() to append missing dates without duplicates
                 dataframe = dataframe.combine_first(missing_dates_data).sort_index()
 
-        # Trim to the ±5-day buffered date range
         dataframe = dataframe.loc[start_date_buffered:end_date_buffered]
 
         file_path = os.path.join(os.getcwd(), "artifacts", "raw", f"{self.weights_filename}.csv")
         utilities.write_raw_dataframe_to_csv(dataframe=dataframe, file_path=file_path)
         print(f"Date range adjusted and saved to {file_path}.")
 
-        # Final index validation
         if not pd.api.types.is_datetime64_any_dtype(dataframe.index):
             raise ValueError("Index validation failed. The index must be of datetime type.")
 

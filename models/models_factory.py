@@ -8,13 +8,14 @@ from models.backtest_models import *
 from models.monte_carlo_simulation import *
 from models.parameter_tuning import *
 from models.models_data import ModelsData
+from data.portfolio_data import PortfolioData
 
 
 class ModelsFactory:
     """
     Factory class to handle model processing based on the provided enum types.
     """
-    def __init__(self, data_models: ModelsData):
+    def __init__(self, models_data: ModelsData, portfolio_data: PortfolioData):
         """
         Initializes the ModelsFactory with the provided data models.
 
@@ -23,7 +24,8 @@ class ModelsFactory:
         data_models : ModelsData
             An instance of ModelsData containing the relevant data.
         """
-        self.data_models = data_models
+        self.data_models = models_data
+        self.data_portfolio = portfolio_data
 
     def run(self, model: Models, run_type: Runs) -> str:
         """
@@ -73,7 +75,7 @@ class ModelsFactory:
         """
         if not self.data_models.assets_weights:
             return "Please load asset weights file."
-        backtest = MovingAverageBacktestProcessor(self.data_models)
+        backtest = MovingAverageBacktestProcessor(models_data=self.data_models, portfolio_data=self.data_portfolio)
         backtest.process()
         return "MA backtest completed and plots saved."
 

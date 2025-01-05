@@ -8,6 +8,7 @@ import customtkinter as ctk
 
 from gui import *
 from models.models_data import ModelsData
+from data.portfolio_data import PortfolioData
 import utilities as utilities
 
 
@@ -21,6 +22,8 @@ class PortfolioAnalyzer(ctk.CTk):
 
         models_data = ModelsData()
         self.data_models = models_data
+        portfolio_data = PortfolioData()
+        self.data_portfolio = portfolio_data
 
         self.bold_font = ctk.CTkFont(size=12, weight="bold", family="Arial")
 
@@ -71,7 +74,7 @@ class PortfolioAnalyzer(ctk.CTk):
 
         # Add Initial Testing Setup Tab
         setup_tab_frame = self.high_level_tab_control.add("Initial Testing Setup")
-        self.setup_tab = SetupTab(setup_tab_frame, models_data=self.data_models)
+        self.setup_tab = SetupTab(setup_tab_frame, models_data=self.data_models, portfolio_data=self.data_portfolio)
 
         # Add Testing Tab
         testing_tab_frame = self.high_level_tab_control.add("Testing")

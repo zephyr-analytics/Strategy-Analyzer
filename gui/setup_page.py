@@ -5,8 +5,10 @@ Module for creating the setup page.
 import customtkinter as ctk
 
 from models.models_data import ModelsData
+from data.portfolio_data import PortfolioData
 import utilities as utilities
-from data.data_obtain import DataObtainmentProcessor
+from data.data_obtainment_processor import DataObtainmentProcessor
+from data.data_preparation_processor import DataPreparationProcessor
 
 
 class SetupTab:
@@ -14,8 +16,9 @@ class SetupTab:
     Handles the layout and functionality of the Initial Testing Setup parent.
     """
 
-    def __init__(self, parent, models_data: ModelsData):
+    def __init__(self, parent, models_data: ModelsData, portfolio_data: PortfolioData):
         self.data_models = models_data
+        self.data_portfolio = portfolio_data
 
         self.parent = parent
         self.bold_font = ctk.CTkFont(size=12, weight="bold", family="Arial")
@@ -361,8 +364,10 @@ class SetupTab:
         copyright_label.pack()
 
     def obtain_data(self):
-        data_processor = DataObtainmentProcessor(models_data=self.data_models)
-        data_processor.process()
+        data_obtain = DataObtainmentProcessor(models_data=self.data_models)
+        data_obtain.process()
+        data_prepare = DataPreparationProcessor(models_data=self.data_models, portfolio_data=self.data_portfolio)
+        data_prepare.process()
 
     def clear_bottom_text(self):
         """

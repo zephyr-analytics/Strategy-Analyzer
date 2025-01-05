@@ -7,12 +7,10 @@ import pandas as pd
 import utilities as utilities
 
 from results.results_processor import ResultsProcessor
-import warnings
 
 from models.models_data import ModelsData
+from data.portfolio_data import PortfolioData
 from models.backtest_models.backtesting_processor import BacktestingProcessor
-
-warnings.filterwarnings("ignore")
 
 
 class MovingAverageBacktestProcessor(BacktestingProcessor):
@@ -20,7 +18,7 @@ class MovingAverageBacktestProcessor(BacktestingProcessor):
     A class to backtest a static portfolio with adjustable weights based on Simple Moving Average (SMA).
     """
 
-    def __init__(self, data_models: ModelsData):
+    def __init__(self, models_data: ModelsData, portfolio_data: PortfolioData):
         """
         Initializes the BacktestStaticPortfolio class with data from ModelsData.
 
@@ -29,9 +27,8 @@ class MovingAverageBacktestProcessor(BacktestingProcessor):
         data_models : ModelsData
             An instance of the ModelsData class containing all relevant parameters and data for backtesting.
         """
-        super().__init__(data_models=data_models)
-        self._data = self.data.copy()
-        self._filtered_data = self._data[self._data.columns.intersection(self.assets_weights.keys())]
+        super().__init__(models_data=models_data, portfolio_data=portfolio_data)
+
 
     def process(self):
         """
@@ -85,11 +82,11 @@ class MovingAverageBacktestProcessor(BacktestingProcessor):
             str
                 The replacement asset ticker.
             """
-            if self.bond_ticker and not is_below_ma(self.bond_ticker):
+            if self.bond_ticker and not is_below_ma(self.bond_ticker, self.bond_data):
                 return self.bond_ticker
             return self.cash_ticker
 
-        def is_below_ma(ticker):
+        def is_below_ma(ticker, data):
             """
             Checks if the price of the given ticker is below its moving average.
 
@@ -97,18 +94,20 @@ class MovingAverageBacktestProcessor(BacktestingProcessor):
             ----------
             ticker : str
                 The ticker to check.
+            data : DataFrame
+                The DataFrame containing the ticker's data.
 
             Returns
             -------
             bool
                 True if the price is below the moving average, False otherwise.
             """
-            price = self._filtered_data.loc[:current_date, ticker].iloc[-1]
+            price = data.loc[:current_date, ticker].iloc[-1]
 
             if self.ma_type == "SMA":
-                ma = self._filtered_data.loc[:current_date, ticker].rolling(window=self.ma_period).mean().iloc[-1]
+                ma = data.loc[:current_date, ticker].rolling(window=self.ma_period).mean().iloc[-1]
             elif self.ma_type == "EMA":
-                ma = self._filtered_data.loc[:current_date, ticker].ewm(span=self.ma_period).mean().iloc[-1]
+                ma = data.loc[:current_date, ticker].ewm(span=self.ma_period).mean().iloc[-1]
             else:
                 raise ValueError("Invalid ma_type. Choose 'SMA' or 'EMA'.")
 
@@ -116,12 +115,12 @@ class MovingAverageBacktestProcessor(BacktestingProcessor):
 
         if not self.ma_threshold_asset:
             pass
-        elif is_below_ma(self.ma_threshold_asset):
+        elif is_below_ma(self.ma_threshold_asset, self.ma_threshold_data):
             replacement_asset = get_replacement_asset()
             return {replacement_asset: 1.0}
 
         for ticker, weight in list(adjusted_weights.items()):
-            if is_below_ma(ticker):
+            if is_below_ma(ticker, self.asset_data):
                 replacement_asset = get_replacement_asset()
                 adjusted_weights[replacement_asset] = adjusted_weights.get(replacement_asset, 0) + weight
                 adjusted_weights[ticker] = 0
@@ -161,13 +160,13 @@ class MovingAverageBacktestProcessor(BacktestingProcessor):
         for i in range(0, len(monthly_dates), step):
             current_date = monthly_dates[i]
             next_date = monthly_dates[min(i + step, len(monthly_dates) - 1)]
-            last_date_current_month = self._filtered_data.index[self._filtered_data.index.get_loc(current_date, method='pad')]
+            last_date_current_month = self.asset_data.index[self.asset_data.index.get_loc(current_date, method='pad')]
             adjusted_weights = self.adjust_weights(last_date_current_month)
             previous_value = portfolio_values[-1]
-            month_end_data = self._filtered_data.loc[last_date_current_month]
+            month_end_data = self.asset_data.loc[last_date_current_month]
             month_start_data = month_end_data
-            last_date_next_month = self._filtered_data.index[self._filtered_data.index.get_loc(next_date, method='pad')]
-            next_month_end_data = self._filtered_data.loc[last_date_next_month]
+            last_date_next_month = self.asset_data.index[self.asset_data.index.get_loc(next_date, method='pad')]
+            next_month_end_data = self.asset_data.loc[last_date_next_month]
             monthly_returns = (next_month_end_data / month_start_data) - 1
             month_return = sum([monthly_returns[ticker] * weight for ticker, weight in adjusted_weights.items()])
             new_portfolio_value = previous_value * (1 + month_return)
