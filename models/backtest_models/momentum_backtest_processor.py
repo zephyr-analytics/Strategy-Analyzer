@@ -3,15 +3,19 @@ Module for backtesting momentum assets.
 """
 
 import datetime
+import logging
 
 import pandas as pd
 
 import utilities as utilities
-
+from logger import logger
 from models.models_data import ModelsData
 from data.portfolio_data import PortfolioData
 from models.backtest_models.backtesting_processor import BacktestingProcessor
 from results.results_processor import ResultsProcessor
+
+logger = logging.getLogger(__name__)
+
 
 class MomentumBacktestProcessor(BacktestingProcessor):
     """
@@ -33,6 +37,7 @@ class MomentumBacktestProcessor(BacktestingProcessor):
         """
         Processes the backtest by fetching data, running the backtest, and generating the plots.
         """
+        logger.info(f"Momentum backtest for: {self.weights_filename}, Trading Freq:{self.trading_frequency}, Moving Average:{self.ma_period}, Type:{self.ma_type}, Assets:{self.num_assets_to_select}")
         self.run_backtest()
         self._get_portfolio_statistics()
         self._calculate_buy_and_hold()
@@ -153,7 +158,6 @@ class MomentumBacktestProcessor(BacktestingProcessor):
 
         adjusted_weights = {ticker: weight / total_weight for ticker, weight in adjusted_weights.items()}
 
-        print(f'{current_date}: Weights: {adjusted_weights}')
         return adjusted_weights
 
     def run_backtest(self):

@@ -35,7 +35,7 @@ class MovingAverageBacktestProcessor(BacktestingProcessor):
         """
         Processes the backtest by fetching data, running the backtest, and generating the plots.
         """
-        logger.info(f"Training Moving Average Model for: {self.weights_filename}, Moving Average:{self.ma_period}, Type:{self.ma_type}")
+        logger.info(f"Moving Average backtest for: {self.weights_filename}, Trading Freq:{self.trading_frequency}, Moving Average:{self.ma_period}, Type:{self.ma_type}")
         self.run_backtest()
         self._get_portfolio_statistics()
         self._calculate_buy_and_hold()
