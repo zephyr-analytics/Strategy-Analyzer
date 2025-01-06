@@ -3,14 +3,15 @@ Utilities module for loading and processing data.
 """
 
 import os
+import time
 
 from datetime import datetime
 from tkinter import filedialog
 
 import pandas as pd
 import yfinance as yf
-
 import requests
+
 
 def fetch_data(all_tickers, start_date=None, end_date=None):
     """
@@ -24,6 +25,10 @@ def fetch_data(all_tickers, start_date=None, end_date=None):
         The start date for fetching the data.
     end_date : str
         The end date for fetching the data.
+    max_retries : int
+        Number of retries if the download fails.
+    delay : int
+        Delay (in seconds) between retries.
 
     Returns
     -------
@@ -32,13 +37,11 @@ def fetch_data(all_tickers, start_date=None, end_date=None):
     """
     session = requests.Session()
 
-    try:
-        if start_date and end_date == None:
-            data = yf.download(all_tickers, session=session)['Adj Close']
-        else:
-            data = yf.download(all_tickers, start_date, end_date, session=session)['Adj Close']
-    finally:
-        session.close()
+    if start_date and end_date is None:
+        data = yf.download(all_tickers, timeout=30, session=session, threads=False)['Adj Close']
+    else:
+        data = yf.download(all_tickers, start=start_date, end=end_date, timeout=30, session=session, threads=False)['Adj Close']
+    session.close()
 
     return data
 
