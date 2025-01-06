@@ -52,6 +52,9 @@ class ModelsData:
         self._risk_tolerance = float(0.10)
         self._negative_mom = True
         self._ma_type = str
+        self._fast_ma_period = ""
+        self._slow_ma_period = ""
+
 
     @property
     def assets_weights(self):
@@ -907,3 +910,45 @@ class ModelsData:
             value (int): Integer representing the contribution.
         """
         self._ma_type = value
+
+
+    @property
+    def fast_ma_period(self):
+        """
+        Gets the contribution.
+
+        Returns:
+            int: Integer representing the contribution.
+        """
+        return self._fast_ma_period
+
+    @fast_ma_period.setter
+    def fast_ma_period(self, value):
+        """
+        Sets the contribution.
+
+        Args:
+            value (int): Integer representing the contribution.
+        """
+        self._fast_ma_period = value
+
+
+    @property
+    def slow_ma_period(self):
+        """
+        Gets the contribution.
+
+        Returns:
+            int: Integer representing the contribution.
+        """
+        return self._slow_ma_period
+
+    @slow_ma_period.setter
+    def slow_ma_period(self, value):
+        """
+        Sets the contribution.
+
+        Args:
+            value (int): Integer representing the contribution.
+        """
+        self._slow_ma_period = value

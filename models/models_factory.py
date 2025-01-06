@@ -239,3 +239,11 @@ class ModelsFactory:
         monte_carlo = MonteCarloSimulation(models_data=self.data_models)
         monte_carlo.process()
         return "Momentum simulation completed and plots saved."
+
+    def _run_moving_average_crossover_backtest(self) -> str:
+        """
+        """
+        if not self.data_models.assets_weights:
+            return "Please load asset weights file."
+        backtest = MovingAverageCrossoverProcessor(models_data=self.data_models, portfolio_data=self.data_portfolio)
+        backtest.process()

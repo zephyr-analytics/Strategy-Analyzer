@@ -93,9 +93,7 @@ class MovingAverageCrossoverProcessor(BacktestingProcessor):
         bool
             True if the price is below the moving average, False otherwise.
         """
-        if ticker not in data.columns:
-            return False
-
+        # TODO I am not certain this implementation is corret.
         price = data.loc[:current_date, ticker].iloc[-1]
         if self.ma_type == "SMA":
             ma = data.loc[:current_date, ticker].rolling(window=self.slow_ma_period).mean().iloc[-1]
