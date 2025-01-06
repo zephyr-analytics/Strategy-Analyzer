@@ -4,7 +4,6 @@ Module for backtesting in and out of market momentum assets.
 
 import datetime
 import logging
-
 import pandas as pd
 
 import utilities as utilities
@@ -15,7 +14,6 @@ from models.backtest_models.backtesting_processor import BacktestingProcessor
 from results.results_processor import ResultsProcessor
 
 logger = logging.getLogger(__name__)
-
 
 class IAOMomentumBacktestProcessor(BacktestingProcessor):
     """
@@ -82,7 +80,7 @@ class IAOMomentumBacktestProcessor(BacktestingProcessor):
 
         return in_market_momentum, out_of_market_momentum
 
-    def adjust_weights(self, current_date: datetime, selected_assets: pd.DataFrame, selected_out_of_market_assets: pd.DataFrame) -> dict:
+    def adjust_weights(self, current_date: datetime, selected_assets: pd.DataFrame, selected_out_of_market_asset: pd.DataFrame) -> dict:
         """
         Adjusts the weights of the selected assets based on their SMA and the selected weighting strategy.
 
@@ -92,8 +90,8 @@ class IAOMomentumBacktestProcessor(BacktestingProcessor):
             The current date for which the weights are being adjusted.
         selected_assets : DataFrame
             DataFrame of selected in-market assets and their weights.
-        selected_out_of_market_assets : DataFrame
-            DataFrame of selected out-of-market assets and their weights.
+        selected_out_of_market_asset : str
+            The out-of-market asset with the highest momentum to be used as the safe asset.
 
         Returns
         -------
@@ -134,15 +132,20 @@ class IAOMomentumBacktestProcessor(BacktestingProcessor):
 
         def allocate_to_safe_asset(weight: float):
             """
-            Allocates weights to a safe asset (cash or bond).
+            Allocates weights to the selected out-of-market asset if it is above its moving average,
+            otherwise falls back to bonds or cash.
 
             Parameters
             ----------
             weight : float
                 Weight to be allocated.
             """
-            safe_asset = self.cash_ticker if is_below_ma(self.bond_ticker, self.bond_data) else self.bond_ticker
-            adjusted_weights[safe_asset] = adjusted_weights.get(safe_asset, 0) + weight
+            if not is_below_ma(selected_out_of_market_asset['Asset'].iloc[0], self.out_of_market_data):
+                adjusted_weights[selected_out_of_market_asset['Asset'].iloc[0]] = adjusted_weights.get(selected_out_of_market_asset['Asset'].iloc[0], 0) + weight
+            elif not is_below_ma(self.bond_ticker, self.bond_data):
+                adjusted_weights[self.bond_ticker] = adjusted_weights.get(self.bond_ticker, 0) + weight
+            else:
+                adjusted_weights[self.cash_ticker] = adjusted_weights.get(self.cash_ticker, 0) + weight
 
         if self.ma_threshold_asset and is_below_ma(self.ma_threshold_asset, self.ma_threshold_data):
             allocate_to_safe_asset(1.0)
@@ -156,15 +159,9 @@ class IAOMomentumBacktestProcessor(BacktestingProcessor):
             else:
                 adjusted_weights[asset] = weight
 
-        if selected_out_of_market_assets is not None:
-            for _, row in selected_out_of_market_assets.iterrows():
-                asset, momentum = row['Asset'], row['Momentum']
-                if not is_below_ma(asset, self.out_of_market_data):
-                    adjusted_weights[asset] = adjusted_weights.get(asset, 0) + weight
-
         total_weight = sum(adjusted_weights.values())
         adjusted_weights = {ticker: weight / total_weight for ticker, weight in adjusted_weights.items()}
-
+        logger.info(f"Date:{current_date}, Selected Assets:{adjusted_weights}")
         return adjusted_weights
 
     def run_backtest(self):
@@ -198,9 +195,9 @@ class IAOMomentumBacktestProcessor(BacktestingProcessor):
 
             in_market_momentum, out_of_market_momentum = self.calculate_momentum(last_date_current_month)
             selected_assets = pd.DataFrame({'Asset': in_market_momentum.nlargest(self.num_assets_to_select).index, 'Momentum': in_market_momentum.nlargest(self.num_assets_to_select).values})
-            selected_out_of_market_assets = pd.DataFrame({'Asset': out_of_market_momentum.nlargest(self.num_assets_to_select).index, 'Momentum': out_of_market_momentum.nlargest(self.num_assets_to_select).values})
+            selected_out_of_market_asset =pd.DataFrame({'Asset': out_of_market_momentum.nlargest(1).index, 'Momentum': out_of_market_momentum.nlargest(1).values})
 
-            adjusted_weights = self.adjust_weights(last_date_current_month, selected_assets, selected_out_of_market_assets)
+            adjusted_weights = self.adjust_weights(last_date_current_month, selected_assets, selected_out_of_market_asset)
 
             previous_value = portfolio_values[-1]
             month_end_data = self.trading_data.loc[last_date_current_month]
