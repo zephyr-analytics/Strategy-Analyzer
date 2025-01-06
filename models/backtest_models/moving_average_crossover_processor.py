@@ -21,7 +21,7 @@ class MovingAverageCrossoverProcessor(BacktestingProcessor):
     A class to backtest a portfolio using a moving average crossover strategy.
     """
 
-    def __init__(self, models_data: ModelsData, portfolio_data: PortfolioData, fast_ma_period: int, slow_ma_period: int, ma_type: str = "SMA"):
+    def __init__(self, models_data: ModelsData, portfolio_data: PortfolioData):
         """
         Initializes the Moving Average Crossover Backtest Processor.
 
@@ -31,17 +31,8 @@ class MovingAverageCrossoverProcessor(BacktestingProcessor):
             Contains all relevant parameters and data for backtesting.
         portfolio_data : PortfolioData
             Portfolio data required for backtesting.
-        fast_ma_period : int
-            The period for the fast moving average.
-        slow_ma_period : int
-            The period for the slow moving average.
-        ma_type : str
-            The type of moving average to use ("SMA" or "EMA").
         """
         super().__init__(models_data=models_data, portfolio_data=portfolio_data)
-        self.fast_ma_period = fast_ma_period
-        self.slow_ma_period = slow_ma_period
-        self.ma_type = ma_type
 
     def process(self):
         """
@@ -84,6 +75,37 @@ class MovingAverageCrossoverProcessor(BacktestingProcessor):
         else:
             raise ValueError("Invalid ma_type. Choose 'SMA' or 'EMA'.")
 
+    def is_below_ma(self, ticker, data, current_date):
+        """
+        Checks if the price of the given ticker is below its moving average.
+
+        Parameters
+        ----------
+        ticker : str
+            The ticker to check.
+        data : DataFrame
+            The DataFrame containing the ticker's data.
+        current_date : datetime
+            The current date for which the check is performed.
+
+        Returns
+        -------
+        bool
+            True if the price is below the moving average, False otherwise.
+        """
+        if ticker not in data.columns:
+            return False
+
+        price = data.loc[:current_date, ticker].iloc[-1]
+        if self.ma_type == "SMA":
+            ma = data.loc[:current_date, ticker].rolling(window=self.slow_ma_period).mean().iloc[-1]
+        elif self.ma_type == "EMA":
+            ma = data.loc[:current_date, ticker].ewm(span=self.slow_ma_period).mean().iloc[-1]
+        else:
+            raise ValueError("Invalid ma_type. Choose 'SMA' or 'EMA'.")
+
+        return price < ma
+
     def adjust_weights(self, current_date):
         """
         Adjusts weights based on the crossover signals.
@@ -107,7 +129,12 @@ class MovingAverageCrossoverProcessor(BacktestingProcessor):
             if fast_ma[ticker].iloc[-1] > slow_ma[ticker].iloc[-1]:
                 adjusted_weights[ticker] = weight
             else:
-                replacement_asset = self.cash_ticker if self.cash_ticker in self.cash_data.columns else self.bond_ticker
+                replacement_asset = None
+                if self.cash_ticker and self.is_below_ma(self.cash_ticker, self.cash_data, current_date):
+                    replacement_asset = self.cash_ticker
+                elif self.bond_ticker and self.is_below_ma(self.bond_ticker, self.bond_data, current_date):
+                    replacement_asset = self.bond_ticker
+
                 if replacement_asset:
                     adjusted_weights[replacement_asset] = adjusted_weights.get(replacement_asset, 0) + weight
                     adjusted_weights[ticker] = 0
