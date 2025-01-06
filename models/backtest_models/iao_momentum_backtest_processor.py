@@ -161,7 +161,6 @@ class IAOMomentumBacktestProcessor(BacktestingProcessor):
 
         total_weight = sum(adjusted_weights.values())
         adjusted_weights = {ticker: weight / total_weight for ticker, weight in adjusted_weights.items()}
-        logger.info(f"Date:{current_date}, Selected Assets:{adjusted_weights}")
         return adjusted_weights
 
     def run_backtest(self):
