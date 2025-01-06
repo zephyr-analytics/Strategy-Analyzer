@@ -2,6 +2,7 @@
 """
 
 import logging
+import pandas as pd
 
 import utilities
 from logger import logger
@@ -9,7 +10,6 @@ from models.models_data import ModelsData
 from data.portfolio_data import PortfolioData
 
 logger = logging.getLogger(__name__)
-
 
 class DataPreparationProcessor:
     """
@@ -28,20 +28,21 @@ class DataPreparationProcessor:
         self.benchmark_asset = self.data_models.benchmark_asset
         self.out_of_market_tickers = self.data_models.out_of_market_tickers
 
+        self.start_date = self.data_models.start_date
+        self.end_date = pd.to_datetime(self.data_models.end_date)
+
     def process(self):
         """
         Main method to check, load, and validate data.
         """
-        logger.info(f"Preparaing Data for {self.weights_filename}.")
+        logger.info(f"Preparing Data for {self.weights_filename}.")
         self.read_data()
 
     def read_data(self):
         """
         Method to read data using utility functions and filter it based on asset weights.
         """
-        full_data = utilities.read_data(self.weights_filename)
-
-        self.data_portfolio.trading_data = full_data
+        full_data = utilities.load_raw_data_file()
 
         tickers_to_check = (
             set(self.asset_weights.keys()) |
@@ -50,6 +51,15 @@ class DataPreparationProcessor:
         )
 
         filtered_data = full_data.loc[:, full_data.columns.intersection(tickers_to_check)]
+
+        if self.start_date == "Earliest":
+            self.start_date = filtered_data.dropna().index.min()
+            logger.info(f"Using 'Earliest' start date: {self.start_date}")
+            self.data_models.start_date = self.start_date
+
+        filtered_data = filtered_data.loc[self.start_date:self.end_date]
+
+        self.data_portfolio.trading_data = filtered_data
 
         self.data_portfolio.assets_data = filtered_data.loc[:, filtered_data.columns.intersection(self.asset_weights.keys())]
 
