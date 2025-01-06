@@ -23,7 +23,7 @@ class ModelsData:
         self._num_simulations = 1000
         self._simulation_horizon = 10
         self._ma_window = "21"
-        self._start_date = "2010-01-01"
+        self._start_date = "Earliest"
         self._theme_mode = "Light"
         self._trading_frequency = "Monthly"
         self._weighting_strategy = "Use File Weights"

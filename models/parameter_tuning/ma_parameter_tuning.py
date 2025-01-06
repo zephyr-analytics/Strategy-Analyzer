@@ -97,6 +97,7 @@ class MovingAverageParameterTuning(ParameterTuningProcessor):
             "annual_volatility": self.data_models.annual_volatility,
         }
 
+# TODO this needs to be moved to the results processor.
     def plot_results(self, results: dict):
         """
         Plot results from the momentum strategy testing.
