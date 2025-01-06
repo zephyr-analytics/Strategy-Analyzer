@@ -45,9 +45,13 @@ class DataObtainmentProcessor:
         Ensures that all necessary tickers are present in the raw data file and updates it if needed.
         If the end_date is not within 3 days of the current date, fetch new data rows for all columns.
         """
-        file_path = os.path.join(os.getcwd(), "artifacts", "raw", "raw.csv")
+        file_dir = os.path.join(os.getcwd(), "artifacts", "raw")
+        file_path = os.path.join(file_dir, "raw.csv")
+
+        os.makedirs(file_dir, exist_ok=True)
+
         try:
-            df = pd.read_csv(file_path, index_col=0, parse_dates=True)
+            df = utilities.load_raw_data_file()
         except FileNotFoundError:
             logger.info("Raw data file not found. Creating a new one.")
             df = pd.DataFrame()
@@ -76,16 +80,12 @@ class DataObtainmentProcessor:
         if (self.end_date - current_date).days > 3:
             latest_date_in_df = df.index.max()
             logger.info(f"Fetching data from {latest_date_in_df} to {self.end_date} for all columns.")
-            updated_data = utilities.fetch_data(all_tickers=list(df.columns), start_date=latest_date_in_df, end_date=self.end_date)
+            updated_data = utilities.fetch_data(
+                all_tickers=list(df.columns),
+                start_date=latest_date_in_df,
+                end_date=self.end_date
+            )
             df = pd.concat([df, updated_data], axis=0)
 
         df.to_csv(file_path)
         logger.info(f"Updated raw data saved to {file_path}.")
-
-    def load_raw_data_file(self):
-        """
-        Loads the raw data file.
-        """
-        file_path = os.path.join(os.getcwd(), "artifacts", "raw", "raw.csv")
-        df = pd.read_csv(file_path, index_col=0, parse_dates=True)
-        return df
