@@ -1,21 +1,25 @@
+"""
+Module for handling running multiple portfolio combinations.
+"""
+
 import tkinter as tk
-from tkinter import ttk
 import customtkinter as ctk
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
-class InteractivePieChartApp:
+class InteractivePieChartApp(ctk.CTk):
     def __init__(self, root):
+        super().__init__()
         self.root = root
         self.root.title("Interactive Pie Chart")
         self.root.geometry("800x600")
-        
+
         # Initial data for the pie chart
         self.data = {"Category A": 40, "Category B": 30, "Category C": 20, "Category D": 10}
-        
+
         # Create the layout
         self.create_layout()
-        
+
         # Draw the initial pie chart
         self.update_pie_chart()
 
