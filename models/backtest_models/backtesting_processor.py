@@ -3,21 +3,18 @@ Abstract module for processing momentum trading models.
 """
 
 import datetime
-import os
 
 from datetime import datetime
-
 from abc import ABC, abstractmethod
-from typing import List, Dict
+from typing import Dict
 
 import pandas as pd
 
 import utilities as utilities
 
-from processing_types import *
-from models.models_data import ModelsData
 from data.portfolio_data import PortfolioData
-from results.results_processor import ResultsProcessor
+from models.models_data import ModelsData
+from processing_types import *
 
 
 class BacktestingProcessor(ABC):

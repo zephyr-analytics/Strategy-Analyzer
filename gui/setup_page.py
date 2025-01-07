@@ -4,12 +4,14 @@ Module for creating the setup page.
 
 import customtkinter as ctk
 
-from models.models_data import ModelsData
-from data.portfolio_data import PortfolioData
 import utilities as utilities
+
 from data.data_obtainment_processor import DataObtainmentProcessor
+from data.portfolio_data import PortfolioData
 from data.data_preparation_processor import DataPreparationProcessor
 from gui.gui_interactive_pie import InteractivePieChartApp
+from models.models_data import ModelsData
+
 
 class SetupTab:
     """

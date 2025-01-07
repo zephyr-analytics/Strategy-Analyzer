@@ -6,10 +6,11 @@ import multiprocessing
 
 import customtkinter as ctk
 
-from gui import *
-from models.models_data import ModelsData
-from data.portfolio_data import PortfolioData
 import utilities as utilities
+
+from gui import *
+from data.portfolio_data import PortfolioData
+from models.models_data import ModelsData
 
 
 class PortfolioAnalyzer(ctk.CTk):

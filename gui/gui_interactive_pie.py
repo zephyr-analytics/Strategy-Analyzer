@@ -12,7 +12,7 @@ class InteractivePieChartApp(ctk.CTk):
         super().__init__()
         self.root = root
         self.root.title("Interactive Pie Chart")
-        self.root.geometry("800x600")
+        self.root.geometry("1200x600")
 
         # Initial data for the pie chart
         self.data = {"Category A": 40, "Category B": 30, "Category C": 20, "Category D": 10}
@@ -30,7 +30,7 @@ class InteractivePieChartApp(ctk.CTk):
 
         self.name_entries = []
         self.value_entries = []
-        self.remove_buttons = []  # List to store Remove buttons
+        self.remove_buttons = []
 
         self.row_count = 0  # Track the current row for dynamic layout
         for category, value in self.data.items():

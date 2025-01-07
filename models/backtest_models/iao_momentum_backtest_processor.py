@@ -4,9 +4,11 @@ Module for backtesting in and out of market momentum assets.
 
 import datetime
 import logging
+
 import pandas as pd
 
 import utilities as utilities
+
 from logger import logger
 from models.models_data import ModelsData
 from data.portfolio_data import PortfolioData

@@ -7,11 +7,11 @@ import threading
 
 import customtkinter as ctk
 
-from models.models_data import ModelsData
+import utilities as utilities
 from data.portfolio_data import PortfolioData
+from models.models_data import ModelsData
 from models.models_factory import ModelsFactory
 from processing_types import *
-import utilities as utilities
 
 
 class TestingTab:
