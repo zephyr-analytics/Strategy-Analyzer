@@ -183,6 +183,7 @@ class MomentumBacktestProcessor(BacktestingProcessor):
         else:
             raise ValueError("Invalid trading frequency. Choose 'Monthly', 'Bi-Monthly', 'Quarterly', or 'Yearly'.")
 
+        log_data = []
         for i in range(0, len(monthly_dates), step):
             current_date = monthly_dates[i]
             last_date_current_month = self.trading_data.index[self.trading_data.index.get_loc(current_date, method='pad')]
@@ -211,12 +212,20 @@ class MomentumBacktestProcessor(BacktestingProcessor):
                 portfolio_values.append(new_portfolio_value)
                 portfolio_returns.append(month_return)
 
+                log_data.append({
+                'Date': next_date,
+                'Portfolio Value': new_portfolio_value,
+                'Monthly Return': month_return,
+                'Adjusted Weights': adjusted_weights
+                })
                 # Move to the next month's data
                 last_date_current_month = last_date_next_month
 
             all_adjusted_weights.append(adjusted_weights)
 
         # Save results to data models
+        log_df = pd.DataFrame(log_data)
+        logger.info("\n" + log_df.to_string(index=False))
         self.data_models.adjusted_weights = pd.Series(
             all_adjusted_weights,
             index=pd.date_range(start=self.start_date, periods=len(all_adjusted_weights), freq="M")
