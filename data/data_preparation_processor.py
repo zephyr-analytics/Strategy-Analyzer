@@ -31,7 +31,7 @@ class DataPreparationProcessor:
         self.start_date = self.data_models.start_date
         self.end_date = pd.to_datetime(self.data_models.end_date)
 
-        self.min_time = 5
+        self.min_time = 8
 
     def process(self):
         """

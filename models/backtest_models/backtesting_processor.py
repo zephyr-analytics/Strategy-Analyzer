@@ -117,12 +117,12 @@ class BacktestingProcessor(ABC):
         """
         Calculates and sets portfolio statistics such as CAGR, average annual return, max drawdown, VaR, and CVaR in models_data.
         """
-        cagr = utilities.calculate_cagr(self.data_models.portfolio_values, self.trading_frequency)
-        average_annual_return = utilities.calculate_average_annual_return(self.data_models.portfolio_returns, self.trading_frequency)
-        max_drawdown = utilities.calculate_max_drawdown(self.data_models.portfolio_values)
-        var, cvar = utilities.calculate_var_cvar(self.data_models.portfolio_returns)
-        annual_volatility = utilities.calculate_annual_volatility(self.trading_frequency, self.data_models.portfolio_returns)
-        standard_deviation = utilities.calculate_standard_deviation(self.data_models.portfolio_returns)
+        cagr = utilities.calculate_cagr(portfolio_value=self.data_models.portfolio_values)
+        average_annual_return = utilities.calculate_average_annual_return(returns=self.data_models.portfolio_returns)
+        max_drawdown = utilities.calculate_max_drawdown(portfolio_value=self.data_models.portfolio_values)
+        var, cvar = utilities.calculate_var_cvar(returns=self.data_models.portfolio_returns)
+        annual_volatility = utilities.calculate_annual_volatility(portfolio_returns=self.data_models.portfolio_returns)
+        standard_deviation = utilities.calculate_standard_deviation(returns=self.data_models.portfolio_returns)
 
         self.data_models.cagr = cagr
         self.data_models.average_annual_return = average_annual_return

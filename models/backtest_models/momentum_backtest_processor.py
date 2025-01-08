@@ -174,53 +174,58 @@ class MomentumBacktestProcessor(BacktestingProcessor):
 
         if self.trading_frequency == "Monthly":
             step = 1
-            freq = "M"
         elif self.trading_frequency == "Bi-Monthly":
             step = 2
-            freq = "2M"
         elif self.trading_frequency == "Quarterly":
             step = 3
-            freq = "3M"
         elif self.trading_frequency == "Yearly":
             step = 12
-            freq = "12M"
         else:
-            raise ValueError("Invalid trading frequency. Choose 'Monthly', 'Bi-Monthly'.")
+            raise ValueError("Invalid trading frequency. Choose 'Monthly', 'Bi-Monthly', 'Quarterly', or 'Yearly'.")
 
         for i in range(0, len(monthly_dates), step):
             current_date = monthly_dates[i]
-            next_date = monthly_dates[min(i + step, len(monthly_dates) - 1)]
             last_date_current_month = self.trading_data.index[self.trading_data.index.get_loc(current_date, method='pad')]
 
+            # Calculate momentum and adjust weights at the start of the period
             momentum = self.calculate_momentum(last_date_current_month)
-
-            selected_assets = pd.DataFrame({'Asset': momentum.nlargest(self.num_assets_to_select).index, 'Momentum': momentum.nlargest(self.num_assets_to_select).values})
+            selected_assets = pd.DataFrame({'Asset': momentum.nlargest(self.num_assets_to_select).index, 
+                                            'Momentum': momentum.nlargest(self.num_assets_to_select).values})
             selected_assets = selected_assets[selected_assets['Asset'].isin(self.assets_weights.keys())]
-
             adjusted_weights = self.adjust_weights(last_date_current_month, selected_assets, self.filter_negative_momentum)
 
-            previous_value = portfolio_values[-1]
-            month_end_data = self.trading_data.loc[last_date_current_month]
-            last_date_next_month = self.trading_data.index[self.trading_data.index.get_loc(next_date, method='pad')]
-            next_month_end_data = self.trading_data.loc[last_date_next_month]
+            # Apply buy-and-hold for each month in the step
+            for j in range(step):
+                if i + j >= len(monthly_dates) - 1:
+                    break
 
-            monthly_returns = (next_month_end_data / month_end_data) - 1
-            month_return = sum([monthly_returns.get(ticker, 0) * weight for ticker, weight in adjusted_weights.items()])
-            new_portfolio_value = previous_value * (1 + month_return)
+                next_date = monthly_dates[i + j + 1]
+                last_date_next_month = self.trading_data.index[self.trading_data.index.get_loc(next_date, method='pad')]
+                month_end_data = self.trading_data.loc[last_date_current_month]
+                next_month_end_data = self.trading_data.loc[last_date_next_month]
+
+                monthly_returns = (next_month_end_data / month_end_data) - 1
+                month_return = sum([monthly_returns.get(ticker, 0) * weight for ticker, weight in adjusted_weights.items()])
+                new_portfolio_value = portfolio_values[-1] * (1 + month_return)
+
+                portfolio_values.append(new_portfolio_value)
+                portfolio_returns.append(month_return)
+
+                # Move to the next month's data
+                last_date_current_month = last_date_next_month
 
             all_adjusted_weights.append(adjusted_weights)
-            portfolio_values.append(new_portfolio_value)
-            portfolio_returns.append(month_return)
 
+        # Save results to data models
         self.data_models.adjusted_weights = pd.Series(
             all_adjusted_weights,
-            index=pd.date_range(start=self.start_date, periods=len(all_adjusted_weights), freq=freq)
+            index=pd.date_range(start=self.start_date, periods=len(all_adjusted_weights), freq="M")
         )
         self.data_models.portfolio_values = pd.Series(
             portfolio_values,
-            index=pd.date_range(start=self.start_date, periods=len(portfolio_values), freq=freq)
+            index=pd.date_range(start=self.start_date, periods=len(portfolio_values), freq="M")
         )
         self.data_models.portfolio_returns = pd.Series(
             portfolio_returns,
-            index=pd.date_range(start=self.start_date, periods=len(portfolio_returns), freq=freq)
+            index=pd.date_range(start=self.start_date, periods=len(portfolio_returns), freq="M")
         )
