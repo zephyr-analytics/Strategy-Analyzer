@@ -13,13 +13,13 @@ from data.portfolio_data import PortfolioData
 from models.models_data import ModelsData
 
 
-class PortfolioAnalyzer(ctk.CTk):
+class StrategyAnalyzer(ctk.CTk):
     """
     A GUI application for running backtests and Monte Carlo simulations on investment portfolios.
     """
     def __init__(self):
         super().__init__()
-        self.title("Portfolio Analyzer")
+        self.title("Strategy Analyzer")
 
         models_data = ModelsData()
         self.data_models = models_data
@@ -102,7 +102,7 @@ def main():
     Main entry point for the application.
     This function ensures that the GUI only runs in the main process.
     """
-    app = PortfolioAnalyzer()
+    app = StrategyAnalyzer()
     app.mainloop()
 
 
