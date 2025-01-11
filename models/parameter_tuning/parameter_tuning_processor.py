@@ -29,7 +29,6 @@ class ParameterTuningProcessor(ABC):
         self.theme = models_data.theme_mode
         self.portfolio_name = models_data.weights_filename
 
-    @abstractmethod
     def process(self):
         """
         Abstract method to process data and generate trading signals.
