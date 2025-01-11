@@ -91,7 +91,7 @@ class SetupTab:
         ctk.CTkLabel(
             data_frame, text="Initial Portfolio Value:", font=self.bold_font
         ).grid(row=data_frame_rows, column=0, padx=5, sticky="e")
-        initial_portfolio_value_var = ctk.StringVar()
+        initial_portfolio_value_var = ctk.StringVar(value=self.data_models.initial_portfolio_value)
         ctk.CTkEntry(
             data_frame, textvariable=initial_portfolio_value_var
         ).grid(row=data_frame_rows, column=1, padx=5, sticky="w", pady=y_padding)
@@ -128,7 +128,7 @@ class SetupTab:
         ctk.CTkLabel(
             data_frame, text="Start Date:", font=self.bold_font
         ).grid(row=data_frame_rows, column=0, padx=5, sticky="e")
-        start_date_var = ctk.StringVar()
+        start_date_var = ctk.StringVar(value=self.data_models.start_date)
         ctk.CTkEntry(
             data_frame, textvariable=start_date_var
         ).grid(row=data_frame_rows, column=1, padx=5, sticky="w", pady=y_padding)
@@ -139,7 +139,7 @@ class SetupTab:
         ctk.CTkLabel(
             data_frame, text="End Date:", font=self.bold_font
         ).grid(row=data_frame_rows, column=2, padx=5, sticky="e")
-        end_date_var = ctk.StringVar()
+        end_date_var = ctk.StringVar(value=self.data_models.end_date)
         ctk.CTkEntry(
             data_frame, textvariable=end_date_var
         ).grid(row=data_frame_rows, column=3, padx=5, sticky="w", pady=y_padding)
@@ -151,7 +151,7 @@ class SetupTab:
         ctk.CTkLabel(
             data_frame, text="Cash Ticker:", font=self.bold_font
         ).grid(row=data_frame_rows, column=0, sticky="e", padx=5)
-        cash_ticker_var = ctk.StringVar()
+        cash_ticker_var = ctk.StringVar(value=self.data_models.cash_ticker)
         ctk.CTkEntry(
             data_frame, textvariable=cash_ticker_var
         ).grid(row=data_frame_rows, column=1, sticky="w", padx=5, pady=y_padding)

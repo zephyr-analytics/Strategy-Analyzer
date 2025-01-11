@@ -3,14 +3,12 @@ Abstract module for processing momentum trading models.
 """
 
 import datetime
-
 from datetime import datetime
 from abc import ABC, abstractmethod
-from typing import Dict
 
 import pandas as pd
 
-import utilities as utilities
+import utilities
 
 from data.portfolio_data import PortfolioData
 from models.models_data import ModelsData
@@ -61,14 +59,12 @@ class BacktestingProcessor(ABC):
         """
         Processes the backtest by fetching data, running the backtest, and generating the plots.
         """
-        pass
 
     @abstractmethod
-    def get_portfolio_assets_and_weights(self):
+    def get_portfolio_assets_and_weights(self, current_date: datetime):
         """
         Abstract method to encapsulate monthly asset selection.
         """
-        pass
 
     @abstractmethod
     def calculate_momentum(self, current_date: datetime.date) -> float:
@@ -85,7 +81,6 @@ class BacktestingProcessor(ABC):
         float
             Momentum value for the current date.
         """
-        pass
 
     @abstractmethod
     def adjust_weights(
@@ -111,7 +106,6 @@ class BacktestingProcessor(ABC):
         dict
             Dictionary of adjusted asset weights.
         """
-        pass
 
     
     def calculate_weighting(self, adjusted_weights):

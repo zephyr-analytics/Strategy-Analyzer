@@ -53,8 +53,6 @@ class MomentumBacktestProcessor(BacktestingProcessor):
             results_processor.plot_portfolio_value()
             results_processor.plot_var_cvar()
             results_processor.plot_returns_heatmaps()
-        else:
-            pass
 
     def get_portfolio_assets_and_weights(self, current_date):
         """
