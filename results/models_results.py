@@ -2,8 +2,6 @@
 Getter and Setter class for storing environment variables.
 """
 
-from datetime import datetime
-
 import pandas as pd
 
 
@@ -28,6 +26,27 @@ class ModelsResults:
         self._benchmark_returns = pd.Series
         self._contribution = None
         self._contribution_frequency = None
+        self._adjusted_weights = {}
+
+    @property
+    def adjusted_weights(self):
+        """
+        Gets the buy and hold values.
+
+        Returns:
+            str: The bond ticker symbol.
+        """
+        return self._adjusted_weights
+
+    @adjusted_weights.setter
+    def adjusted_weights(self, value):
+        """
+        Sets the buy and hold values.
+
+        Args:
+            value (str): The bond ticker symbol.
+        """
+        self._adjusted_weights = value
 
 
     @property

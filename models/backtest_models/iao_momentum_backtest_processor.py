@@ -11,6 +11,7 @@ from logger import logger
 from models.models_data import ModelsData
 from data.portfolio_data import PortfolioData
 from models.backtest_models.backtesting_processor import BacktestingProcessor
+from results.models_results import ModelsResults
 from results.results_processor import ResultsProcessor
 
 logger = logging.getLogger(__name__)
@@ -21,7 +22,7 @@ class IAOMomentumBacktestProcessor(BacktestingProcessor):
     with momentum calculations for both in-market and out-of-market assets.
     """
 
-    def __init__(self, models_data: ModelsData, portfolio_data: PortfolioData):
+    def __init__(self, models_data: ModelsData, portfolio_data: PortfolioData, models_results: ModelsResults):
         """
         Initializes the BacktestMomentumPortfolio class with data from ModelsData.
 
@@ -30,7 +31,7 @@ class IAOMomentumBacktestProcessor(BacktestingProcessor):
         data_models : ModelsData
             An instance of the ModelsData class containing all relevant parameters and data for backtesting.
         """
-        super().__init__(models_data=models_data, portfolio_data=portfolio_data)
+        super().__init__(models_data=models_data, portfolio_data=portfolio_data, models_results=models_results)
 
     def process(self):
         """

@@ -10,6 +10,7 @@ import utilities
 from gui import *
 from data.portfolio_data import PortfolioData
 from models.models_data import ModelsData
+from results.models_results import ModelsResults
 
 
 class StrategyAnalyzer(ctk.CTk):
@@ -24,6 +25,8 @@ class StrategyAnalyzer(ctk.CTk):
         self.data_models = models_data
         portfolio_data = PortfolioData()
         self.data_portfolio = portfolio_data
+        models_results = ModelsResults()
+        self.results_models = models_results
 
         self.bold_font = ctk.CTkFont(size=12, weight="bold", family="Arial")
 
@@ -78,7 +81,12 @@ class StrategyAnalyzer(ctk.CTk):
 
         # Add Testing Tab
         testing_tab_frame = self.high_level_tab_control.add("Testing")
-        self.testing_tab = TestingTab(testing_tab_frame, models_data=self.data_models, portfolio_data=self.data_portfolio)
+        self.testing_tab = TestingTab(
+            testing_tab_frame,
+            models_data=self.data_models,
+            portfolio_data=self.data_portfolio,
+            models_results=self.results_models
+        )
 
         # Set initial tab
         self.high_level_tab_control.set("Initial Testing Setup")

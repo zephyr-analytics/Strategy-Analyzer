@@ -13,14 +13,17 @@ import utilities
 from data.portfolio_data import PortfolioData
 from models.models_data import ModelsData
 from processing_types import *
+from results.models_results import ModelsResults
 
 
 class BacktestingProcessor(ABC):
     """
     Abstract base class for backtesting portfolios with configurable strategies.
     """
-    def __init__(self, models_data: ModelsData, portfolio_data: PortfolioData):
+    def __init__(self, models_data: ModelsData, portfolio_data: PortfolioData, models_results: ModelsResults):
         self.data_models = models_data
+        self.data_portfolio = portfolio_data
+        self.results_models = models_results
 
         self.assets_weights = self.data_models.assets_weights
         self.weights_filename = self.data_models.weights_filename
@@ -199,15 +202,16 @@ class BacktestingProcessor(ABC):
         portfolio_returns : pd.Series
             Series of all portfolio returns from the backtest.
         """
-        self.data_models.adjusted_weights = pd.Series(
+        # TODO this needs to be created.
+        self.results_models.adjusted_weights = pd.Series(
             all_adjusted_weights,
             index=pd.date_range(start=self.start_date, periods=len(all_adjusted_weights), freq="M")
         )
-        self.data_models.portfolio_values = pd.Series(
+        self.results_models.portfolio_values = pd.Series(
             portfolio_values,
             index=pd.date_range(start=self.start_date, periods=len(portfolio_values), freq="M")
         )
-        self.data_models.portfolio_returns = pd.Series(
+        self.results_models.portfolio_returns = pd.Series(
             portfolio_returns,
             index=pd.date_range(start=self.start_date, periods=len(portfolio_returns), freq="M")
         )
@@ -217,22 +221,22 @@ class BacktestingProcessor(ABC):
         """
         Calculates and sets portfolio statistics.
         """
-        self.data_models.cagr = utilities.calculate_cagr(
+        self.results_models.cagr = utilities.calculate_cagr(
             portfolio_value=self.data_models.portfolio_values
         )
-        self.data_models.average_annual_return = utilities.calculate_average_annual_return(
+        self.results_models.average_annual_return = utilities.calculate_average_annual_return(
             returns=self.data_models.portfolio_returns
         )
-        self.data_models.max_drawdown = utilities.calculate_max_drawdown(
+        self.results_models.max_drawdown = utilities.calculate_max_drawdown(
             portfolio_value=self.data_models.portfolio_values
         )
-        self.data_models.var, self.data_models.cvar = utilities.calculate_var_cvar(
+        self.results_models.var, self.results_models.cvar = utilities.calculate_var_cvar(
             returns=self.data_models.portfolio_returns
         )
-        self.data_models.annual_volatility = utilities.calculate_annual_volatility(
+        self.results_models.annual_volatility = utilities.calculate_annual_volatility(
             portfolio_returns=self.data_models.portfolio_returns
         )
-        self.data_models.standard_deviation = utilities.calculate_standard_deviation(
+        self.results_models.standard_deviation = utilities.calculate_standard_deviation(
             returns=self.data_models.portfolio_returns
         )
 
@@ -263,10 +267,10 @@ class BacktestingProcessor(ABC):
             portfolio_values.append(new_portfolio_value)
             portfolio_returns.append(month_return)
 
-        self.data_models.buy_and_hold_values = pd.Series(
+        self.results_models.buy_and_hold_values = pd.Series(
             portfolio_values, index=monthly_dates[:len(portfolio_values)]
         )
-        self.data_models.buy_and_hold_returns = pd.Series(
+        self.results_models.buy_and_hold_returns = pd.Series(
             portfolio_returns, index=monthly_dates[1:len(portfolio_returns)+1]
         )
 
@@ -297,10 +301,10 @@ class BacktestingProcessor(ABC):
                 benchmark_values.append(new_benchmark_value)
                 benchmark_returns.append(monthly_return)
     
-            self.data_models.benchmark_values = pd.Series(
+            self.results_models.benchmark_values = pd.Series(
                 benchmark_values, index=monthly_dates[:len(benchmark_values)]
             )
-            self.data_models.benchmark_returns = pd.Series(
+            self.results_models.benchmark_returns = pd.Series(
                 benchmark_returns, index=monthly_dates[1:len(benchmark_returns)+1]
             )
 
@@ -312,14 +316,14 @@ class BacktestingProcessor(ABC):
         Handles adjusted weights, portfolio returns, and portfolio values dynamically.
         """
         adjusted_weights_df = pd.DataFrame(
-            list(self.data_models.adjusted_weights), index=self.data_models.adjusted_weights.index
+            list(self.results_models.adjusted_weights), index=self.results_models.adjusted_weights.index
         )
         adjusted_weights_df = adjusted_weights_df.fillna(0.0)
         combined_df = pd.concat(
             [
                 adjusted_weights_df,
-                self.data_models.portfolio_returns.rename("Portfolio Returns"),
-                self.data_models.portfolio_values.rename("Portfolio Values"),
+                self.results_models.portfolio_returns.rename("Portfolio Returns"),
+                self.results_models.portfolio_values.rename("Portfolio Values"),
             ],
             axis=1,
         )

@@ -11,15 +11,17 @@ from data.portfolio_data import PortfolioData
 from models.models_data import ModelsData
 from models.models_factory import ModelsFactory
 from processing_types import *
+from results.models_results import ModelsResults
 
 
 class TestingTab:
     """
     Handles the layout and functionality of the Testing tab.
     """
-    def __init__(self, parent, models_data: ModelsData, portfolio_data: PortfolioData):
+    def __init__(self, parent, models_data: ModelsData, portfolio_data: PortfolioData, models_results: ModelsResults):
         self.data_models = models_data
         self.data_portfolio = portfolio_data
+        self.results_models = models_results
 
         self.parent = parent
         self.bold_font = ctk.CTkFont(size=12, weight="bold", family="Arial")
@@ -189,7 +191,11 @@ class TestingTab:
         """
         self.clear_message_text()
         try:
-            factory = ModelsFactory(models_data=self.data_models, portfolio_data=self.data_portfolio)
+            factory = ModelsFactory(
+                models_data=self.data_models,
+                portfolio_data=self.data_portfolio,
+                models_results=self.results_models
+            )
             result = factory.run(model, run_type)
             self.parent.after(0, lambda: self.display_result(result))
         finally:

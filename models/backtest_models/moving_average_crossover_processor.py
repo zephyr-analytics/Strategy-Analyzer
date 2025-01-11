@@ -8,10 +8,11 @@ import datetime
 import pandas as pd
 
 from logger import logger
-from results.results_processor import ResultsProcessor
-from models.models_data import ModelsData
 from data.portfolio_data import PortfolioData
+from models.models_data import ModelsData
 from models.backtest_models.backtesting_processor import BacktestingProcessor
+from results.models_results import ModelsResults
+from results.results_processor import ResultsProcessor
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +22,7 @@ class MovingAverageCrossoverProcessor(BacktestingProcessor):
     A class to backtest a portfolio using a moving average crossover strategy.
     """
 
-    def __init__(self, models_data: ModelsData, portfolio_data: PortfolioData):
+    def __init__(self, models_data: ModelsData, portfolio_data: PortfolioData, models_results: ModelsResults):
         """
         Initializes the Moving Average Crossover Backtest Processor.
 
@@ -32,7 +33,7 @@ class MovingAverageCrossoverProcessor(BacktestingProcessor):
         portfolio_data : PortfolioData
             Portfolio data required for backtesting.
         """
-        super().__init__(models_data=models_data, portfolio_data=portfolio_data)
+        super().__init__(models_data=models_data, portfolio_data=portfolio_data, models_results=models_results)
 
     def process(self):
         """

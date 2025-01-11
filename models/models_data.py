@@ -16,10 +16,7 @@ class ModelsData:
         Initializes the Config class with default values for portfolio parameters.
         """
         self._assets_weights = {}
-        self._adjusted_weights = {}
         self._bond_ticker = ""
-        self._buy_and_hold_values = pd.Series
-        self._buy_and_hold_returns = pd.Series
         self._cash_ticker = "SHV"
         self._end_date = datetime.today().strftime('%Y-%m-%d')
         self._initial_portfolio_value = 10000
@@ -31,23 +28,12 @@ class ModelsData:
         self._trading_frequency = "Monthly"
         self._weighting_strategy = "Use File Weights"
         self._weights_filename = ""
-        self._portfolio_values = pd.Series
-        self._portfolio_returns = pd.Series
-        self._cagr = None
-        self._average_annual_return = None
-        self._max_drawdown = None
-        self._var = None
-        self._cvar = None
-        self._annual_volatility = None
         self._max_distance = 1.5
         self._ma_threshold_asset = ""
         self._num_assets_to_select = 1
-        self._standard_deviation = None
         self._out_of_market_tickers = {}
         self._processing_type = str
         self._benchmark_asset = ""
-        self._benchmark_values = pd.Series
-        self._benchmark_returns = pd.Series
         self._contribution = None
         self._contribution_frequency = None
         self._return_metric = None
@@ -81,27 +67,6 @@ class ModelsData:
 
 
     @property
-    def adjusted_weights(self):
-        """
-        Gets the asset weights.
-
-        Returns:
-            dict: A dictionary containing the asset weights.
-        """
-        return self._adjusted_weights
-
-    @adjusted_weights.setter
-    def adjusted_weights(self, value):
-        """
-        Sets the asset weights.
-
-        Args:
-            value (dict): A dictionary containing the asset weights.
-        """
-        self._adjusted_weights = value
-
-
-    @property
     def bond_ticker(self):
         """
         Gets the bond ticker symbol.
@@ -120,48 +85,6 @@ class ModelsData:
             value (str): The bond ticker symbol.
         """
         self._bond_ticker = value
-
-
-    @property
-    def buy_and_hold_values(self):
-        """
-        Gets the buy and hold values.
-
-        Returns:
-            str: The bond ticker symbol.
-        """
-        return self._buy_and_hold_values
-
-    @buy_and_hold_values.setter
-    def buy_and_hold_values(self, value):
-        """
-        Sets the buy and hold values.
-
-        Args:
-            value (str): The bond ticker symbol.
-        """
-        self._buy_and_hold_values = value
-
-
-    @property
-    def buy_and_hold_returns(self):
-        """
-        Gets the buy and hold portfolio returns.
-
-        Returns:
-            str: The bond ticker symbol.
-        """
-        return self._buy_and_hold_returns
-
-    @buy_and_hold_returns.setter
-    def buy_and_hold_returns(self, value):
-        """
-        Sets the buy and hold portfolio returns.
-
-        Args:
-            value (str): The bond ticker symbol.
-        """
-        self._buy_and_hold_returns = value
 
 
     @property
@@ -396,196 +319,6 @@ class ModelsData:
 
 
     @property
-    def portfolio_values(self):
-        """
-        Getter method for portfolio value.
-
-        Returns
-        -------
-        Series
-            The series of portfolio values.
-        """
-        return self._portfolio_values
-
-    @portfolio_values.setter
-    def portfolio_values(self, value):
-        """
-        Setter method for portfolio value.
-        
-        Parameters
-        ----------
-        portfolio_value : Series
-            The series of portfolio values to be set.
-        """
-        self._portfolio_values = value
-
-
-    @property
-    def portfolio_returns(self):
-        """
-        Getter method for returns.
-
-        Returns
-        -------
-        Series
-            The series of portfolio returns.
-        """
-        return self._portfolio_returns
-
-    @portfolio_returns.setter
-    def portfolio_returns(self, value):
-        """
-        Setter method for returns.
-        
-        Parameters
-        ----------
-        returns : Series
-            The series of portfolio returns to be set.
-        """
-        self._portfolio_returns = value
-
-
-    @property
-    def cagr(self):
-        """
-        Getter method for CAGR.
-
-        Returns
-        -------
-        float
-            The CAGR value.
-        """
-        return self._cagr
-
-    @cagr.setter
-    def cagr(self, value):
-        """
-        Setter method for CAGR.
-
-        Parameters
-        ----------
-        value : float
-            The CAGR value to be set.
-        """
-        self._cagr = value
-
-
-    @property
-    def average_annual_return(self):
-        """
-        Getter method for average annual return.
-
-        Returns
-        -------
-        float
-            The average annual return value.
-        """
-        return self._average_annual_return
-
-    @average_annual_return.setter
-    def average_annual_return(self, value):
-        """
-        Setter method for average annual return.
-
-        Parameters
-        ----------
-        value : float
-            The average annual return value to be set.
-        """
-        self._average_annual_return = value
-
-
-    @property
-    def max_drawdown(self):
-        """
-        Getter method for max drawdown.
-
-        Returns
-        -------
-        float
-            The maximum drawdown value.
-        """
-        return self._max_drawdown
-
-    @max_drawdown.setter
-    def max_drawdown(self, value):
-        """
-        Setter method for max drawdown.
-
-        Parameters
-        ----------
-        value : float
-            The maximum drawdown value to be set.
-        """
-        self._max_drawdown = value
-
-
-    @property
-    def var(self):
-        """
-        Getter method for Value at Risk (VaR).
-
-        Returns
-        -------
-        float
-            The VaR value.
-        """
-        return self._var
-
-    @var.setter
-    def var(self, value):
-        """
-        Setter method for Value at Risk (VaR).
-
-        Parameters
-        ----------
-        value : float
-            The VaR value to be set.
-        """
-        self._var = value
-
-
-    @property
-    def cvar(self):
-        """
-        Getter method for Conditional Value at Risk (CVaR).
-
-        Returns
-        -------
-        float
-            The CVaR value.
-        """
-        return self._cvar
-
-    @cvar.setter
-    def cvar(self, value):
-        """
-        Setter method for Conditional Value at Risk (CVaR).
-
-        Parameters
-        ----------
-        value : float
-            The CVaR value to be set.
-        """
-        self._cvar = value
-
-
-    @property
-    def annual_volatility(self):
-        """
-        # TODO write the docstrings.
-        """
-        return self._annual_volatility
-
-    @annual_volatility.setter
-    def annual_volatility(self, value):
-        """
-        # TODO write the docstrings.
-        """
-        self._annual_volatility = value
-
-
-    @property
     def max_distance(self):
         """
         # TODO write the docstrings.
@@ -640,27 +373,6 @@ class ModelsData:
             value (str): The asset ticker symbol to be set as the threshold asset.
         """
         self._num_assets_to_select = value
-
-
-    @property
-    def standard_deviation(self):
-        """
-        Gets the threshold asset value used for portfolio management.
-
-        Returns:
-            str: The threshold asset as a string.
-        """
-        return self._standard_deviation
-
-    @standard_deviation.setter
-    def standard_deviation(self, value):
-        """
-        Sets the threshold asset value used for portfolio management.
-
-        Args:
-            value (str): The asset ticker symbol to be set as the threshold asset.
-        """
-        self._standard_deviation = value
 
 
     @property
@@ -724,48 +436,6 @@ class ModelsData:
             value (str): String representing the benchmark_asset.
         """
         self._benchmark_asset = value
-
-
-    @property
-    def benchmark_values(self):
-        """
-        Gets the benchmark_asset.
-
-        Returns:
-            str: String representing the benchmark_values.
-        """
-        return self._benchmark_values
-
-    @benchmark_values.setter
-    def benchmark_values(self, value):
-        """
-        Sets the benchmark_asset.
-
-        Args:
-            value (str): String representing the benchmark_values.
-        """
-        self._benchmark_values = value
-
-
-    @property
-    def benchmark_returns(self):
-        """
-        Gets the benchmark_asset.
-
-        Returns:
-            str: String representing the benchmark_asset.
-        """
-        return self._benchmark_returns
-
-    @benchmark_returns.setter
-    def benchmark_returns(self, value):
-        """
-        Sets the benchmark_asset.
-
-        Args:
-            value (str): String representing the benchmark_asset.
-        """
-        self._benchmark_returns = value
 
 
     @property

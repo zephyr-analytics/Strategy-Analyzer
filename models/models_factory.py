@@ -9,13 +9,14 @@ from models.monte_carlo_simulation import *
 from models.parameter_tuning import *
 from models.models_data import ModelsData
 from data.portfolio_data import PortfolioData
+from results.models_results import ModelsResults
 
 
 class ModelsFactory:
     """
     Factory class to handle model processing based on the provided enum types.
     """
-    def __init__(self, models_data: ModelsData, portfolio_data: PortfolioData):
+    def __init__(self, models_data: ModelsData, portfolio_data: PortfolioData, models_results: ModelsResults):
         """
         Initializes the ModelsFactory with the provided data models.
 
@@ -26,6 +27,7 @@ class ModelsFactory:
         """
         self.data_models = models_data
         self.data_portfolio = portfolio_data
+        self.results_models = models_results
 
     def run(self, model: Models, run_type: Runs) -> str:
         """
@@ -75,7 +77,11 @@ class ModelsFactory:
         """
         if not self.data_models.assets_weights:
             return "Please load asset weights file."
-        backtest = MovingAverageBacktestProcessor(models_data=self.data_models, portfolio_data=self.data_portfolio)
+        backtest = MovingAverageBacktestProcessor(
+            models_data=self.data_models, 
+            portfolio_data=self.data_portfolio,
+            models_results=self.results_models
+        )
         backtest.process()
         return "MA backtest completed and plots saved."
 
@@ -122,7 +128,11 @@ class ModelsFactory:
         """
         if not self.data_models.assets_weights:
             return "Please load asset weights file."
-        backtest = MomentumBacktestProcessor(models_data=self.data_models, portfolio_data=self.data_portfolio)
+        backtest = MomentumBacktestProcessor(
+            models_data=self.data_models,
+            portfolio_data=self.data_portfolio,
+            models_results=self.results_models
+        )
         backtest.process()
         return "Momentum backtest completed and plots saved."
 
@@ -171,7 +181,11 @@ class ModelsFactory:
             return "Please load asset weights file."
         if not self.data_models.out_of_market_tickers:
             return "Please load out of market assets file."
-        backtest = IAOMomentumBacktestProcessor(models_data=self.data_models, portfolio_data=self.data_portfolio)
+        backtest = IAOMomentumBacktestProcessor(
+            models_data=self.data_models,
+            portfolio_data=self.data_portfolio,
+            models_results=self.results_models
+        )
         backtest.process()
         return "In and Out of Market backtest completed and plots saved."
 
@@ -203,7 +217,11 @@ class ModelsFactory:
         """
         if not self.data_models.assets_weights:
             return "Please load asset weights file."
-        parameter_tune = MovingAverageParameterTuning(models_data=self.data_models, portfolio_data=self.data_portfolio)
+        parameter_tune = MovingAverageParameterTuning(
+            models_data=self.data_models,
+            portfolio_data=self.data_portfolio,
+            models_results=self.results_models
+        )
         parameter_tune.process()
         return "MA parameter tuning completed."
 
@@ -212,7 +230,11 @@ class ModelsFactory:
         """
         if not self.data_models.assets_weights:
             return "Please load asset weights file."
-        parameter_tune = MomentumParameterTuning(models_data=self.data_models, portfolio_data=self.data_portfolio)
+        parameter_tune = MomentumParameterTuning(
+            models_data=self.data_models, 
+            portfolio_data=self.data_portfolio,
+            models_results=self.results_models
+        )
         parameter_tune.process()
         return "Momentum parameter tuning completed."
 
@@ -223,7 +245,11 @@ class ModelsFactory:
             return "Please load asset weights file."
         if not self.data_models.out_of_market_tickers:
             return "Please load out of market assets file."
-        parameter_tune = InAndOutMomentumParameterTuning(models_data=self.data_models, portfolio_data=self.data_portfolio)
+        parameter_tune = InAndOutMomentumParameterTuning(
+            models_data=self.data_models, 
+            portfolio_data=self.data_portfolio,
+            models_results=self.results_models
+        )
         parameter_tune.process()
         return "In and Out Momentum parameter tuning completed."
 
@@ -245,5 +271,9 @@ class ModelsFactory:
         """
         if not self.data_models.assets_weights:
             return "Please load asset weights file."
-        backtest = MovingAverageCrossoverProcessor(models_data=self.data_models, portfolio_data=self.data_portfolio)
+        backtest = MovingAverageCrossoverProcessor(
+            models_data=self.data_models, 
+            portfolio_data=self.data_portfolio,
+            models_results=self.results_models
+        )
         backtest.process()

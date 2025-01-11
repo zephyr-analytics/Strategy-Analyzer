@@ -11,13 +11,14 @@ from models.models_data import ModelsData
 from data.portfolio_data import PortfolioData
 from models.parameter_tuning.parameter_tuning_processor import ParameterTuningProcessor
 from models.backtest_models.moving_average_backtest_processor import MovingAverageBacktestProcessor
+from results.models_results import ModelsResults
 
 
 class MovingAverageParameterTuning(ParameterTuningProcessor):
     """
     Processor for parameter tuning based on the a momentum portfolio.
     """
-    def __init__(self, models_data: ModelsData, portfolio_data: PortfolioData):
+    def __init__(self, models_data: ModelsData, portfolio_data: PortfolioData, models_results: ModelsResults):
         """
         Initializes the parameter tuning class.
 
@@ -26,7 +27,7 @@ class MovingAverageParameterTuning(ParameterTuningProcessor):
         models_data : object
             An instance of the ModelsData class that holds all necessary attributes.
         """
-        super().__init__(models_data=models_data, portfolio_data=portfolio_data)
+        super().__init__(models_data=models_data, portfolio_data=portfolio_data, models_results=models_results)
 
     def get_portfolio_results(self) -> dict:
         """
