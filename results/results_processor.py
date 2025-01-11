@@ -150,7 +150,7 @@ class ResultsProcessor:
         annotations.append(
             dict(
                 xref='paper', yref='paper', x=0.5, y=0.2,
-                text="© Zehpyr Analytics",
+                text="© Zephyr Analytics",
                 showarrow=False,
                 font=dict(size=80, color="#f8f9f9"),
                 xanchor='center',

@@ -15,7 +15,7 @@ from models.parameter_tuning.parameter_tuning_processor import ParameterTuningPr
 from models.backtest_models.moving_average_backtest_processor import MovingAverageBacktestProcessor
 
 
-class MaParameterTuning(ParameterTuningProcessor):
+class MovingAverageParameterTuning(ParameterTuningProcessor):
     """
     Processor for parameter tuning based on the a momentum portfolio.
     """
@@ -97,6 +97,7 @@ class MaParameterTuning(ParameterTuningProcessor):
             "annual_volatility": self.data_models.annual_volatility,
         }
 
+# TODO this needs to be moved to the results processor.
     def plot_results(self, results: dict):
         """
         Plot results from the momentum strategy testing.

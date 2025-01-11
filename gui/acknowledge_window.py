@@ -3,6 +3,7 @@ Module for acknowledgement window.
 """
 
 import customtkinter as ctk
+
 from PIL import Image, ImageTk
 
 import utilities as utilities

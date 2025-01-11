@@ -3,21 +3,18 @@ Abstract module for processing momentum trading models.
 """
 
 import datetime
-import os
 
 from datetime import datetime
-
 from abc import ABC, abstractmethod
-from typing import List, Dict
+from typing import Dict
 
 import pandas as pd
 
 import utilities as utilities
 
-from processing_types import *
-from models.models_data import ModelsData
 from data.portfolio_data import PortfolioData
-from results.results_processor import ResultsProcessor
+from models.models_data import ModelsData
+from processing_types import *
 
 
 class BacktestingProcessor(ABC):
@@ -43,6 +40,7 @@ class BacktestingProcessor(ABC):
         self.ma_threshold_asset = str(self.data_models.ma_threshold_asset)
         self.processing_type = self.data_models.processing_type
         self.ma_type = self.data_models.ma_type
+        self.risk_metric = self.data_models.risk_metric
         self.benchmark_asset = self.data_models.benchmark_asset
         self.out_of_market_tickers = self.data_models.out_of_market_tickers
         self.filter_negative_momentum = self.data_models.negative_mom
@@ -55,6 +53,8 @@ class BacktestingProcessor(ABC):
         self.ma_threshold_data = portfolio_data.ma_threshold_data
         self.out_of_market_data = portfolio_data.out_of_market_data
 
+        self.return_data = self.trading_data.pct_change().dropna()
+
 
     @abstractmethod
     def process(self):
@@ -63,6 +63,12 @@ class BacktestingProcessor(ABC):
         """
         pass
 
+    @abstractmethod
+    def get_portfolio_assets_and_weights(self):
+        """
+        Abstract method to encapsulate monthly asset selection.
+        """
+        pass
 
     @abstractmethod
     def calculate_momentum(self, current_date: datetime.date) -> float:
@@ -81,51 +87,132 @@ class BacktestingProcessor(ABC):
         """
         pass
 
-
     @abstractmethod
     def adjust_weights(
-        self,
-        current_date: datetime.date,
-        selected_assets: pd.DataFrame,
-        selected_out_of_market_assets: pd.DataFrame
-        ) -> Dict[str, float]:
+            self, current_date: datetime, selected_assets: pd.DataFrame =None, selected_out_of_market_asset: pd.DataFrame=None
+    ) -> dict:
         """
-        Adjusts portfolio weights based on asset performance and strategy.
+        Adjusts the weights of the assets based on their SMA and the selected weighting strategy.
 
         Parameters
         ----------
-        current_date : datetime.date
+        current_date : datetime
             The current date for which the weights are being adjusted.
-        selected_assets : DataFrame
-            DataFrame containing selected assets and their weights.
-        _out_of_market_assets : DataFrame
-            DataFrame containing selected assets for out of market and their weights.
+        selected_assets : dict or None
+            Optional preselected assets with weights. If None, uses `self.assets_weights`.
+        selected_out_of_market_asset : dict or None
+            Optional out-of-market assets to be used when replacing assets.
+
         Returns
         -------
         dict
-            Dictionary of adjusted weights.
+            Dictionary of adjusted asset weights.
         """
         pass
 
+    
+    def calculate_weighting(self, adjusted_weights):
+        """
+        """
+        if self.risk_metric == "Standard Deviation":
+            utilities.calculate_standard_deviation_weighting(
+                returns_df=self.return_data, weights=adjusted_weights, cash_ticker=self.cash_ticker, bond_ticker=self.bond_ticker
+            )
+        if self.risk_metric == "Conditional Value at Risk":
+            utilities.calculate_conditional_value_at_risk_weighting(
+                returns_df=self.return_data, weights=adjusted_weights, cash_ticker=self.cash_ticker, bond_ticker=self.bond_ticker
+            )
+        if self.risk_metric == "Max Drawdown":
+            utilities.calculate_max_drawdown_weighting(
+                returns_df=self.return_data, weights=adjusted_weights, cash_ticker=self.cash_ticker, bond_ticker=self.bond_ticker
+            )
 
-    @abstractmethod
+        return adjusted_weights
+
+
     def run_backtest(self):
         """
-        Executes the backtest by iterating over the time period and rebalancing portfolio as per the strategy.
+        Runs the backtest by calculating portfolio values and returns over time.
         """
-        pass
+        monthly_dates = pd.date_range(start=self.start_date, end=self.end_date, freq='M')
+        portfolio_values = [self.initial_portfolio_value]
+        portfolio_returns = []
+        all_adjusted_weights = []
+
+        if self.trading_frequency == "Monthly":
+            step = 1
+        elif self.trading_frequency == "Bi-Monthly":
+            step = 2
+        elif self.trading_frequency == "Quarterly":
+            step = 3
+        elif self.trading_frequency == "Yearly":
+            step = 12
+        else:
+            raise ValueError("Invalid trading frequency. Choose 'Monthly', 'Bi-Monthly', 'Quarterly', or 'Yearly'.")
+
+        for i in range(0, len(monthly_dates), step):
+            current_date = monthly_dates[i]
+            last_date_current_month = self.trading_data.index[self.trading_data.index.get_loc(current_date, method='pad')]
+
+            adjusted_weights=self.get_portfolio_assets_and_weights(current_date=last_date_current_month)
+
+            for j in range(step):
+                if i + j >= len(monthly_dates) - 1:
+                    break
+                next_date = monthly_dates[i + j + 1]
+                last_date_next_month = self.trading_data.index[self.trading_data.index.get_loc(next_date, method='pad')]
+                month_end_data = self.trading_data.loc[last_date_current_month]
+                next_month_end_data = self.trading_data.loc[last_date_next_month]
+                monthly_returns = (next_month_end_data / month_end_data) - 1
+                month_return = sum([monthly_returns.get(ticker, 0) * weight for ticker, weight in adjusted_weights.items()])
+                new_portfolio_value = portfolio_values[-1] * (1 + month_return)
+                portfolio_values.append(new_portfolio_value)
+                portfolio_returns.append(month_return)
+                last_date_current_month = last_date_next_month
+                all_adjusted_weights.append(adjusted_weights)
+
+        return all_adjusted_weights, portfolio_values, portfolio_returns
+
+
+    def _persist_portfolio_data(
+            self, all_adjusted_weights: pd.Series, portfolio_values: pd.Series, portfolio_returns: pd.Series
+    ):
+        """
+        Method to persist all data from the backtest to models_data for further analysis.
+
+        Parameters
+        ----------
+        all_adjusted_weights : pd.Series
+            Series of all weights and assets from the backtest.
+        portfolio_values : pd.Series
+            Series of all portfolio values from the backtest.
+        portfolio_returns : pd.Series
+            Series of all portfolio returns from the backtest.
+        """
+        self.data_models.adjusted_weights = pd.Series(
+            all_adjusted_weights,
+            index=pd.date_range(start=self.start_date, periods=len(all_adjusted_weights), freq="M")
+        )
+        self.data_models.portfolio_values = pd.Series(
+            portfolio_values,
+            index=pd.date_range(start=self.start_date, periods=len(portfolio_values), freq="M")
+        )
+        self.data_models.portfolio_returns = pd.Series(
+            portfolio_returns,
+            index=pd.date_range(start=self.start_date, periods=len(portfolio_returns), freq="M")
+        )
 
 
     def _get_portfolio_statistics(self):
         """
         Calculates and sets portfolio statistics such as CAGR, average annual return, max drawdown, VaR, and CVaR in models_data.
         """
-        cagr = utilities.calculate_cagr(self.data_models.portfolio_values, self.trading_frequency)
-        average_annual_return = utilities.calculate_average_annual_return(self.data_models.portfolio_returns, self.trading_frequency)
-        max_drawdown = utilities.calculate_max_drawdown(self.data_models.portfolio_values)
-        var, cvar = utilities.calculate_var_cvar(self.data_models.portfolio_returns)
-        annual_volatility = utilities.calculate_annual_volatility(self.trading_frequency, self.data_models.portfolio_returns)
-        standard_deviation = utilities.calculate_standard_deviation(self.data_models.portfolio_returns)
+        cagr = utilities.calculate_cagr(portfolio_value=self.data_models.portfolio_values)
+        average_annual_return = utilities.calculate_average_annual_return(returns=self.data_models.portfolio_returns)
+        max_drawdown = utilities.calculate_max_drawdown(portfolio_value=self.data_models.portfolio_values)
+        var, cvar = utilities.calculate_var_cvar(returns=self.data_models.portfolio_returns)
+        annual_volatility = utilities.calculate_annual_volatility(portfolio_returns=self.data_models.portfolio_returns)
+        standard_deviation = utilities.calculate_standard_deviation(returns=self.data_models.portfolio_returns)
 
         self.data_models.cagr = cagr
         self.data_models.average_annual_return = average_annual_return
@@ -192,7 +279,6 @@ class BacktestingProcessor(ABC):
     
             self.data_models.benchmark_values = pd.Series(benchmark_values, index=monthly_dates[:len(benchmark_values)])
             self.data_models.benchmark_returns = pd.Series(benchmark_returns, index=monthly_dates[1:len(benchmark_returns)+1])
-
 
 
     def persist_data(self):

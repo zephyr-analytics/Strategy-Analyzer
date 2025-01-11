@@ -2,6 +2,7 @@
 """
 
 import logging
+import pandas as pd
 
 import utilities
 from logger import logger
@@ -9,7 +10,6 @@ from models.models_data import ModelsData
 from data.portfolio_data import PortfolioData
 
 logger = logging.getLogger(__name__)
-
 
 class DataPreparationProcessor:
     """
@@ -28,28 +28,73 @@ class DataPreparationProcessor:
         self.benchmark_asset = self.data_models.benchmark_asset
         self.out_of_market_tickers = self.data_models.out_of_market_tickers
 
+        self.start_date = self.data_models.start_date
+        self.end_date = pd.to_datetime(self.data_models.end_date)
+
+        self.min_time = 12
+
     def process(self):
         """
         Main method to check, load, and validate data.
         """
-        logger.info(f"Preparaing Data for {self.weights_filename}.")
-        self.read_data()
+        logger.info(f"Preparing Data for {self.weights_filename}.")
+        data = self._read_data()
+        self._parse_data(filtered_data=data)
 
-    def read_data(self):
+    def _read_data(self) -> pd.DataFrame:
         """
-        Method to read data using utility functions and filter it based on asset weights.
+        Method to read and filter data using utility functions.
+
+        Returns
+        -------
+        Dataframe
+            Dataframe of filtered data from the raw data file.
         """
-        full_data = utilities.read_data(self.weights_filename)
+        full_data = utilities.load_raw_data_file()
+        min_time = pd.DateOffset(years=self.min_time)
 
-        self.data_portfolio.trading_data = full_data
+        if min_time is not None:
+            latest_date = full_data.index.max()
+            cutoff_date = latest_date - min_time
+            filtered_data = full_data.loc[cutoff_date:]
 
+            dropped_tickers = set(full_data.columns) - set(filtered_data.dropna(axis=1, how='any').columns)
+            if dropped_tickers:
+                logger.info(f"Tickers dropped due to insufficient data for the last {self.min_time} years: {', '.join(dropped_tickers)}")
+                for ticker in dropped_tickers:
+                    self.asset_weights.pop(ticker, None)
+                self.data_models.assets_weights=self.asset_weights
+
+            filtered_data = filtered_data.dropna(axis=1, how='any')
+        else:
+            filtered_data = full_data
+
+        return filtered_data
+
+    def _parse_data(self, filtered_data):
+        """
+        Method to parse and organize filtered data into portfolio components.
+
+        Parameters
+        ----------
+        filtered_data : Dataframe
+        """
         tickers_to_check = (
             set(self.asset_weights.keys()) |
             {self.cash_ticker, self.bond_ticker, self.ma_threshold_asset, self.benchmark_asset} |
             set(self.out_of_market_tickers)
         )
 
-        filtered_data = full_data.loc[:, full_data.columns.intersection(tickers_to_check)]
+        filtered_data = filtered_data.loc[:, filtered_data.columns.intersection(tickers_to_check)]
+
+        if self.start_date == "Earliest":
+            self.start_date = filtered_data.dropna().index.min()
+            logger.info(f"Using 'Earliest' start date: {self.start_date}")
+            self.data_models.start_date = self.start_date
+
+        filtered_data = filtered_data.loc[self.start_date:self.end_date]
+
+        self.data_portfolio.trading_data = filtered_data
 
         self.data_portfolio.assets_data = filtered_data.loc[:, filtered_data.columns.intersection(self.asset_weights.keys())]
 

@@ -3,15 +3,17 @@ Utilities module for loading and processing data.
 """
 
 import os
+import time
 
 from datetime import datetime
 from tkinter import filedialog
 
 import pandas as pd
 import yfinance as yf
+import requests
 
 
-def fetch_data(all_tickers, start_date, end_date):
+def fetch_data(all_tickers, start_date=None, end_date=None):
     """
     Fetches the adjusted closing prices of the assets within the specified date range.
 
@@ -23,13 +25,24 @@ def fetch_data(all_tickers, start_date, end_date):
         The start date for fetching the data.
     end_date : str
         The end date for fetching the data.
+    max_retries : int
+        Number of retries if the download fails.
+    delay : int
+        Delay (in seconds) between retries.
 
     Returns
     -------
     DataFrame
         Adjusted closing prices of the assets.
     """
-    data = yf.download(all_tickers, start=start_date, end=end_date)['Adj Close']
+    session = requests.Session()
+
+    if start_date and end_date is None:
+        data = yf.download(all_tickers, timeout=30, session=session, threads=False)['Adj Close']
+    else:
+        data = yf.download(all_tickers, start=start_date, end=end_date, timeout=30, session=session, threads=False)['Adj Close']
+    session.close()
+
     return data
 
 
@@ -51,7 +64,15 @@ def load_weights():
     return {}, ""
 
 
-def read_data(weights_filename: str):
+def load_raw_data_file():
+    """
+    """
+    file_path = os.path.join(os.getcwd(), "artifacts", "raw", "raw.csv")
+    df = pd.read_csv(file_path, index_col=0, parse_dates=True)
+    return df
+
+
+def read_data(file_path: str):
     """
     Reads a CSV file from the 'artifacts/raw' directory and returns a DataFrame.
 
@@ -65,11 +86,8 @@ def read_data(weights_filename: str):
     Dataframe
         Dataframe of data used for model creation.
     """
-    current_directory = os.getcwd()
-    file_path = os.path.join(current_directory, 'artifacts', 'raw', f"{weights_filename}.csv")
     df = pd.read_csv(file_path, index_col=0, parse_dates=True)
     return df
-
 
 def strip_csv_extension(filename):
     """

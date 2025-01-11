@@ -4,6 +4,7 @@ Module to initialize momentum_models.
 
 from models.backtest_models.backtesting_processor import BacktestingProcessor
 
-from models.backtest_models.iao_momentum_backtest import BacktestInAndOutMomentumPortfolio
+from models.backtest_models.iao_momentum_backtest_processor import IAOMomentumBacktestProcessor
 from models.backtest_models.momentum_backtest_processor import MomentumBacktestProcessor
 from models.backtest_models.moving_average_backtest_processor import MovingAverageBacktestProcessor
+from models.backtest_models.moving_average_crossover_processor import MovingAverageCrossoverProcessor
