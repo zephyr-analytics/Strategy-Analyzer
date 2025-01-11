@@ -7,7 +7,6 @@ import datetime
 
 import pandas as pd
 
-import utilities as utilities
 from logger import logger
 from results.results_processor import ResultsProcessor
 from models.models_data import ModelsData

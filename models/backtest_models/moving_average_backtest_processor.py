@@ -7,7 +7,6 @@ import logging
 
 import pandas as pd
 
-import utilities as utilities
 from logger import logger
 from data.portfolio_data import PortfolioData
 from models.models_data import ModelsData
