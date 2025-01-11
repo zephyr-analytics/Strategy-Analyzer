@@ -8,6 +8,7 @@ import pandas as pd
 import utilities as utilities
 from results.results_processor import ResultsProcessor
 from models.models_data import ModelsData
+from results.models_results import ModelsResults
 
 class MonteCarloSimulation:
     """
@@ -23,7 +24,7 @@ class MonteCarloSimulation:
         Number of years to simulate.
     """
 
-    def __init__(self, models_data: ModelsData):
+    def __init__(self, models_data: ModelsData, models_results: ModelsResults):
         """
         Initializes the MonteCarloSimulation with portfolio statistics and simulation parameters.
 
@@ -39,13 +40,14 @@ class MonteCarloSimulation:
             Number of years to simulate (default is 10).
         """
         self.data_models = models_data
+        self.results_models = models_results
 
         self.num_simulations = self.data_models.num_simulations
         self.simulation_horizon = self.data_models.simulation_horizon
         self.output_filename = self.data_models.weights_filename
-        self.annual_volatility = self.data_models.annual_volatility
-        self.average_annual_return = self.data_models.average_annual_return
-        self.portfolio_returns = self.data_models.portfolio_returns
+        self.annual_volatility = self.results_models.annual_volatility
+        self.average_annual_return = self.results_models.average_annual_return
+        self.portfolio_returns = self.results_models.portfolio_returns
         self.initial_portfolio_value = self.data_models.initial_portfolio_value
         self.contribution = self.data_models.contribution
         self.contribution_frequency = self.data_models.contribution_frequency

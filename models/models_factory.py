@@ -121,7 +121,10 @@ class ModelsFactory:
             models_results=self.results_models
         )
         backtest.process()
-        monte_carlo = MonteCarloSimulation(models_data=self.data_models)
+        monte_carlo = MonteCarloSimulation(
+            models_data=self.data_models,
+            models_results=self.results_models
+        )
         monte_carlo.process()
         return "MA simulation completed and plots saved."
 
@@ -180,7 +183,10 @@ class ModelsFactory:
             models_results=self.results_models
         )
         backtest.process()
-        monte_carlo = MonteCarloSimulation(models_data=self.data_models)
+        monte_carlo = MonteCarloSimulation(
+            models_data=self.data_models,
+            models_results=self.results_models
+        )
         monte_carlo.process()
         return "Momentum simulation completed and plots saved."
 
@@ -286,7 +292,10 @@ class ModelsFactory:
             models_results=self.results_models
         )
         backtest.process()
-        monte_carlo = MonteCarloSimulation(models_data=self.data_models)
+        monte_carlo = MonteCarloSimulation(
+            models_data=self.data_models,
+            models_results=self.results_models
+        )
         monte_carlo.process()
         return "Momentum simulation completed and plots saved."
 
