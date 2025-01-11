@@ -2,16 +2,17 @@
 Backtesting processor module.
 """
 
+import datetime
 import logging
 
 import pandas as pd
 
 import utilities as utilities
 from logger import logger
-from results.results_processor import ResultsProcessor
-from models.models_data import ModelsData
 from data.portfolio_data import PortfolioData
+from models.models_data import ModelsData
 from models.backtest_models.backtesting_processor import BacktestingProcessor
+from results.results_processor import ResultsProcessor
 
 logger = logging.getLogger(__name__)
 
@@ -55,10 +56,19 @@ class MovingAverageBacktestProcessor(BacktestingProcessor):
         else:
             pass
 
-    def calculate_momentum(self, current_date=None):
+    def get_portfolio_assets_and_weights(self, current_date):
+        """
+        """
+        adjusted_weights = self.adjust_weights(current_date=current_date)
+
+        return adjusted_weights
+
+    def calculate_momentum(self, current_date: datetime=None):
         pass
 
-    def adjust_weights(self, current_date, selected_assets=None, selected_out_of_market_assets=None) -> dict:
+    def adjust_weights(
+            self, current_date: datetime, selected_assets: pd.DataFrame =None, selected_out_of_market_assets: pd.DataFrame=None
+    ) -> dict:
         """
         Adjusts the weights of the assets based on their SMA and the selected weighting strategy.
 
@@ -77,7 +87,7 @@ class MovingAverageBacktestProcessor(BacktestingProcessor):
             Dictionary of adjusted asset weights.
         """
         adjusted_weights = self.assets_weights.copy() if selected_assets is None else selected_assets.copy()
-
+        # NOTE this can be a utilities method
         def get_replacement_asset():
             """
             Determines the replacement asset (cash or bond) based on SMA.
@@ -92,6 +102,7 @@ class MovingAverageBacktestProcessor(BacktestingProcessor):
                     return self.bond_ticker
             return self.cash_ticker if self.cash_ticker in self.cash_data.columns else None
 
+        # NOTE this can be a utilities method
         def is_below_ma(ticker, data):
             """
             Checks if the price of the given ticker is below its moving average.
@@ -142,44 +153,3 @@ class MovingAverageBacktestProcessor(BacktestingProcessor):
                 adjusted_weights[ticker] /= total_weight
 
         return adjusted_weights
-
-    def run_backtest(self):
-        """
-        Runs the backtest by calculating portfolio values and returns over time.
-        """
-        monthly_dates = pd.date_range(start=self.start_date, end=self.end_date, freq='M')
-        portfolio_values = [self.initial_portfolio_value]
-        portfolio_returns = []
-        all_adjusted_weights = []
-
-        if self.trading_frequency == "Monthly":
-            step = 1
-        elif self.trading_frequency == "Bi-Monthly":
-            step = 2
-        elif self.trading_frequency == "Quarterly":
-            step = 3
-        elif self.trading_frequency == "Yearly":
-            step = 12
-        else:
-            raise ValueError("Invalid trading frequency. Choose 'Monthly', 'Bi-Monthly', 'Quarterly', or 'Yearly'.")
-
-        for i in range(0, len(monthly_dates), step):
-            current_date = monthly_dates[i]
-            last_date_current_month = self.trading_data.index[self.trading_data.index.get_loc(current_date, method='pad')]
-            adjusted_weights = self.adjust_weights(last_date_current_month)
-            for j in range(step):
-                if i + j >= len(monthly_dates) - 1:
-                    break
-                next_date = monthly_dates[i + j + 1]
-                last_date_next_month = self.trading_data.index[self.trading_data.index.get_loc(next_date, method='pad')]
-                month_end_data = self.trading_data.loc[last_date_current_month]
-                next_month_end_data = self.trading_data.loc[last_date_next_month]
-                monthly_returns = (next_month_end_data / month_end_data) - 1
-                month_return = sum([monthly_returns.get(ticker, 0) * weight for ticker, weight in adjusted_weights.items()])
-                new_portfolio_value = portfolio_values[-1] * (1 + month_return)
-                portfolio_values.append(new_portfolio_value)
-                portfolio_returns.append(month_return)
-                last_date_current_month = last_date_next_month
-            all_adjusted_weights.append(adjusted_weights)
-
-        return all_adjusted_weights, portfolio_values, portfolio_returns

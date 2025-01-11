@@ -60,6 +60,12 @@ class BacktestingProcessor(ABC):
         """
         pass
 
+    @abstractmethod
+    def get_portfolio_assets_and_weights(self):
+        """
+        Abstract method to encapsulate monthly asset selection.
+        """
+        pass
 
     @abstractmethod
     def calculate_momentum(self, current_date: datetime.date) -> float:
@@ -77,7 +83,6 @@ class BacktestingProcessor(ABC):
             Momentum value for the current date.
         """
         pass
-
 
     @abstractmethod
     def adjust_weights(
@@ -105,12 +110,48 @@ class BacktestingProcessor(ABC):
         pass
 
 
-    @staticmethod
     def run_backtest(self):
         """
-        Executes the backtest by iterating over the time period and rebalancing portfolio as per the strategy.
+        Runs the backtest by calculating portfolio values and returns over time.
         """
-        pass
+        monthly_dates = pd.date_range(start=self.start_date, end=self.end_date, freq='M')
+        portfolio_values = [self.initial_portfolio_value]
+        portfolio_returns = []
+        all_adjusted_weights = []
+
+        if self.trading_frequency == "Monthly":
+            step = 1
+        elif self.trading_frequency == "Bi-Monthly":
+            step = 2
+        elif self.trading_frequency == "Quarterly":
+            step = 3
+        elif self.trading_frequency == "Yearly":
+            step = 12
+        else:
+            raise ValueError("Invalid trading frequency. Choose 'Monthly', 'Bi-Monthly', 'Quarterly', or 'Yearly'.")
+
+        for i in range(0, len(monthly_dates), step):
+            current_date = monthly_dates[i]
+            last_date_current_month = self.trading_data.index[self.trading_data.index.get_loc(current_date, method='pad')]
+
+            adjusted_weights=self.get_portfolio_assets_and_weights(current_date=last_date_current_month)
+
+            for j in range(step):
+                if i + j >= len(monthly_dates) - 1:
+                    break
+                next_date = monthly_dates[i + j + 1]
+                last_date_next_month = self.trading_data.index[self.trading_data.index.get_loc(next_date, method='pad')]
+                month_end_data = self.trading_data.loc[last_date_current_month]
+                next_month_end_data = self.trading_data.loc[last_date_next_month]
+                monthly_returns = (next_month_end_data / month_end_data) - 1
+                month_return = sum([monthly_returns.get(ticker, 0) * weight for ticker, weight in adjusted_weights.items()])
+                new_portfolio_value = portfolio_values[-1] * (1 + month_return)
+                portfolio_values.append(new_portfolio_value)
+                portfolio_returns.append(month_return)
+                last_date_current_month = last_date_next_month
+            all_adjusted_weights.append(adjusted_weights)
+
+        return all_adjusted_weights, portfolio_values, portfolio_returns
 
 
     def _persist_portfolio_data(
@@ -218,7 +259,6 @@ class BacktestingProcessor(ABC):
     
             self.data_models.benchmark_values = pd.Series(benchmark_values, index=monthly_dates[:len(benchmark_values)])
             self.data_models.benchmark_returns = pd.Series(benchmark_returns, index=monthly_dates[1:len(benchmark_returns)+1])
-
 
 
     def persist_data(self):
