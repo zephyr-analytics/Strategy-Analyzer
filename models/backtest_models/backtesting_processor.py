@@ -86,26 +86,24 @@ class BacktestingProcessor(ABC):
 
     @abstractmethod
     def adjust_weights(
-        self,
-        current_date: datetime.date,
-        selected_assets: pd.DataFrame,
-        selected_out_of_market_assets: pd.DataFrame
-        ) -> Dict[str, float]:
+            self, current_date: datetime, selected_assets: pd.DataFrame =None, selected_out_of_market_asset: pd.DataFrame=None
+    ) -> dict:
         """
-        Adjusts portfolio weights based on asset performance and strategy.
+        Adjusts the weights of the assets based on their SMA and the selected weighting strategy.
 
         Parameters
         ----------
-        current_date : datetime.date
+        current_date : datetime
             The current date for which the weights are being adjusted.
-        selected_assets : DataFrame
-            DataFrame containing selected assets and their weights.
-        _out_of_market_assets : DataFrame
-            DataFrame containing selected assets for out of market and their weights.
+        selected_assets : dict or None
+            Optional preselected assets with weights. If None, uses `self.assets_weights`.
+        selected_out_of_market_asset : dict or None
+            Optional out-of-market assets to be used when replacing assets.
+
         Returns
         -------
         dict
-            Dictionary of adjusted weights.
+            Dictionary of adjusted asset weights.
         """
         pass
 

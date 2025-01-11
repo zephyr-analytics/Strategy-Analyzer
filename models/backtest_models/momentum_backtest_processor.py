@@ -89,17 +89,19 @@ class MomentumBacktestProcessor(BacktestingProcessor):
         return (momentum_3m + momentum_6m + momentum_9m + momentum_12m) / 4
 
     def adjust_weights(
-            self, current_date: datetime, selected_assets: pd.DataFrame, selected_out_of_market_assets: pd.DataFrame=None
+            self, current_date: datetime, selected_assets: pd.DataFrame =None, selected_out_of_market_assets: pd.DataFrame=None
     ) -> dict:
         """
-        Adjusts the weights of the selected assets based on their SMA and the selected weighting strategy.
+        Adjusts the weights of the assets based on their SMA and the selected weighting strategy.
 
         Parameters
         ----------
         current_date : datetime
             The current date for which the weights are being adjusted.
-        selected_assets : DataFrame
-            DataFrame of selected assets and their weights.
+        selected_assets : dict or None
+            Optional preselected assets with weights. If None, uses `self.assets_weights`.
+        selected_out_of_market_assets : dict or None
+            Optional out-of-market assets to be used when replacing assets.
 
         Returns
         -------
