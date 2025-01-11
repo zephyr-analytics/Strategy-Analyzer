@@ -7,7 +7,6 @@ import multiprocessing
 import customtkinter as ctk
 
 import utilities
-
 from gui import *
 from data.portfolio_data import PortfolioData
 from models.models_data import ModelsData
