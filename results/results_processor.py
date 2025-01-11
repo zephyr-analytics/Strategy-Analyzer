@@ -9,13 +9,15 @@ import plotly.graph_objects as go
 
 import utilities as utilities
 from models.models_data import ModelsData
+from results.models_results import ModelsResults
+
 
 class ResultsProcessor:
     """
     A class to process and visualize the results of portfolio backtests and simulations.
     """
 
-    def __init__(self, data_models: ModelsData):
+    def __init__(self, models_data: ModelsData, models_results: ModelsResults):
         """
         Initializes the ResultsProcessor with the data from ModelsData.
 
@@ -25,25 +27,8 @@ class ResultsProcessor:
             An instance of the ModelsData class containing all
             relevant parameters and data for processing results.
         """
-        self.data_models = data_models
-        self.output_filename = data_models.weights_filename
-        self.portfolio_values = data_models.portfolio_values
-        self.trading_frequency = data_models.trading_frequency
-        self.portfolio_returns = data_models.portfolio_returns
-        self.cagr = data_models.cagr
-        self.max_drawdown = data_models.max_drawdown
-        self.var = data_models.var
-        self.cvar = data_models.cvar
-        self.avg_annual_return = data_models.average_annual_return
-        self.standard_deviation = data_models.annual_volatility
-        self.buy_and_hold_values = data_models.buy_and_hold_values
-        self.weights_filename = data_models.weights_filename
-        self.num_assets = data_models.num_assets_to_select
-        self.processing_type = data_models.processing_type
-        self.ma_window = data_models.ma_window
-        self.theme = data_models.theme_mode
-        self.ma_type = data_models.ma_type
-        self.benchmark_values = data_models.benchmark_values
+        self.data_models = models_data
+        self.results_models = models_results
 
 
     def plot_portfolio_value(self, filename='portfolio_value'):
@@ -56,10 +41,10 @@ class ResultsProcessor:
         filename : str, optional
             The name of the file to save the plot. Default is 'portfolio_value.html'.
         """
-        portfolio_value = self.portfolio_values
+        portfolio_value = self.results_models.portfolio_values
         final_value = portfolio_value.iloc[-1]
-        
-        if self.theme.lower() == "dark":
+
+        if self.data_models.theme_mode.lower() == "dark":
             line_color = "white"
         else:
             line_color = "black" 
@@ -74,21 +59,21 @@ class ResultsProcessor:
             line=dict(color=line_color)
         ))
 
-        if self.buy_and_hold_values is not None:
-            final_bnh_value = self.buy_and_hold_values.iloc[-1]
+        if self.results_models.buy_and_hold_values is not None:
+            final_bnh_value = self.results_models.buy_and_hold_values.iloc[-1]
             fig.add_trace(go.Scatter(
-                x=self.buy_and_hold_values.index,
-                y=self.buy_and_hold_values,
+                x=self.results_models.buy_and_hold_values.index,
+                y=self.results_models.buy_and_hold_values,
                 mode='lines',
                 name='Buy & Hold Value',
                 line=dict(color="#ce93d8")
             ))
 
-        if self.benchmark_values is not None and not self.benchmark_values.empty:
-            final_benchmark_value = self.benchmark_values.iloc[-1]
+        if self.results_models.benchmark_values is not None and not self.results_models.benchmark_values.empty:
+            final_benchmark_value = self.results_models.benchmark_values.iloc[-1]
             fig.add_trace(go.Scatter(
-                x=self.benchmark_values.index,
-                y=self.benchmark_values,
+                x=self.results_models.benchmark_values.index,
+                y=self.results_models.benchmark_values,
                 mode='lines',
                 name='Benchmark Value',
                 line=dict(color="#9b4aa5")
@@ -105,27 +90,27 @@ class ResultsProcessor:
             dict(
                 xref='paper', yref='paper', x=0.4, y=1,
                 xanchor='center', yanchor='bottom',
-                text=f'CAGR: {self.cagr:.2%}',
+                text=f'CAGR: {self.results_models.cagr:.2%}',
                 showarrow=False,
                 font=dict(size=12)
             ),
             dict(
                 xref='paper', yref='paper', x=0.6, y=1,
                 xanchor='center', yanchor='bottom',
-                text=f'Max Drawdown: {self.max_drawdown:.2%}',
+                text=f'Max Drawdown: {self.results_models.max_drawdown:.2%}',
                 showarrow=False,
                 font=dict(size=12)
             ),
             dict(
                 xref='paper', yref='paper', x=0.8, y=1,
                 xanchor='center', yanchor='bottom',
-                text=f'Standard Deviation: {self.standard_deviation:.2%}',
+                text=f'Standard Deviation: {self.results_models.standard_deviation:.2%}',
                 showarrow=False,
                 font=dict(size=12)
             )
         ]
 
-        if self.buy_and_hold_values is not None:
+        if self.results_models.buy_and_hold_values is not None:
             annotations.append(
                 dict(
                     xref='paper', yref='paper', x=0.25, y=0.95,
@@ -136,7 +121,7 @@ class ResultsProcessor:
                 )
             )
 
-        if self.benchmark_values is not None and not self.benchmark_values.empty:
+        if self.results_models.benchmark_values is not None and not self.results_models.benchmark_values.empty:
             annotations.append(
                 dict(
                     xref='paper', yref='paper', x=0.5, y=0.95,
@@ -159,12 +144,12 @@ class ResultsProcessor:
             )
         )
 
-        chart_theme = "plotly_dark" if self.theme.lower() == "dark" else "plotly"
+        chart_theme = "plotly_dark" if self.data_models.theme_mode.lower() == "dark" else "plotly"
 
         fig.update_layout(
             template=chart_theme,
             title=dict(
-                text=f'Portfolio Value: {self.output_filename}, Assets: {self.num_assets}, Trading Freq: {self.trading_frequency}',
+                text=f'Portfolio Value: {self.data_models.weights_filename}, Assets: {self.data_models.num_assets_to_select}, Trading Freq: {self.data_models.trading_frequency}',
                 x=0.5,
                 y=1,
                 xanchor='center',
@@ -185,12 +170,12 @@ class ResultsProcessor:
         utilities.save_html(
             fig,
             filename,
-            self.weights_filename,
-            self.ma_type,
-            self.processing_type,
-            self.num_assets,
-            self.ma_window,
-            self.trading_frequency
+            self.data_models.weights_filename,
+            self.data_models.ma_type,
+            self.data_models.processing_type,
+            self.data_models.num_assets_to_select,
+            self.data_models.ma_window,
+            self.data_models.trading_frequency
         )
 
 
@@ -327,9 +312,9 @@ class ResultsProcessor:
         average_simulation = simulation_results.mean(axis=1)
         lower_bound = np.percentile(simulation_results, 5, axis=1)
         upper_bound = np.percentile(simulation_results, 95, axis=1)
-        average_cagr = utilities.calculate_cagr_monte_carlo(pd.Series(average_simulation))
-        lower_cagr = utilities.calculate_cagr_monte_carlo(pd.Series(lower_bound))
-        upper_cagr = utilities.calculate_cagr_monte_carlo(pd.Series(upper_bound))
+        average_cagr = utilities.calculate_cagr(pd.Series(average_simulation))
+        lower_cagr = utilities.calculate_cagr(pd.Series(lower_bound))
+        upper_cagr = utilities.calculate_cagr(pd.Series(upper_bound))
         average_end_value = pd.Series(average_simulation).iloc[-1]
         lower_end_value = pd.Series(lower_bound).iloc[-1]
         upper_end_value = pd.Series(upper_bound).iloc[-1]

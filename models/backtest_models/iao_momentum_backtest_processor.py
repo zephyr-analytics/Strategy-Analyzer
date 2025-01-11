@@ -49,7 +49,7 @@ class IAOMomentumBacktestProcessor(BacktestingProcessor):
         self._calculate_benchmark()
         self.persist_data()
         if self.processing_type.endswith("BACKTEST"):
-            results_processor = ResultsProcessor(self.data_models)
+            results_processor = ResultsProcessor(models_data=self.data_models, models_results=self.results_models)
             results_processor.plot_portfolio_value()
             results_processor.plot_var_cvar()
             results_processor.plot_returns_heatmaps()
