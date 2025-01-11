@@ -2,6 +2,8 @@
 Abstract module for processing parameter tuning.
 """
 
+import json
+import os
 from abc import ABC, abstractmethod
 
 import utilities as utilities
@@ -24,30 +26,46 @@ class ParameterTuningProcessor(ABC):
         """
         self.data_models = models_data
         self.data_portfolio = portfolio_data
+        self.theme = models_data.theme_mode
+        self.portfolio_name = models_data.weights_filename
 
     @abstractmethod
     def process(self):
         """
         Abstract method to process data and generate trading signals.
         """
-        pass
+        results = self.get_portfolio_results()
+        self.plot_results(results=results)
+        self.persist_results(results=results)
 
     @abstractmethod
     def get_portfolio_results(self):
         """
         Abstract method to generate trading results for all parameters.
         """
-        pass
 
     @abstractmethod
     def plot_results(self, results: dict):
         """
         """
-        pass
 
-    @abstractmethod
     def persist_results(self, results: dict):
         """
         Persists the results dictionary as a JSON file.
+
+        Parameters
+        ----------
+        results : dict
+            The dictionary containing momentum backtest results and portfolio statistics.
         """
-        pass
+        current_directory = os.getcwd()
+        artifacts_directory = os.path.join(current_directory, "artifacts", "data")
+        os.makedirs(artifacts_directory, exist_ok=True)
+
+        full_path = os.path.join(artifacts_directory, "momentum_parameter_tune.json")
+        results_serializable = {
+            f"MA_{key[0]}_Freq_{key[1]}_Assets_{key[2]}": value for key, value in results.items()
+        }
+        with open(full_path, 'w') as json_file:
+            json.dump(results_serializable, json_file, indent=4)
+        print(f"Results successfully saved to {full_path}")

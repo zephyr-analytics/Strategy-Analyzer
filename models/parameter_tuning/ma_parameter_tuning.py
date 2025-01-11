@@ -29,18 +29,16 @@ class MovingAverageParameterTuning(ParameterTuningProcessor):
             An instance of the ModelsData class that holds all necessary attributes.
         """
         super().__init__(models_data=models_data, portfolio_data=portfolio_data)
-        self.theme = models_data.theme_mode
-        self.portfolio_name = models_data.weights_filename
-
-    def process(self):
-        """
-        Method for processing within the momentum parameter tuning class.
-        """
-        results = self.get_portfolio_results()
-        self.plot_results(results=results)
-        self.persist_results(results=results)
 
     def get_portfolio_results(self) -> dict:
+        """
+        Processes parameters for tuning using joblib to parallelize execution.
+
+        Returns
+        -------
+        dict
+            A dictionary of backtest results and portfolio statistics from parameter tuning.
+        """
         results = {}
         ma_list = [21, 42, 63, 84, 105, 126, 147, 168, 189, 210, 231, 252]
         trading_frequencies = ["Monthly", "Bi-Monthly", "Quarterly", "Yearly"]
@@ -161,22 +159,3 @@ class MovingAverageParameterTuning(ParameterTuningProcessor):
         )
 
         utilities.save_fig(fig, self.data_models.weights_filename, self.data_models.processing_type)
-
-    def persist_results(self, results: dict):
-        """
-        Persists the results dictionary as a JSON file.
-
-        Parameters
-        ----------
-        results : dict
-            The dictionary containing momentum backtest results and portfolio statistics.
-        """
-        current_directory = os.getcwd()
-        artifacts_directory = os.path.join(current_directory, "artifacts", "data")
-        os.makedirs(artifacts_directory, exist_ok=True)
-
-        full_path = os.path.join(artifacts_directory, "sma_parameter_tune.json")
-        results_serializable = {f"MA_{key[0]}_Freq_{key[1]}": value for key, value in results.items()}
-        with open(full_path, 'w') as json_file:
-            json.dump(results_serializable, json_file, indent=4)
-        print(f"Results successfully saved to {full_path}")
