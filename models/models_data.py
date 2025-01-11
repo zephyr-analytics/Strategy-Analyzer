@@ -48,7 +48,7 @@ class ModelsData:
         self._contribution = None
         self._contribution_frequency = None
         self._return_metric = None
-        self._risk_metric = None
+        self._risk_metric = "Max Drawdown"
         self._risk_tolerance = float(0.10)
         self._negative_mom = True
         self._ma_type = str

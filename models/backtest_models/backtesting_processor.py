@@ -40,6 +40,7 @@ class BacktestingProcessor(ABC):
         self.ma_threshold_asset = str(self.data_models.ma_threshold_asset)
         self.processing_type = self.data_models.processing_type
         self.ma_type = self.data_models.ma_type
+        self.risk_metric = self.data_models.risk_metric
         self.benchmark_asset = self.data_models.benchmark_asset
         self.out_of_market_tickers = self.data_models.out_of_market_tickers
         self.filter_negative_momentum = self.data_models.negative_mom
@@ -51,6 +52,8 @@ class BacktestingProcessor(ABC):
         self.cash_data = portfolio_data.cash_data
         self.ma_threshold_data = portfolio_data.ma_threshold_data
         self.out_of_market_data = portfolio_data.out_of_market_data
+
+        self.return_data = self.trading_data.pct_change().dropna()
 
 
     @abstractmethod
@@ -107,6 +110,25 @@ class BacktestingProcessor(ABC):
         """
         pass
 
+    
+    def calculate_weighting(self, adjusted_weights):
+        """
+        """
+        if self.risk_metric == "Standard Deviation":
+            utilities.calculate_standard_deviation_weighting(
+                returns_df=self.return_data, weights=adjusted_weights, cash_ticker=self.cash_ticker, bond_ticker=self.bond_ticker
+            )
+        if self.risk_metric == "Conditional Value at Risk":
+            utilities.calculate_conditional_value_at_risk_weighting(
+                returns_df=self.return_data, weights=adjusted_weights, cash_ticker=self.cash_ticker, bond_ticker=self.bond_ticker
+            )
+        if self.risk_metric == "Max Drawdown":
+            utilities.calculate_max_drawdown_weighting(
+                returns_df=self.return_data, weights=adjusted_weights, cash_ticker=self.cash_ticker, bond_ticker=self.bond_ticker
+            )
+
+        return adjusted_weights
+
 
     def run_backtest(self):
         """
@@ -147,7 +169,7 @@ class BacktestingProcessor(ABC):
                 portfolio_values.append(new_portfolio_value)
                 portfolio_returns.append(month_return)
                 last_date_current_month = last_date_next_month
-            all_adjusted_weights.append(adjusted_weights)
+                all_adjusted_weights.append(adjusted_weights)
 
         return all_adjusted_weights, portfolio_values, portfolio_returns
 
