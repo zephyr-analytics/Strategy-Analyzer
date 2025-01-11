@@ -91,9 +91,7 @@ class StrategyAnalyzer(ctk.CTk):
         active_tab = self.high_level_tab_control.get()
         # if active_tab == "Economics":
         #     self.economic_tab.update_tab()
-        if active_tab == "Initial Testing Setup":
-            self.setup_tab.update_tab()
-        elif active_tab == "Testing":
+        if active_tab == "Testing":
             self.testing_tab.update_tab()
 
 def main():

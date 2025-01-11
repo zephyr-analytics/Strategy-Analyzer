@@ -17,7 +17,6 @@ class SetupTab:
     """
     Handles the layout and functionality of the Initial Testing Setup parent.
     """
-
     def __init__(self, parent, models_data: ModelsData, portfolio_data: PortfolioData):
         self.data_models = models_data
         self.data_portfolio = portfolio_data
@@ -25,32 +24,32 @@ class SetupTab:
         self.parent = parent
         self.bold_font = ctk.CTkFont(size=12, weight="bold", family="Arial")
 
-        self.start_date_var = ctk.StringVar(value=self.data_models.start_date)
-        self.end_date_var = ctk.StringVar(value=self.data_models.end_date)
-        self.cash_ticker_var = ctk.StringVar(value=self.data_models.cash_ticker)
-        self.bond_ticker_var = ctk.StringVar(value=self.data_models.bond_ticker)
-        self.trading_frequency_var = ctk.StringVar(value=self.data_models.trading_frequency)
-        self.weighting_strategy_var = ctk.StringVar(value=self.data_models.weighting_strategy)
-        self.ma_window_var = ctk.StringVar()
-        self.num_simulations_var = ctk.StringVar(value=self.data_models.num_simulations)
-        self.simulation_horizon_entry_var = ctk.StringVar(value=self.data_models.simulation_horizon)
-        self.benchmark_asset_entry_var = ctk.StringVar()
-        self.contribution_entry_var = ctk.StringVar(value=self.data_models.contribution)
-        self.contribution_frequency_var = ctk.StringVar(value=self.data_models.contribution_frequency)
-        self.risk_tolerance_var = ctk.StringVar(value=self.data_models.risk_tolerance)
-        self.risk_metric_var = ctk.StringVar(value=self.data_models.risk_metric)
-        self.return_metric_var = ctk.StringVar(value=self.data_models.return_metric)
-        self.ma_type_var = ctk.StringVar()
-        # TODO this needs to be added to the UI.
-        self.initial_portfolio_value_var = ctk.StringVar(
-            value=self.data_models._initial_portfolio_value
-        )
-        self.ma_threshold_asset_entry_var = ctk.StringVar()
-        self.num_assets_to_select_entry_var = ctk.StringVar(
-            value=self.data_models.num_assets_to_select
-        )
-        self.mom_threshold_asset_entry_var = ctk.StringVar()
-        self.negative_mom_var = ctk.StringVar()
+        # self.start_date_var = ctk.StringVar(value=self.data_models.start_date)
+        # self.end_date_var = ctk.StringVar(value=self.data_models.end_date)
+        # self.cash_ticker_var = ctk.StringVar(value=self.data_models.cash_ticker)
+        # self.bond_ticker_var = ctk.StringVar(value=self.data_models.bond_ticker)
+        # self.trading_frequency_var = ctk.StringVar(value=self.data_models.trading_frequency)
+        # self.weighting_strategy_var = ctk.StringVar(value=self.data_models.weighting_strategy)
+        # self.ma_window_var = ctk.StringVar()
+        # self.num_simulations_var = ctk.StringVar(value=self.data_models.num_simulations)
+        # self.simulation_horizon_entry_var = ctk.StringVar(value=self.data_models.simulation_horizon)
+        # self.benchmark_asset_entry_var = ctk.StringVar()
+        # self.contribution_entry_var = ctk.StringVar(value=self.data_models.contribution)
+        # self.contribution_frequency_var = ctk.StringVar(value=self.data_models.contribution_frequency)
+        # self.risk_tolerance_var = ctk.StringVar(value=self.data_models.risk_tolerance)
+        # self.risk_metric_var = ctk.StringVar(value=self.data_models.risk_metric)
+        # self.return_metric_var = ctk.StringVar(value=self.data_models.return_metric)
+        # self.ma_type_var = ctk.StringVar()
+
+        # self.initial_portfolio_value_var = ctk.StringVar(
+        #     value=self.data_models._initial_portfolio_value
+        # )
+        # self.ma_threshold_asset_entry_var = ctk.StringVar()
+        # self.num_assets_to_select_entry_var = ctk.StringVar(
+        #     value=self.data_models.num_assets_to_select
+        # )
+        # self.mom_threshold_asset_entry_var = ctk.StringVar()
+        # self.negative_mom_var = ctk.StringVar()
         self.bold_font = ctk.CTkFont(size=12, weight="bold", family="Arial")
         self.bottom_text_frame = ctk.CTkFrame(self.parent, fg_color="transparent")
         self.create_initial_testing_tab(self.parent)
@@ -266,7 +265,9 @@ class SetupTab:
         ma_frame.grid_columnconfigure(2, weight=1)
         ma_frame.grid_columnconfigure(3, weight=1)
 
-        ctk.CTkLabel(ma_frame, text="Moving Average Window (days):", font=self.bold_font).grid(row=ma_frame_rows, column=0, sticky="e", padx=5)
+        ctk.CTkLabel(
+            ma_frame, text="Moving Average Window (days):", font=self.bold_font
+        ).grid(row=ma_frame_rows, column=0, sticky="e", padx=5)
         ma_windows = ["21", "42", "63", "84", "105", "126", "147", "168", "189", "210", "231", "252"]
         ctk.CTkOptionMenu(
             ma_frame,
@@ -279,12 +280,18 @@ class SetupTab:
         ).grid(row=ma_frame_rows, column=1, sticky="w", padx=5, pady=y_padding)
         self.ma_window_var.trace_add("write", self.update_ma_window)
 
-        ctk.CTkLabel(ma_frame, text="Moving Average Threshold Asset:", font=self.bold_font).grid(row=ma_frame_rows, column=2, sticky="e", padx=5)
-        ctk.CTkEntry(ma_frame, textvariable=self.ma_threshold_asset_entry_var).grid(row=ma_frame_rows, column=3, sticky="w", padx=5, pady=y_padding)
+        ctk.CTkLabel(
+            ma_frame, text="Moving Average Threshold Asset:", font=self.bold_font
+        ).grid(row=ma_frame_rows, column=2, sticky="e", padx=5)
+        ctk.CTkEntry(
+            ma_frame, textvariable=self.ma_threshold_asset_entry_var
+        ).grid(row=ma_frame_rows, column=3, sticky="w", padx=5, pady=y_padding)
         self.ma_threshold_asset_entry_var.trace_add("write", self.update_threshold_asset)
         ma_frame_rows += 1
 
-        ctk.CTkLabel(ma_frame, text="Moving Average Type:", font=self.bold_font).grid(row=ma_frame_rows, column=0, sticky="e", padx=5)
+        ctk.CTkLabel(
+            ma_frame, text="Moving Average Type:", font=self.bold_font
+        ).grid(row=ma_frame_rows, column=0, sticky="e", padx=5)
         ma_types = ["SMA", "EMA"]
         ctk.CTkOptionMenu(
             ma_frame,
@@ -334,6 +341,7 @@ class SetupTab:
             momentum_frame, text="Remove Negative Momentum:", font=self.bold_font
         ).grid(row=momentum_frame_rows, column=0, sticky="e", padx=5)
         negative_mom_allowed = ["True", "False"]
+        negative_mom_var = ctk.StringVar()
         ctk.CTkOptionMenu(
             momentum_frame,
             values=negative_mom_allowed,
@@ -341,9 +349,11 @@ class SetupTab:
             text_color="#000000",
             button_color="#8e44ad",
             button_hover_color="#8e44ad",
-            variable=self.negative_mom_var
+            variable=negative_mom_var
         ).grid(row=momentum_frame_rows, column=1, sticky="w", padx=5, pady=y_padding)
-        self.negative_mom_var.trace_add("write", self.update_negative_mom)
+        negative_mom_var.trace_add(
+            "write", self.update_models_data("negative_mom", negative_mom_var)
+        )
 
 
         # Monte Carlo Settings
@@ -368,30 +378,42 @@ class SetupTab:
         ctk.CTkLabel(
             monte_carlo_frame, text="Simulation Horizon:", font=self.bold_font
         ).grid(row=monte_carlo_frame_rows, column=0, sticky="e", padx=5)
+        simulation_horizon_entry_var = ctk.StringVar()
         ctk.CTkEntry(
-            monte_carlo_frame, textvariable=self.simulation_horizon_entry_var
+            monte_carlo_frame, textvariable=simulation_horizon_entry_var
         ).grid(row=monte_carlo_frame_rows, column=1, sticky="w", padx=5, pady=y_padding)
-        self.simulation_horizon_entry_var.trace_add("write", self.update_simulation_horizon)
+        simulation_horizon_entry_var.trace_add(
+            "write", self.update_models_data("simulation_horizon", simulation_horizon_entry_var)
+        )
 
         ctk.CTkLabel(
             monte_carlo_frame, text="Number Simulations To Run:", font=self.bold_font
         ).grid(row=monte_carlo_frame_rows, column=2, sticky="e", padx=5)
+        num_simulations_var = ctk.StringVar()
         ctk.CTkEntry(
-            monte_carlo_frame, textvariable=self.num_simulations_var
+            monte_carlo_frame, textvariable=num_simulations_var
         ).grid(row=monte_carlo_frame_rows, column=3, sticky="w", padx=5, pady=y_padding)
-        self.num_simulations_var.trace_add("write", self.update_num_simulations)
+        num_simulations_var.trace_add(
+            "write", self.update_models_data("num_simulation", num_simulations_var)
+        )
         monte_carlo_frame_rows += 1
 
         ctk.CTkLabel(
             monte_carlo_frame, text="Contribution:", font=self.bold_font
         ).grid(row=monte_carlo_frame_rows, column=0, sticky="e", padx=5)
+        contribution_entry_var = ctk.StringVar()
         ctk.CTkEntry(
-            monte_carlo_frame, textvariable=self.contribution_entry_var
+            monte_carlo_frame, textvariable=contribution_entry_var
         ).grid(row=monte_carlo_frame_rows, column=1, sticky="w", padx=5, pady=y_padding)
-        self.contribution_entry_var.trace_add("write", self.update_contribution)
+        contribution_entry_var.trace_add(
+            "write", self.update_models_data("contribution", contribution_entry_var)
+        )
 
-        ctk.CTkLabel(monte_carlo_frame, text="Contribution Frequency:", font=self.bold_font).grid(row=monte_carlo_frame_rows, column=2, sticky="e", padx=5)
+        ctk.CTkLabel(
+            monte_carlo_frame, text="Contribution Frequency:", font=self.bold_font
+        ).grid(row=monte_carlo_frame_rows, column=2, sticky="e", padx=5)
         contribution_freq = ["Monthly", "Quarterly", "Yearly"]
+        contribution_freq_var = ctk.StringVar()
         ctk.CTkOptionMenu(
             monte_carlo_frame,
             values=contribution_freq,
@@ -399,10 +421,12 @@ class SetupTab:
             text_color="#000000",
             button_color="#8e44ad",
             button_hover_color="#8e44ad",
-            variable=self.contribution_frequency_var
+            variable=contribution_freq_var
         ).grid(row=monte_carlo_frame_rows, column=3, sticky="w", padx=5, pady=y_padding)
-        self.contribution_frequency_var.trace_add("write", self.update_contribution_frequency)
-        
+        contribution_freq_var.trace_add(
+            "write", self.update_models_data("contribution_frequency", contribution_freq_var)
+        )
+
         ctk.CTkButton(
             parent,
             text="Launch Multi Portfolio",
@@ -411,45 +435,6 @@ class SetupTab:
             hover_color="#8e44ad",
             command=self.launch_multiportfolio,
         ).pack()
-
-
-        # parameter_frame = ctk.CTkFrame(parent, fg_color="#f5f5f5")
-        # parameter_frame.pack(fill="x", pady=10, padx=10)
-        # ctk.CTkLabel(parameter_frame, text="Parameter Tuning Settings", font=self.bold_font).grid(row=0, column=0, columnspan=4, sticky="ew", pady=5)
-        # parameter_frame.grid_columnconfigure(0, weight=1)
-        # parameter_frame.grid_columnconfigure(1, weight=1)
-        # parameter_frame.grid_columnconfigure(2, weight=1)
-        # parameter_frame.grid_columnconfigure(3, weight=1)
-
-        # ctk.CTkLabel(parameter_frame, text="Return Metric:", font=self.bold_font).grid(row=1, column=0, sticky="e", padx=5)
-        # contribution_freq = ["cagr", "average_annual_return"]
-        # ctk.CTkOptionMenu(
-        #     parameter_frame,
-        #     values=contribution_freq,
-        #     fg_color="#bb8fce",
-        #     text_color="#000000",
-        #     button_color="#8e44ad",
-        #     button_hover_color="#8e44ad",
-        #     variable=self.return_metric_var
-        # ).grid(row=1, column=1, sticky="w", padx=5)
-        # self.return_metric_var.trace_add("write", self.update_return_metric)
-
-        # ctk.CTkLabel(parameter_frame, text="Risk Metric:", font=self.bold_font).grid(row=1, column=2, sticky="e", padx=5)
-        # contribution_freq = ["max_drawdown", "var", "cvar", "annual_volatility"]
-        # ctk.CTkOptionMenu(
-        #     parameter_frame,
-        #     values=contribution_freq,
-        #     fg_color="#bb8fce",
-        #     text_color="#000000",
-        #     button_color="#8e44ad",
-        #     button_hover_color="#8e44ad",
-        #     variable=self.risk_metric_var
-        # ).grid(row=1, column=3, sticky="w", padx=5)
-        # self.risk_metric_var.trace_add("write", self.update_risk_metric)
-
-        # ctk.CTkLabel(parameter_frame, text="Risk Tolerance:", font=self.bold_font).grid(row=2, column=0, sticky="e", padx=5)
-        # ctk.CTkEntry(parameter_frame, textvariable=self.risk_tolerance_var).grid(row=2, column=1, sticky="w", padx=5)
-        # self.risk_tolerance_var.trace_add("write", self.update_risk_tolerance)
 
         self.bottom_text_frame.pack(padx=5, pady=5)
         # Footer Section
@@ -465,6 +450,7 @@ class SetupTab:
 
     def launch_multiportfolio(self):
         """
+        Method to launch multi-portfolio analysis window.
         """
         root_window = ctk.CTk()
         InteractivePieChartApp(root=root_window)
@@ -472,12 +458,14 @@ class SetupTab:
 
     def obtain_data(self):
         """
+        Method to run data obtainment script.
         """
         data_obtain = DataObtainmentProcessor(models_data=self.data_models)
         data_obtain.process()
 
     def prepare_data(self):
         """
+        Method to run data preparation script.
         """
         data_prepare = DataPreparationProcessor(models_data=self.data_models, portfolio_data=self.data_portfolio)
         data_prepare.process()
@@ -541,126 +529,6 @@ class SetupTab:
         """
         self.data_models.out_of_market_tickers, self.file_name = utilities.load_weights()
 
-    def update_start_date(self, *args):
-        """
-        Updates the start date in the data model.
-
-        Parameters
-        ----------
-        *args : tuple
-            Additional arguments passed by the trace method.
-        """
-        _ = args
-        self.data_models.start_date = self.start_date_var.get()
-
-    def update_end_date(self, *args):
-        """
-        Updates the end date in the data model.
-
-        Parameters
-        ----------
-        *args : tuple
-            Additional arguments passed by the trace method.
-        """
-        _ = args
-        self.data_models.end_date = self.end_date_var.get()
-
-    def update_cash_ticker(self, *args):
-        """
-        Updates the cash ticker in the data model.
-
-        Parameters
-        ----------
-        *args : tuple
-            Additional arguments passed by the trace method.
-        """
-        _ = args
-        self.data_models.cash_ticker = self.cash_ticker_var.get()
-
-    def update_bond_ticker(self, *args):
-        """
-        Updates the bond ticker in the data model.
-
-        Parameters
-        ----------
-        *args : tuple
-            Additional arguments passed by the trace method.
-        """
-        _ = args
-        self.data_models.bond_ticker = self.bond_ticker_var.get()
-
-    def update_trading_frequency(self, *args):
-        """
-        Updates the trading frequency in the data model.
-
-        Parameters
-        ----------
-        *args : tuple
-            Additional arguments passed by the trace method.
-        """
-        _ = args
-        self.data_models.trading_frequency = self.trading_frequency_var.get()
-
-    def update_weighting_strategy(self, *args):
-        """
-        Updates the weighting strategy in the data model.
-
-        Parameters
-        ----------
-        *args : tuple
-            Additional arguments passed by the trace method.
-        """
-        _ = args
-        self.data_models.weighting_strategy = self.weighting_strategy_var.get()
-
-    def update_ma_window(self, *args):
-        """
-        Updates the SMA window in the data model.
-
-        Parameters
-        ----------
-        *args : tuple
-            Additional arguments passed by the trace method.
-        """
-        _ = args
-        self.data_models.ma_window = self.ma_window_var.get()
-
-    def update_num_simulations(self, *args):
-        """
-        Updates the number of simulations in the data model.
-
-        Parameters
-        ----------
-        *args : tuple
-            Additional arguments passed by the trace method.
-        """
-        _ = args
-        self.data_models.num_simulations = int(self.num_simulations_var.get())
-
-    def update_simulation_horizon(self, *args):
-        """
-        Updates the simulation horizon in the data model.
-
-        Parameters
-        ----------
-        *args : tuple
-            Additional arguments passed by the trace method.
-        """
-        _ = args
-        self.data_models.simulation_horizon = int(self.simulation_horizon_entry_var.get())
-
-    def update_initial_portfolio_value(self, *args):
-        """
-        Updates the initial portfolio value in the data model.
-
-        Parameters
-        ----------
-        *args : tuple
-            Additional arguments passed by the trace method.
-        """
-        _ = args
-        self.data_models.initial_portfolio_value = int(self.initial_portfolio_value_var.get())
-
     def update_theme_mode(self, *args):
         """
         Updates the theme mode in the data model.
@@ -674,140 +542,19 @@ class SetupTab:
         ctk.set_appearance_mode(self.theme_mode_var.get())
         self.data_models.theme_mode = self.theme_mode_var.get()
 
-    def update_mom_threshold_asset(self, *args):
+    def update_models_data(self, var_name, var_value, *args):
         """
-        Updates the threshold asset in the data model based on the entry box.
+        Dynamically updates the corresponding attribute in the data model based on the provided variable name.
 
         Parameters
         ----------
+        var_name : str
+            The name of the attribute in the data model to update.
+        var_value : Variable
+            The variable from which to get the updated value.
         *args : tuple
             Additional arguments passed by the trace method.
         """
         _ = args
-        self.data_models.mom_threshold_asset = str(self.mom_threshold_asset_entry_var.get())
-
-    def update_threshold_asset(self, *args):
-        """
-        Updates the threshold asset in the data model based on the entry box.
-
-        Parameters
-        ----------
-        *args : tuple
-            Additional arguments passed by the trace method.
-        """
-        _ = args
-        self.data_models.ma_threshold_asset = str(self.ma_threshold_asset_entry_var.get())
-
-    def update_benchmark_asset(self, *args):
-        """
-        Updates the benchmark asset in the data model based on the entry box.
-
-        Parameters
-        ----------
-        *args : tuple
-            Additional arguments passed by the trace method.
-        """
-        _ = args
-        self.data_models.benchmark_asset = str(self.benchmark_asset_entry_var.get())
-
-    def update_num_assets_to_select(self, *args):
-        """
-        Updates the threshold asset in the data model based on the entry box.
-
-        Parameters
-        ----------
-        *args : tuple
-            Additional arguments passed by the trace method.
-        """
-        _ = args
-        self.data_models.num_assets_to_select = str(self.num_assets_to_select_entry_var.get())
-
-    def update_contribution(self, *args):
-        """
-        Updates the contribution in the data model based on the entry box.
-
-        Parameters
-        ----------
-        *args : tuple
-            Additional arguments passed by the trace method.
-        """
-        _ = args
-        self.data_models.contribution = int(self.contribution_entry_var.get())
-
-    def update_contribution_frequency(self, *args):
-        """
-        Updates the contribution frequency in the data model based on the entry box.
-
-        Parameters
-        ----------
-        *args : tuple
-            Additional arguments passed by the trace method.
-        """
-        _ = args
-        self.data_models.contribution_frequency = str(self.contribution_frequency_var.get())
-
-    def update_risk_tolerance(self, *args):
-        """
-        Updates the contribution frequency in the data model based on the entry box.
-
-        Parameters
-        ----------
-        *args : tuple
-            Additional arguments passed by the trace method.
-        """
-        _ = args
-        self.data_models.risk_tolerance = float(self.risk_tolerance_var.get())
-
-    def update_risk_metric(self, *args):
-        """
-        Updates the contribution frequency in the data model based on the entry box.
-
-        Parameters
-        ----------
-        *args : tuple
-            Additional arguments passed by the trace method.
-        """
-        _ = args
-        self.data_models.risk_metric = str(self.risk_metric_var.get())
-
-    def update_return_metric(self, *args):
-        """
-        Updates the contribution frequency in the data model based on the entry box.
-
-        Parameters
-        ----------
-        *args : tuple
-            Additional arguments passed by the trace method.
-        """
-        _ = args
-        self.data_models.return_metric = str(self.return_metric_var.get())
-
-    def update_negative_mom(self, *args):
-        """
-        Updates the contribution frequency in the data model based on the entry box.
-
-        Parameters
-        ----------
-        *args : tuple
-            Additional arguments passed by the trace method.
-        """
-        _ = args
-        self.data_models.negative_mom = bool(self.negative_mom_var.get())
-
-    def update_ma_type(self, *args):
-        """
-        Updates the contribution frequency in the data model based on the entry box.
-
-        Parameters
-        ----------
-        *args : tuple
-            Additional arguments passed by the trace method.
-        """
-        _ = args
-        self.data_models.ma_type = str(self.ma_type_var.get())
-
-    def update_tab(self):
-        """
-        Method used by GUI to update tab components.
-        """
-        pass
+        value = var_value.get()
+        self.data_models[var_name] = value
