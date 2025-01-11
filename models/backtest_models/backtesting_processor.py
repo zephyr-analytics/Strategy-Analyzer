@@ -105,12 +105,41 @@ class BacktestingProcessor(ABC):
         pass
 
 
-    @abstractmethod
+    @staticmethod
     def run_backtest(self):
         """
         Executes the backtest by iterating over the time period and rebalancing portfolio as per the strategy.
         """
         pass
+
+
+    def _persist_portfolio_data(
+            self, all_adjusted_weights: pd.Series, portfolio_values: pd.Series, portfolio_returns: pd.Series
+    ):
+        """
+        Method to persist all data from the backtest to models_data for further analysis.
+
+        Parameters
+        ----------
+        all_adjusted_weights : pd.Series
+            Series of all weights and assets from the backtest.
+        portfolio_values : pd.Series
+            Series of all portfolio values from the backtest.
+        portfolio_returns : pd.Series
+            Series of all portfolio returns from the backtest.
+        """
+        self.data_models.adjusted_weights = pd.Series(
+            all_adjusted_weights,
+            index=pd.date_range(start=self.start_date, periods=len(all_adjusted_weights), freq="M")
+        )
+        self.data_models.portfolio_values = pd.Series(
+            portfolio_values,
+            index=pd.date_range(start=self.start_date, periods=len(portfolio_values), freq="M")
+        )
+        self.data_models.portfolio_returns = pd.Series(
+            portfolio_returns,
+            index=pd.date_range(start=self.start_date, periods=len(portfolio_returns), freq="M")
+        )
 
 
     def _get_portfolio_statistics(self):

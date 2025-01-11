@@ -6,7 +6,7 @@ import multiprocessing
 
 import customtkinter as ctk
 
-import utilities as utilities
+import utilities
 
 from gui import *
 from data.portfolio_data import PortfolioData
