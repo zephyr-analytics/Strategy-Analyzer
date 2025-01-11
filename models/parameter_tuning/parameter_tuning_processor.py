@@ -15,7 +15,6 @@ class ParameterTuningProcessor(ABC):
     """
     Abstract base class for creating portfolio signals.
     """
-
     def __init__(self, models_data: ModelsData, portfolio_data: PortfolioData, models_results: ModelsResults):
         """
         Initializes the SignalProcessor class.

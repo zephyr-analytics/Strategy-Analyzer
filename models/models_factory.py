@@ -96,7 +96,11 @@ class ModelsFactory:
         """
         if not self.data_models.assets_weights:
             return "Please load asset weights file."
-        create_signals = CreateMovingAverageSignals(models_data=self.data_models, portfolio_data=self.data_portfolio)
+        create_signals = CreateMovingAverageSignals(
+            models_data=self.data_models,
+            portfolio_data=self.data_portfolio,
+            models_results=self.results_models
+        )
         create_signals.process()
         return f"MA signals generated for {self.data_models.end_date}."
 
@@ -111,7 +115,11 @@ class ModelsFactory:
         """
         if not self.data_models.assets_weights:
             return "Please load asset weights file."
-        backtest = MovingAverageBacktestProcessor(models_data=self.data_models, portfolio_data=self.data_portfolio)
+        backtest = MovingAverageBacktestProcessor(
+            models_data=self.data_models,
+            portfolio_data=self.data_portfolio,
+            models_results=self.results_models
+        )
         backtest.process()
         monte_carlo = MonteCarloSimulation(models_data=self.data_models)
         monte_carlo.process()
@@ -147,7 +155,11 @@ class ModelsFactory:
         """
         if not self.data_models.assets_weights:
             return "Please load asset weights file."
-        create_signals = CreateMomentumSignals(models_data=self.data_models, portfolio_data=self.data_portfolio)
+        create_signals = CreateMomentumSignals(
+            models_data=self.data_models,
+            portfolio_data=self.data_portfolio,
+            models_results=self.results_models
+        )
         create_signals.process()
         return f"Momentum signals generated for {self.data_models.end_date}."
 
@@ -162,7 +174,11 @@ class ModelsFactory:
         """
         if not self.data_models.assets_weights:
             return "Please load asset weights file."
-        backtest = MomentumBacktestProcessor(models_data=self.data_models, portfolio_data=self.data_portfolio)
+        backtest = MomentumBacktestProcessor(
+            models_data=self.data_models,
+            portfolio_data=self.data_portfolio,
+            models_results=self.results_models
+        )
         backtest.process()
         monte_carlo = MonteCarloSimulation(models_data=self.data_models)
         monte_carlo.process()
@@ -202,7 +218,11 @@ class ModelsFactory:
             return "Please load asset weights file."
         if not self.data_models.out_of_market_tickers:
             return "Please load out of market assets file."
-        signals = CreateMomentumInAndOutSignals(models_data=self.data_models, portfolio_data=self.data_portfolio)
+        signals = CreateMomentumInAndOutSignals(
+            models_data=self.data_models, 
+            portfolio_data=self.data_portfolio,
+            models_results=self.results_models
+        )
         signals.process()
         return "In and Out of Market signals completed and plots saved."
 
@@ -260,7 +280,11 @@ class ModelsFactory:
             return "Please load asset weights file."
         if not self.data_models.out_of_market_tickers:
             return "Please load out of market assets file."
-        backtest = IAOMomentumBacktestProcessor(models_data=self.data_models, portfolio_data=self.data_portfolio)
+        backtest = IAOMomentumBacktestProcessor(
+            models_data=self.data_models, 
+            portfolio_data=self.data_portfolio,
+            models_results=self.results_models
+        )
         backtest.process()
         monte_carlo = MonteCarloSimulation(models_data=self.data_models)
         monte_carlo.process()
