@@ -4,7 +4,7 @@ Module for creating the setup page.
 
 import customtkinter as ctk
 
-import utilities as utilities
+import utilities
 
 from data.data_obtainment_processor import DataObtainmentProcessor
 from data.portfolio_data import PortfolioData
@@ -101,10 +101,18 @@ class SetupTab:
         data_frame = ctk.CTkFrame(parent, fg_color="transparent")
         data_frame.pack(fill="x", pady=10, padx=10)
 
-        ctk.CTkLabel(data_frame, text="Data Settings", font=self.bold_font).grid(row=data_frame_rows, column=0, columnspan=4, sticky="ew")
+        ctk.CTkLabel(
+            data_frame, text="Data Settings", font=self.bold_font
+        ).grid(
+            row=data_frame_rows, column=0, columnspan=4, sticky="ew"
+        )
         data_frame_rows += 1
 
-        ctk.CTkLabel(data_frame, text="Setup the initial portfolio composition.", font=self.bold_font).grid(row=data_frame_rows, column=0, columnspan=4, sticky="ew", pady=y_padding)
+        ctk.CTkLabel(
+            data_frame, text="Setup the initial portfolio composition.", font=self.bold_font
+        ).grid(
+            row=data_frame_rows, column=0, columnspan=4, sticky="ew", pady=y_padding
+        )
         data_frame_rows += 1
 
         data_frame.grid_columnconfigure(0, weight=1)
@@ -113,12 +121,24 @@ class SetupTab:
         data_frame.grid_columnconfigure(3, weight=1)
 
         # Add widgets dynamically and update row counter
-        ctk.CTkLabel(data_frame, text="Initial Portfolio Value:", font=self.bold_font).grid(row=data_frame_rows, column=0, padx=5, sticky="e")
-        ctk.CTkEntry(data_frame, textvariable=self.initial_portfolio_value_var).grid(row=data_frame_rows, column=1, padx=5, sticky="w", pady=y_padding)
+        ctk.CTkLabel(
+            data_frame, text="Initial Portfolio Value:", font=self.bold_font
+        ).grid(
+            row=data_frame_rows, column=0, padx=5, sticky="e"
+        )
+        ctk.CTkEntry(
+            data_frame, textvariable=self.initial_portfolio_value_var
+        ).grid(
+            row=data_frame_rows, column=1, padx=5, sticky="w", pady=y_padding
+        )
         self.initial_portfolio_value_var.trace_add("write", self.update_initial_portfolio_value)
         data_frame_rows += 1
 
-        ctk.CTkLabel(data_frame, text="Select In Market Assets:", font=self.bold_font).grid(row=data_frame_rows, column=0, sticky="e", padx=5)
+        ctk.CTkLabel(
+            data_frame, text="Select In Market Assets:", font=self.bold_font
+        ).grid(
+            row=data_frame_rows, column=0, sticky="e", padx=5
+        )
         ctk.CTkButton(data_frame, text="Select .csv File", fg_color="#bb8fce", text_color="#000000",
                     hover_color="#8e44ad", command=self.load_weights_and_update).grid(row=data_frame_rows, column=1, sticky="w", padx=5, pady=y_padding)
 
