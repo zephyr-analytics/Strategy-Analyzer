@@ -4,6 +4,8 @@ Module for obtaining and saving data to the raw directory.
 
 import logging
 import os
+import pandas as pd
+from datetime import datetime, timedelta
 from logger import logger
 import utilities as utilities
 from models.models_data import ModelsData
@@ -19,8 +21,7 @@ class DataObtainmentProcessor:
     def __init__(self, models_data: ModelsData):
         self.data_models = models_data
         self.weights_filename = self.data_models.weights_filename
-        self.start_date = self.data_models.start_date
-        self.end_date = self.data_models.end_date
+        self.end_date = pd.to_datetime(self.data_models.end_date)
         self.asset_weights = self.data_models.assets_weights
         self.cash_ticker = self.data_models.cash_ticker
         self.bond_ticker = self.data_models.bond_ticker
@@ -33,39 +34,58 @@ class DataObtainmentProcessor:
         Main method to fetch and save data to the raw directory.
         """
         try:
-            logger.info(f"Obtaining Data for {self.weights_filename}.")
-            self.fetch_and_save_data()
+            logger.info("Validating raw data file.")
+            self.validate_and_update_raw_data()
         except Exception as e:
             logger.error(f"Error occurred during data processing: {e}")
             raise
 
-    def fetch_and_save_data(self):
+    def validate_and_update_raw_data(self):
         """
-        Fetches the required data and saves it to the raw directory.
+        Ensures that all necessary tickers are present in the raw data file and updates it if needed.
+        If the end_date is not within 3 days of the current date, fetch new data rows for all columns.
         """
-        all_tickers = list(self.asset_weights.keys())
+        file_dir = os.path.join(os.getcwd(), "artifacts", "raw")
+        file_path = os.path.join(file_dir, "raw.csv")
+
+        os.makedirs(file_dir, exist_ok=True)
+
+        try:
+            df = utilities.load_raw_data_file()
+        except FileNotFoundError:
+            logger.info("Raw data file not found. Creating a new one.")
+            df = pd.DataFrame()
+
+        all_tickers = set(self.asset_weights.keys())
 
         if self.cash_ticker:
-            all_tickers.append(self.cash_ticker)
+            all_tickers.add(self.cash_ticker)
         if self.bond_ticker:
-            all_tickers.append(self.bond_ticker)
+            all_tickers.add(self.bond_ticker)
         if self.ma_threshold_asset:
-            all_tickers.append(self.ma_threshold_asset)
+            all_tickers.add(self.ma_threshold_asset)
         if self.benchmark_asset:
-            all_tickers.append(self.benchmark_asset)
+            all_tickers.add(self.benchmark_asset)
         if self.out_of_market_tickers:
-            all_tickers.extend(self.out_of_market_tickers.keys())
+            all_tickers.update(self.out_of_market_tickers.keys())
 
-        data_directory = os.path.join(os.getcwd(), "artifacts", "raw")
-        os.makedirs(data_directory, exist_ok=True)
+        missing_tickers = all_tickers - set(df.columns)
 
-        file_path = os.path.join(data_directory, f"{self.weights_filename}.csv")
+        if missing_tickers:
+            logger.info("Missing tickers detected. Fetching missing data: %s", missing_tickers)
+            new_data = utilities.fetch_data(all_tickers=list(missing_tickers))
+            df = pd.concat([df, new_data], axis=1)
 
-        logger.info("Fetching data for tickers: %s", all_tickers)
-        df = utilities.fetch_data(
-            all_tickers=all_tickers,
-            start_date=self.start_date,
-            end_date=self.end_date,
-        )
-        utilities.write_raw_dataframe_to_csv(dataframe=df, file_path=file_path)
-        logger.info(f"Data successfully saved to {file_path}.")
+        current_date = datetime.now()
+        if (self.end_date - current_date).days > 3:
+            latest_date_in_df = df.index.max()
+            logger.info(f"Fetching data from {latest_date_in_df} to {self.end_date} for all columns.")
+            updated_data = utilities.fetch_data(
+                all_tickers=list(df.columns),
+                start_date=latest_date_in_df,
+                end_date=self.end_date
+            )
+            df = pd.concat([df, updated_data], axis=0)
+
+        df.to_csv(file_path)
+        logger.info(f"Updated raw data saved to {file_path}.")

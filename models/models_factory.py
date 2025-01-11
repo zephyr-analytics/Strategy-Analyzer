@@ -171,7 +171,7 @@ class ModelsFactory:
             return "Please load asset weights file."
         if not self.data_models.out_of_market_tickers:
             return "Please load out of market assets file."
-        backtest = BacktestInAndOutMomentumPortfolio(self.data_models)
+        backtest = IAOMomentumBacktestProcessor(models_data=self.data_models, portfolio_data=self.data_portfolio)
         backtest.process()
         return "In and Out of Market backtest completed and plots saved."
 
@@ -188,7 +188,7 @@ class ModelsFactory:
             return "Please load asset weights file."
         if not self.data_models.out_of_market_tickers:
             return "Please load out of market assets file."
-        signals = CreateMomentumInAndOutSignals(self.data_models)
+        signals = CreateMomentumInAndOutSignals(models_data=self.data_models, portfolio_data=self.data_portfolio)
         signals.process()
         return "In and Out of Market signals completed and plots saved."
 
@@ -203,7 +203,7 @@ class ModelsFactory:
         """
         if not self.data_models.assets_weights:
             return "Please load asset weights file."
-        parameter_tune = MaParameterTuning(models_data=self.data_models, portfolio_data=self.data_portfolio)
+        parameter_tune = MovingAverageParameterTuning(models_data=self.data_models, portfolio_data=self.data_portfolio)
         parameter_tune.process()
         return "MA parameter tuning completed."
 
@@ -223,7 +223,7 @@ class ModelsFactory:
             return "Please load asset weights file."
         if not self.data_models.out_of_market_tickers:
             return "Please load out of market assets file."
-        parameter_tune = InAndOutMomentumParameterTuning(self.data_models)
+        parameter_tune = InAndOutMomentumParameterTuning(models_data=self.data_models, portfolio_data=self.data_portfolio)
         parameter_tune.process()
         return "In and Out Momentum parameter tuning completed."
 
@@ -234,8 +234,16 @@ class ModelsFactory:
             return "Please load asset weights file."
         if not self.data_models.out_of_market_tickers:
             return "Please load out of market assets file."
-        backtest = BacktestInAndOutMomentumPortfolio(self.data_models)
+        backtest = IAOMomentumBacktestProcessor(models_data=self.data_models, portfolio_data=self.data_portfolio)
         backtest.process()
-        monte_carlo = MonteCarloSimulation(self.data_models)
+        monte_carlo = MonteCarloSimulation(models_data=self.data_models)
         monte_carlo.process()
         return "Momentum simulation completed and plots saved."
+
+    def _run_moving_average_crossover_backtest(self) -> str:
+        """
+        """
+        if not self.data_models.assets_weights:
+            return "Please load asset weights file."
+        backtest = MovingAverageCrossoverProcessor(models_data=self.data_models, portfolio_data=self.data_portfolio)
+        backtest.process()

@@ -134,7 +134,7 @@ class PortfolioData:
         Returns:
             dict: A dictionary containing the asset weights.
         """
-        return self._ma_threshold_data
+        return self._out_of_market_data
 
     @out_of_market_data.setter
     def out_of_market_data(self, value):

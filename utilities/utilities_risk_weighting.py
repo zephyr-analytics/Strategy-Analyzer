@@ -1,111 +1,184 @@
 import numpy as np
-import scipy.stats as stats
+import pandas as pd
 
-@staticmethod
-def standard_deviation(returns):
-    return np.std(returns, ddof=1)
 
-@staticmethod
-def square_root_kurtosis(returns):
-    return np.sqrt(stats.kurtosis(returns, fisher=False))
+def validate_weights(weights):
+    """
+    Validate that the sum of the weights equals 1.
 
-@staticmethod
-def mean_absolute_deviation(returns):
-    return np.mean(np.abs(returns - np.mean(returns)))
+    Parameters
+    ----------
+    weights : dict
+        Dictionary of asset weights with asset names as keys and weights as values.
 
-@staticmethod
-def semi_standard_deviation(returns):
-    return np.std([x for x in returns if x < np.mean(returns)], ddof=1)
+    Raises
+    ------
+    ValueError
+        If the sum of the weights does not equal 1.
+    """
+    total_weight = sum(weights.values())
+    if not np.isclose(total_weight, 1.0):
+        raise ValueError(f"The sum of weights must equal 1. Current sum: {total_weight}")
 
-@staticmethod
-def square_root_semi_kurtosis(returns):
-    negative_returns = [x for x in returns if x < np.mean(returns)]
-    return np.sqrt(stats.kurtosis(negative_returns, fisher=False))
 
-@staticmethod
-def first_lower_partial_moment(returns, threshold=0):
-    return np.mean(np.maximum(threshold - returns, 0))
+def calculate_standard_deviation_weighting(returns_df, weights, cash_ticker=None, bond_ticker=None):
+    """
+    Calculate the standard deviation (volatility) for each asset and adjust weights accordingly based on contribution to total risk.
 
-@staticmethod
-def second_lower_partial_moment(returns, threshold=0):
-    return np.sqrt(np.mean(np.square(np.maximum(threshold - returns, 0))))
+    Parameters
+    ----------
+    returns_df : pandas.DataFrame
+        DataFrame of daily percentage returns with assets as columns.
+    weights : dict
+        Dictionary of asset weights with asset names as keys and weights as values.
+    cash_ticker : str, optional
+        The ticker representing cash in the portfolio.
+    bond_ticker : str, optional
+        The ticker representing bonds in the portfolio.
 
-@staticmethod
-def value_at_risk(returns, alpha=0.05):
-    return np.percentile(returns, 100 * alpha)
+    Returns
+    -------
+    dict
+        Dictionary of assets and their adjusted weights based on standard deviation.
+    """
+    fixed_assets = {cash_ticker, bond_ticker} & set(weights.keys())
+    adjustable_weights = {k: v for k, v in weights.items() if k not in fixed_assets}
 
-@staticmethod
-def conditional_value_at_risk(returns, alpha=0.05):
-    var = value_at_risk(returns, alpha)
-    return np.mean([x for x in returns if x <= var])
+    portfolio_std = np.sqrt((returns_df[list(adjustable_weights.keys())] * list(adjustable_weights.values())).sum(axis=1).var() * 252)
+    risk_contributions = {asset: (returns_df[asset].std() * np.sqrt(252)) / portfolio_std for asset in adjustable_weights}
+    total_risk_contribution = sum(risk_contributions.values())
+    adjusted_weights = {asset: (1 - (risk / total_risk_contribution)) for asset, risk in risk_contributions.items()}
+    adjusted_weights = {asset: weight / sum(adjusted_weights.values()) for asset, weight in adjusted_weights.items()}
 
-@staticmethod
-def entropic_value_at_risk(returns, alpha=0.05):
-    lambda_ = np.log(1 / alpha)
-    return -np.log(np.mean(np.exp(-lambda_ * returns))) / lambda_
+    for asset in fixed_assets:
+        adjusted_weights[asset] = weights[asset]
 
-@staticmethod
-def worst_realization(returns):
-    return np.min(returns)
+    validate_weights(adjusted_weights)
+    return adjusted_weights
 
-# These use cumulative returns.
 
-@staticmethod
-def maximum_drawdown(cumulative_returns):
-    peak = np.maximum.accumulate(cumulative_returns)
-    drawdowns = (cumulative_returns - peak) / peak
-    return np.min(drawdowns)
+def calculate_value_at_risk_weighting(returns_df, weights, confidence_level=0.95, cash_ticker=None, bond_ticker=None):
+    """
+    Calculate the Value at Risk (VaR) for each asset and adjust weights accordingly based on contribution to total risk.
 
-@staticmethod
-def average_drawdown(cumulative_returns):
-    peak = np.maximum.accumulate(cumulative_returns)
-    drawdowns = (cumulative_returns - peak) / peak
-    return np.mean(drawdowns)
+    Parameters
+    ----------
+    returns_df : pandas.DataFrame
+        DataFrame of daily percentage returns with assets as columns.
+    weights : dict
+        Dictionary of asset weights with asset names as keys and weights as values.
+    confidence_level : float, optional
+        Confidence level for VaR calculation (default is 0.95).
+    cash_ticker : str, optional
+        The ticker representing cash in the portfolio.
+    bond_ticker : str, optional
+        The ticker representing bonds in the portfolio.
 
-@staticmethod
-def drawdown_at_risk(cumulative_returns, alpha=0.05):
-    drawdowns = (cumulative_returns - np.maximum.accumulate(cumulative_returns)) / np.maximum.accumulate(cumulative_returns)
-    return np.percentile(drawdowns, 100 * alpha)
+    Returns
+    -------
+    dict
+        Dictionary of assets and their adjusted weights based on VaR.
+    """
+    fixed_assets = {cash_ticker, bond_ticker} & set(weights.keys())
+    adjustable_weights = {k: v for k, v in weights.items() if k not in fixed_assets}
 
-@staticmethod
-def conditional_drawdown_at_risk(cumulative_returns, alpha=0.05):
-    drawdowns = (cumulative_returns - np.maximum.accumulate(cumulative_returns)) / np.maximum.accumulate(cumulative_returns)
-    dar = drawdown_at_risk(cumulative_returns, alpha)
-    return np.mean([x for x in drawdowns if x <= dar])
+    portfolio_var = np.percentile((returns_df[list(adjustable_weights.keys())] * list(adjustable_weights.values())).sum(axis=1), (1 - confidence_level) * 100) * np.sqrt(252)
+    risk_contributions = {asset: (-np.percentile(returns_df[asset], (1 - confidence_level) * 100) * np.sqrt(252)) / portfolio_var for asset in adjustable_weights}
+    total_risk_contribution = sum(risk_contributions.values())
+    adjusted_weights = {asset: (1 - (risk / total_risk_contribution)) for asset, risk in risk_contributions.items()}
+    adjusted_weights = {asset: weight / sum(adjusted_weights.values()) for asset, weight in adjusted_weights.items()}
 
-@staticmethod
-def entropic_drawdown_at_risk(cumulative_returns, alpha=0.05):
-    drawdowns = (cumulative_returns - np.maximum.accumulate(cumulative_returns)) / np.maximum.accumulate(cumulative_returns)
-    lambda_ = np.log(1 / alpha)
-    return -np.log(np.mean(np.exp(-lambda_ * drawdowns))) / lambda_
+    for asset in fixed_assets:
+        adjusted_weights[asset] = weights[asset]
 
-# These use compounded cumulative returns.
+    validate_weights(adjusted_weights)
+    return adjusted_weights
 
-@staticmethod
-def maximum_drawdown_relative(compounded_cumulative_returns):
-    peak = np.maximum.accumulate(compounded_cumulative_returns)
-    drawdowns = (compounded_cumulative_returns - peak) / peak
-    return np.min(drawdowns)
 
-@staticmethod
-def average_drawdown_relative(compounded_cumulative_returns):
-    peak = np.maximum.accumulate(compounded_cumulative_returns)
-    drawdowns = (compounded_cumulative_returns - peak) / peak
-    return np.mean(drawdowns)
+def calculate_conditional_value_at_risk_weighting(returns_df, weights, confidence_level=0.95, cash_ticker=None, bond_ticker=None):
+    """
+    Calculate the Conditional Value at Risk (CVaR) for each asset and adjust weights accordingly based on contribution to total risk.
 
-@staticmethod
-def drawdown_at_risk_relative(compounded_cumulative_returns, alpha=0.05):
-    drawdowns = (compounded_cumulative_returns - np.maximum.accumulate(compounded_cumulative_returns)) / np.maximum.accumulate(compounded_cumulative_returns)
-    return np.percentile(drawdowns, 100 * alpha)
+    Parameters
+    ----------
+    returns_df : pandas.DataFrame
+        DataFrame of daily percentage returns with assets as columns.
+    weights : dict
+        Dictionary of asset weights with asset names as keys and weights as values.
+    confidence_level : float, optional
+        Confidence level for CVaR calculation (default is 0.95).
+    cash_ticker : str, optional
+        The ticker representing cash in the portfolio.
+    bond_ticker : str, optional
+        The ticker representing bonds in the portfolio.
 
-@staticmethod
-def conditional_drawdown_at_risk_relative(compounded_cumulative_returns, alpha=0.05):
-    drawdowns = (compounded_cumulative_returns - np.maximum.accumulate(compounded_cumulative_returns)) / np.maximum.accumulate(compounded_cumulative_returns)
-    dar = drawdown_at_risk_relative(compounded_cumulative_returns, alpha)
-    return np.mean([x for x in drawdowns if x <= dar])
+    Returns
+    -------
+    dict
+        Dictionary of assets and their adjusted weights based on CVaR.
+    """
+    fixed_assets = {cash_ticker, bond_ticker} & set(weights.keys())
+    adjustable_weights = {k: v for k, v in weights.items() if k not in fixed_assets}
 
-@staticmethod
-def entropic_drawdown_at_risk_relative(compounded_cumulative_returns, alpha=0.05):
-    drawdowns = (compounded_cumulative_returns - np.maximum.accumulate(compounded_cumulative_returns)) / np.maximum.accumulate(compounded_cumulative_returns)
-    lambda_ = np.log(1 / alpha)
-    return -np.log(np.mean(np.exp(-lambda_ * drawdowns))) / lambda_
+    portfolio_cvar = (returns_df[list(adjustable_weights.keys())] * list(adjustable_weights.values())).sum(axis=1)
+    portfolio_cvar = portfolio_cvar[portfolio_cvar <= np.percentile(portfolio_cvar, (1 - confidence_level) * 100)].mean() * np.sqrt(252)
+    risk_contributions = {}
+    for asset in adjustable_weights:
+        daily_var = -np.percentile(returns_df[asset], (1 - confidence_level) * 100)
+        cvar = -returns_df[asset][returns_df[asset] <= daily_var].mean() * np.sqrt(252)
+        risk_contributions[asset] = cvar / portfolio_cvar
+    total_risk_contribution = sum(risk_contributions.values())
+    adjusted_weights = {asset: (1 - (risk / total_risk_contribution)) for asset, risk in risk_contributions.items()}
+    adjusted_weights = {asset: weight / sum(adjusted_weights.values()) for asset, weight in adjusted_weights.items()}
+
+    for asset in fixed_assets:
+        adjusted_weights[asset] = weights[asset]
+
+    validate_weights(adjusted_weights)
+    return adjusted_weights
+
+
+def calculate_max_drawdown_weighting(returns_df, weights, cash_ticker=None, bond_ticker=None):
+    """
+    Calculate the maximum drawdown for each asset and adjust weights accordingly based on contribution to total risk.
+
+    Parameters
+    ----------
+    returns_df : pandas.DataFrame
+        DataFrame of daily percentage returns with assets as columns.
+    weights : dict
+        Dictionary of asset weights with asset names as keys and weights as values.
+    cash_ticker : str, optional
+        The ticker representing cash in the portfolio.
+    bond_ticker : str, optional
+        The ticker representing bonds in the portfolio.
+
+    Returns
+    -------
+    dict
+        Dictionary of assets and their adjusted weights based on max drawdown.
+    """
+    fixed_assets = {cash_ticker, bond_ticker} & set(weights.keys())
+    adjustable_weights = {k: v for k, v in weights.items() if k not in fixed_assets}
+
+    portfolio_drawdown = (returns_df[list(adjustable_weights.keys())] * list(adjustable_weights.values())).sum(axis=1)
+    cumulative_returns = (1 + portfolio_drawdown).cumprod()
+    running_max = cumulative_returns.cummax()
+    portfolio_max_drawdown = ((cumulative_returns - running_max) / running_max).min()
+
+    risk_contributions = {}
+    for asset in adjustable_weights:
+        cumulative_returns = (1 + returns_df[asset]).cumprod()
+        running_max = cumulative_returns.cummax()
+        drawdown = (cumulative_returns - running_max) / running_max
+        max_drawdown = abs(drawdown.min())
+        risk_contributions[asset] = max_drawdown / portfolio_max_drawdown
+    total_risk_contribution = sum(risk_contributions.values())
+    adjusted_weights = {asset: (1 - (risk / total_risk_contribution)) for asset, risk in risk_contributions.items()}
+    adjusted_weights = {asset: weight / sum(adjusted_weights.values()) for asset, weight in adjusted_weights.items()}
+
+    for asset in fixed_assets:
+        adjusted_weights[asset] = weights[asset]
+
+    validate_weights(adjusted_weights)
+    return adjusted_weights

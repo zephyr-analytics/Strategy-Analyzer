@@ -4,11 +4,13 @@ Module for creating the setup page.
 
 import customtkinter as ctk
 
-from models.models_data import ModelsData
-from data.portfolio_data import PortfolioData
 import utilities as utilities
+
 from data.data_obtainment_processor import DataObtainmentProcessor
+from data.portfolio_data import PortfolioData
 from data.data_preparation_processor import DataPreparationProcessor
+from gui.gui_interactive_pie import InteractivePieChartApp
+from models.models_data import ModelsData
 
 
 class SetupTab:
@@ -320,6 +322,15 @@ class SetupTab:
             variable=self.contribution_frequency_var
         ).grid(row=monte_carlo_frame_rows, column=3, sticky="w", padx=5, pady=y_padding)
         self.contribution_frequency_var.trace_add("write", self.update_contribution_frequency)
+        
+        ctk.CTkButton(
+            parent,
+            text="Launch Multi Portfolio",
+            fg_color="#bb8fce",
+            text_color="#000000",
+            hover_color="#8e44ad",
+            command=self.launch_multiportfolio,
+        ).pack()
 
 
         # parameter_frame = ctk.CTkFrame(parent, fg_color="#f5f5f5")
@@ -371,6 +382,13 @@ class SetupTab:
             font=ctk.CTkFont(size=12)
         )
         copyright_label.pack()
+
+    def launch_multiportfolio(self):
+        """
+        """
+        root_window = ctk.CTk()
+        InteractivePieChartApp(root=root_window)
+        root_window.mainloop()
 
     def obtain_data(self):
         """
