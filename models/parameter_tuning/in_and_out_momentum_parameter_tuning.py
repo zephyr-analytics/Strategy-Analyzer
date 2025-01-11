@@ -2,8 +2,6 @@
 Module for creating momentum based parameters.
 """
 
-import os
-import json
 from multiprocessing import Pool
 
 import plotly.express as px
