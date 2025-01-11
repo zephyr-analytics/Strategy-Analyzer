@@ -14,7 +14,6 @@ from models.models_data import ModelsData
 
 logger = logging.getLogger(__name__)
 
-
 class DataObtainmentProcessor:
     """
     Class for obtaining and saving data.
@@ -32,7 +31,7 @@ class DataObtainmentProcessor:
             logger.info("Validating raw data file.")
             self.validate_and_update_raw_data()
         except Exception as e:
-            logger.error(f"Error occurred during data processing: {e}")
+            logger.error("Error occurred during data processing: %s", e)
             raise
 
     def validate_and_update_raw_data(self):
@@ -67,14 +66,14 @@ class DataObtainmentProcessor:
         missing_tickers = all_tickers - set(df.columns)
 
         if missing_tickers:
-            logger.info(f"Missing tickers detected. Fetching missing data: {missing_tickers}")
+            logger.info("Missing tickers detected. Fetching missing data: %s", missing_tickers)
             new_data = utilities.fetch_data(all_tickers=list(missing_tickers))
             df = pd.concat([df, new_data], axis=1)
 
         current_date = datetime.now()
         if (self.end_date - current_date).days > 3:
             latest_date_in_df = df.index.max()
-            logger.info(f"Fetching data from {latest_date_in_df} to {self.end_date} for all columns.")
+            logger.info("Fetching data from %s to %s for all columns.", latest_date_in_df, self.end_date)
             updated_data = utilities.fetch_data(
                 all_tickers=list(df.columns),
                 start_date=latest_date_in_df,
@@ -83,4 +82,4 @@ class DataObtainmentProcessor:
             df = pd.concat([df, updated_data], axis=0)
 
         df.to_csv(file_path)
-        logger.info(f"Updated raw data saved to {file_path}.")
+        logger.info("Updated raw data saved to %s.", file_path)
