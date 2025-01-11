@@ -336,10 +336,6 @@ class SetupTab:
         num_assets_to_select_var.trace_add(
             "write", lambda *args: self.update_models_data("num_assets_to_select", num_assets_to_select_var)
         )
-
-        # ctk.CTkLabel(momentum_frame, text="Momentum Threshold Asset:", font=self.bold_font).grid(row=momentum_frame_rows, column=2, sticky="e", padx=5)
-        # ctk.CTkEntry(momentum_frame, textvariable=self.mom_threshold_asset_entry_var).grid(row=momentum_frame_rows, column=3, sticky="w", padx=5, pady=y_padding)
-        # self.mom_threshold_asset_entry_var.trace_add("write", self.update_mom_threshold_asset)
         momentum_frame_rows += 1
 
         ctk.CTkLabel(

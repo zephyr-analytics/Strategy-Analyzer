@@ -7,7 +7,6 @@ import threading
 
 import customtkinter as ctk
 
-import utilities as utilities
 from data.portfolio_data import PortfolioData
 from models.models_data import ModelsData
 from models.models_factory import ModelsFactory

@@ -89,7 +89,10 @@ class BacktestingProcessor(ABC):
 
     @abstractmethod
     def adjust_weights(
-            self, current_date: datetime, selected_assets: pd.DataFrame =None, selected_out_of_market_asset: pd.DataFrame=None
+            self,
+            current_date: datetime,
+            selected_assets: pd.DataFrame =None,
+            selected_out_of_market_asset: pd.DataFrame=None
     ) -> dict:
         """
         Adjusts the weights of the assets based on their SMA and the selected weighting strategy.
@@ -116,15 +119,24 @@ class BacktestingProcessor(ABC):
         """
         if self.risk_metric == "Standard Deviation":
             utilities.calculate_standard_deviation_weighting(
-                returns_df=self.return_data, weights=adjusted_weights, cash_ticker=self.cash_ticker, bond_ticker=self.bond_ticker
+                returns_df=self.return_data,
+                weights=adjusted_weights,
+                cash_ticker=self.cash_ticker,
+                bond_ticker=self.bond_ticker
             )
         if self.risk_metric == "Conditional Value at Risk":
             utilities.calculate_conditional_value_at_risk_weighting(
-                returns_df=self.return_data, weights=adjusted_weights, cash_ticker=self.cash_ticker, bond_ticker=self.bond_ticker
+                returns_df=self.return_data,
+                weights=adjusted_weights,
+                cash_ticker=self.cash_ticker,
+                bond_ticker=self.bond_ticker
             )
         if self.risk_metric == "Max Drawdown":
             utilities.calculate_max_drawdown_weighting(
-                returns_df=self.return_data, weights=adjusted_weights, cash_ticker=self.cash_ticker, bond_ticker=self.bond_ticker
+                returns_df=self.return_data,
+                weights=adjusted_weights,
+                cash_ticker=self.cash_ticker,
+                bond_ticker=self.bond_ticker
             )
 
         return adjusted_weights
@@ -152,7 +164,9 @@ class BacktestingProcessor(ABC):
 
         for i in range(0, len(monthly_dates), step):
             current_date = monthly_dates[i]
-            last_date_current_month = self.trading_data.index[self.trading_data.index.get_loc(current_date, method='pad')]
+            last_date_current_month = self.trading_data.index[
+                self.trading_data.index.get_loc(current_date, method='pad')
+            ]
 
             adjusted_weights=self.get_portfolio_assets_and_weights(current_date=last_date_current_month)
 
@@ -164,7 +178,9 @@ class BacktestingProcessor(ABC):
                 month_end_data = self.trading_data.loc[last_date_current_month]
                 next_month_end_data = self.trading_data.loc[last_date_next_month]
                 monthly_returns = (next_month_end_data / month_end_data) - 1
-                month_return = sum([monthly_returns.get(ticker, 0) * weight for ticker, weight in adjusted_weights.items()])
+                month_return = sum(
+                    [monthly_returns.get(ticker, 0) * weight for ticker, weight in adjusted_weights.items()]
+                )
                 new_portfolio_value = portfolio_values[-1] * (1 + month_return)
                 portfolio_values.append(new_portfolio_value)
                 portfolio_returns.append(month_return)
@@ -205,22 +221,26 @@ class BacktestingProcessor(ABC):
 
     def _get_portfolio_statistics(self):
         """
-        Calculates and sets portfolio statistics such as CAGR, average annual return, max drawdown, VaR, and CVaR in models_data.
+        Calculates and sets portfolio statistics.
         """
-        cagr = utilities.calculate_cagr(portfolio_value=self.data_models.portfolio_values)
-        average_annual_return = utilities.calculate_average_annual_return(returns=self.data_models.portfolio_returns)
-        max_drawdown = utilities.calculate_max_drawdown(portfolio_value=self.data_models.portfolio_values)
-        var, cvar = utilities.calculate_var_cvar(returns=self.data_models.portfolio_returns)
-        annual_volatility = utilities.calculate_annual_volatility(portfolio_returns=self.data_models.portfolio_returns)
-        standard_deviation = utilities.calculate_standard_deviation(returns=self.data_models.portfolio_returns)
-
-        self.data_models.cagr = cagr
-        self.data_models.average_annual_return = average_annual_return
-        self.data_models.max_drawdown = max_drawdown
-        self.data_models.var = var
-        self.data_models.cvar = cvar
-        self.data_models.annual_volatility = annual_volatility
-        self.data_models.standard_deviation = standard_deviation
+        self.data_models.cagr = utilities.calculate_cagr(
+            portfolio_value=self.data_models.portfolio_values
+        )
+        self.data_models.average_annual_return = utilities.calculate_average_annual_return(
+            returns=self.data_models.portfolio_returns
+        )
+        self.data_models.max_drawdown = utilities.calculate_max_drawdown(
+            portfolio_value=self.data_models.portfolio_values
+        )
+        self.data_models.var, self.data_models.cvar = utilities.calculate_var_cvar(
+            returns=self.data_models.portfolio_returns
+        )
+        self.data_models.annual_volatility = utilities.calculate_annual_volatility(
+            portfolio_returns=self.data_models.portfolio_returns
+        )
+        self.data_models.standard_deviation = utilities.calculate_standard_deviation(
+            returns=self.data_models.portfolio_returns
+        )
 
 
     def _calculate_buy_and_hold(self):
@@ -242,13 +262,19 @@ class BacktestingProcessor(ABC):
 
             previous_value = portfolio_values[-1]
             monthly_returns = (end_data / start_data) - 1
-            month_return = sum([monthly_returns[ticker] * weight for ticker, weight in self.assets_weights.items()])
+            month_return = sum(
+                [monthly_returns[ticker] * weight for ticker, weight in self.assets_weights.items()]
+            )
             new_portfolio_value = previous_value * (1 + month_return)
             portfolio_values.append(new_portfolio_value)
             portfolio_returns.append(month_return)
 
-        self.data_models.buy_and_hold_values = pd.Series(portfolio_values, index=monthly_dates[:len(portfolio_values)])
-        self.data_models.buy_and_hold_returns = pd.Series(portfolio_returns, index=monthly_dates[1:len(portfolio_returns)+1])
+        self.data_models.buy_and_hold_values = pd.Series(
+            portfolio_values, index=monthly_dates[:len(portfolio_values)]
+        )
+        self.data_models.buy_and_hold_returns = pd.Series(
+            portfolio_returns, index=monthly_dates[1:len(portfolio_returns)+1]
+        )
 
 
     def _calculate_benchmark(self):
@@ -277,8 +303,12 @@ class BacktestingProcessor(ABC):
                 benchmark_values.append(new_benchmark_value)
                 benchmark_returns.append(monthly_return)
     
-            self.data_models.benchmark_values = pd.Series(benchmark_values, index=monthly_dates[:len(benchmark_values)])
-            self.data_models.benchmark_returns = pd.Series(benchmark_returns, index=monthly_dates[1:len(benchmark_returns)+1])
+            self.data_models.benchmark_values = pd.Series(
+                benchmark_values, index=monthly_dates[:len(benchmark_values)]
+            )
+            self.data_models.benchmark_returns = pd.Series(
+                benchmark_returns, index=monthly_dates[1:len(benchmark_returns)+1]
+            )
 
 
     def persist_data(self):
@@ -287,7 +317,9 @@ class BacktestingProcessor(ABC):
 
         Handles adjusted weights, portfolio returns, and portfolio values dynamically.
         """
-        adjusted_weights_df = pd.DataFrame(list(self.data_models.adjusted_weights), index=self.data_models.adjusted_weights.index)
+        adjusted_weights_df = pd.DataFrame(
+            list(self.data_models.adjusted_weights), index=self.data_models.adjusted_weights.index
+        )
         adjusted_weights_df = adjusted_weights_df.fillna(0.0)
         combined_df = pd.concat(
             [
