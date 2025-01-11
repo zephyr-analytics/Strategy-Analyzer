@@ -103,16 +103,12 @@ class SetupTab:
 
         ctk.CTkLabel(
             data_frame, text="Data Settings", font=self.bold_font
-        ).grid(
-            row=data_frame_rows, column=0, columnspan=4, sticky="ew"
-        )
+        ).grid(row=data_frame_rows, column=0, columnspan=4, sticky="ew")
         data_frame_rows += 1
 
         ctk.CTkLabel(
             data_frame, text="Setup the initial portfolio composition.", font=self.bold_font
-        ).grid(
-            row=data_frame_rows, column=0, columnspan=4, sticky="ew", pady=y_padding
-        )
+        ).grid(row=data_frame_rows, column=0, columnspan=4, sticky="ew", pady=y_padding)
         data_frame_rows += 1
 
         data_frame.grid_columnconfigure(0, weight=1)
@@ -123,45 +119,69 @@ class SetupTab:
         # Add widgets dynamically and update row counter
         ctk.CTkLabel(
             data_frame, text="Initial Portfolio Value:", font=self.bold_font
-        ).grid(
-            row=data_frame_rows, column=0, padx=5, sticky="e"
-        )
+        ).grid(row=data_frame_rows, column=0, padx=5, sticky="e")
         ctk.CTkEntry(
             data_frame, textvariable=self.initial_portfolio_value_var
-        ).grid(
-            row=data_frame_rows, column=1, padx=5, sticky="w", pady=y_padding
-        )
+        ).grid(row=data_frame_rows, column=1, padx=5, sticky="w", pady=y_padding)
         self.initial_portfolio_value_var.trace_add("write", self.update_initial_portfolio_value)
         data_frame_rows += 1
 
         ctk.CTkLabel(
             data_frame, text="Select In Market Assets:", font=self.bold_font
-        ).grid(
-            row=data_frame_rows, column=0, sticky="e", padx=5
-        )
-        ctk.CTkButton(data_frame, text="Select .csv File", fg_color="#bb8fce", text_color="#000000",
-                    hover_color="#8e44ad", command=self.load_weights_and_update).grid(row=data_frame_rows, column=1, sticky="w", padx=5, pady=y_padding)
+        ).grid(row=data_frame_rows, column=0, sticky="e", padx=5)
+        ctk.CTkButton(
+            data_frame,
+            text="Select .csv File",
+            fg_color="#bb8fce",
+            text_color="#000000",
+            hover_color="#8e44ad",
+            command=self.load_weights_and_update
+        ).grid(row=data_frame_rows, column=1, sticky="w", padx=5, pady=y_padding)
 
-        ctk.CTkLabel(data_frame, text="Select Out of Market Assets:", font=self.bold_font).grid(row=data_frame_rows, column=2, sticky="e", padx=5)
-        ctk.CTkButton(data_frame, text="Select .csv File", fg_color="#bb8fce", text_color="#000000",
-                    hover_color="#8e44ad", command=self.load_out_of_market_weights_and_update).grid(row=data_frame_rows, column=3, sticky="w", padx=5, pady=y_padding)
+        ctk.CTkLabel(
+            data_frame, text="Select Out of Market Assets:", font=self.bold_font
+        ).grid(row=data_frame_rows, column=2, sticky="e", padx=5)
+        ctk.CTkButton(
+            data_frame,
+            text="Select .csv File",
+            fg_color="#bb8fce",
+            text_color="#000000",
+            hover_color="#8e44ad",
+            command=self.load_out_of_market_weights_and_update
+        ).grid(row=data_frame_rows, column=3, sticky="w", padx=5, pady=y_padding)
         data_frame_rows += 1
 
-        ctk.CTkLabel(data_frame, text="Start Date:", font=self.bold_font).grid(row=data_frame_rows, column=0, padx=5, sticky="e")
-        ctk.CTkEntry(data_frame, textvariable=self.start_date_var).grid(row=data_frame_rows, column=1, padx=5, sticky="w", pady=y_padding)
+        ctk.CTkLabel(
+            data_frame, text="Start Date:", font=self.bold_font
+        ).grid(row=data_frame_rows, column=0, padx=5, sticky="e")
+        ctk.CTkEntry(
+            data_frame, textvariable=self.start_date_var
+        ).grid(row=data_frame_rows, column=1, padx=5, sticky="w", pady=y_padding)
         self.start_date_var.trace_add("write", self.update_start_date)
 
-        ctk.CTkLabel(data_frame, text="End Date:", font=self.bold_font).grid(row=data_frame_rows, column=2, padx=5, sticky="e")
-        ctk.CTkEntry(data_frame, textvariable=self.end_date_var).grid(row=data_frame_rows, column=3, padx=5, sticky="w", pady=y_padding)
+        ctk.CTkLabel(
+            data_frame, text="End Date:", font=self.bold_font
+        ).grid(row=data_frame_rows, column=2, padx=5, sticky="e")
+        ctk.CTkEntry(
+            data_frame, textvariable=self.end_date_var
+        ).grid(row=data_frame_rows, column=3, padx=5, sticky="w", pady=y_padding)
         self.end_date_var.trace_add("write", self.update_end_date)
         data_frame_rows += 1
 
-        ctk.CTkLabel(data_frame, text="Cash Ticker:", font=self.bold_font).grid(row=data_frame_rows, column=0, sticky="e", padx=5)
-        ctk.CTkEntry(data_frame, textvariable=self.cash_ticker_var).grid(row=data_frame_rows, column=1, sticky="w", padx=5, pady=y_padding)
+        ctk.CTkLabel(
+            data_frame, text="Cash Ticker:", font=self.bold_font
+        ).grid(row=data_frame_rows, column=0, sticky="e", padx=5)
+        ctk.CTkEntry(
+            data_frame, textvariable=self.cash_ticker_var
+        ).grid(row=data_frame_rows, column=1, sticky="w", padx=5, pady=y_padding)
         self.cash_ticker_var.trace_add("write", self.update_cash_ticker)
 
-        ctk.CTkLabel(data_frame, text="Bond Ticker:", font=self.bold_font).grid(row=data_frame_rows, column=2, sticky="e", padx=5)
-        ctk.CTkEntry(data_frame, textvariable=self.bond_ticker_var).grid(row=data_frame_rows, column=3, sticky="w", padx=5, pady=y_padding)
+        ctk.CTkLabel(
+            data_frame, text="Bond Ticker:", font=self.bold_font
+        ).grid(row=data_frame_rows, column=2, sticky="e", padx=5)
+        ctk.CTkEntry(
+            data_frame, textvariable=self.bond_ticker_var
+        ).grid(row=data_frame_rows, column=3, sticky="w", padx=5, pady=y_padding)
         self.bond_ticker_var.trace_add("write", self.update_bond_ticker)
         data_frame_rows += 1
 
@@ -188,10 +208,14 @@ class SetupTab:
         trade_frame_rows = 0
         trade_frame = ctk.CTkFrame(parent, fg_color="transparent")
         trade_frame.pack(fill="x", pady=10, padx=10)
-        ctk.CTkLabel(trade_frame, text="Trade Settings", font=self.bold_font).grid(row=trade_frame_rows, column=0, columnspan=4, sticky="ew")
+        ctk.CTkLabel(
+            trade_frame, text="Trade Settings", font=self.bold_font
+        ).grid(row=trade_frame_rows, column=0, columnspan=4, sticky="ew")
         trade_frame_rows += 1
 
-        ctk.CTkLabel(trade_frame, text="Sets the trading parameters of the trading model.", font=self.bold_font).grid(row=trade_frame_rows, column=0, columnspan=4, sticky="ew", pady=y_padding)
+        ctk.CTkLabel(
+            trade_frame, text="Sets the trading parameters of the trading model.", font=self.bold_font
+        ).grid(row=trade_frame_rows, column=0, columnspan=4, sticky="ew", pady=y_padding)
         trade_frame_rows += 1
 
         trade_frame.grid_columnconfigure(0, weight=1)
@@ -199,11 +223,17 @@ class SetupTab:
         trade_frame.grid_columnconfigure(2, weight=1)
         trade_frame.grid_columnconfigure(3, weight=1)
 
-        ctk.CTkLabel(trade_frame, text="Benchmark Asset:", font=self.bold_font).grid(row=trade_frame_rows, column=0, sticky="e", padx=5)
-        ctk.CTkEntry(trade_frame, textvariable=self.benchmark_asset_entry_var).grid(row=trade_frame_rows, column=1, sticky="w", padx=5, pady=y_padding)
+        ctk.CTkLabel(
+            trade_frame, text="Benchmark Asset:", font=self.bold_font
+        ).grid(row=trade_frame_rows, column=0, sticky="e", padx=5)
+        ctk.CTkEntry(
+            trade_frame, textvariable=self.benchmark_asset_entry_var
+        ).grid(row=trade_frame_rows, column=1, sticky="w", padx=5, pady=y_padding)
         self.benchmark_asset_entry_var.trace_add("write", self.update_benchmark_asset)
 
-        ctk.CTkLabel(trade_frame, text="Trading Frequency:", font=self.bold_font).grid(row=trade_frame_rows, column=2, sticky="e", padx=5)
+        ctk.CTkLabel(
+            trade_frame, text="Trading Frequency:", font=self.bold_font
+        ).grid(row=trade_frame_rows, column=2, sticky="e", padx=5)
         trading_options = ["Monthly", "Bi-Monthly", "Quarterly", "Yearly"]
         ctk.CTkOptionMenu(
             trade_frame,
@@ -221,10 +251,14 @@ class SetupTab:
         ma_frame_rows = 0
         ma_frame = ctk.CTkFrame(parent, fg_color="transparent")
         ma_frame.pack(fill="x", pady=10, padx=10)
-        ctk.CTkLabel(ma_frame, text="Moving Average Settings", font=self.bold_font).grid(row=ma_frame_rows, column=0, columnspan=4, sticky="ew")
+        ctk.CTkLabel(
+            ma_frame, text="Moving Average Settings", font=self.bold_font
+        ).grid(row=ma_frame_rows, column=0, columnspan=4, sticky="ew")
         ma_frame_rows += 1
 
-        ctk.CTkLabel(ma_frame, text="Sets the moving average parameters of the trading model.", font=self.bold_font).grid(row=ma_frame_rows, column=0, columnspan=4, sticky="ew", pady=y_padding)
+        ctk.CTkLabel(
+            ma_frame, text="Sets the moving average parameters of the trading model.", font=self.bold_font
+        ).grid(row=ma_frame_rows, column=0, columnspan=4, sticky="ew", pady=y_padding)
         ma_frame_rows += 1
 
         ma_frame.grid_columnconfigure(0, weight=1)
@@ -268,10 +302,14 @@ class SetupTab:
         momentum_frame_rows = 0
         momentum_frame = ctk.CTkFrame(parent, fg_color="transparent")
         momentum_frame.pack(fill="x", pady=10, padx=10)
-        ctk.CTkLabel(momentum_frame, text="Momentum Settings", font=self.bold_font).grid(row=momentum_frame_rows, column=0, columnspan=4, sticky="ew")
+        ctk.CTkLabel(
+            momentum_frame, text="Momentum Settings", font=self.bold_font
+        ).grid(row=momentum_frame_rows, column=0, columnspan=4, sticky="ew")
         momentum_frame_rows += 1
 
-        ctk.CTkLabel(momentum_frame, text="Sets the momentum parameters of the trading model.", font=self.bold_font).grid(row=momentum_frame_rows, column=0, columnspan=4, sticky="ew", pady=y_padding)
+        ctk.CTkLabel(
+            momentum_frame, text="Sets the momentum parameters of the trading model.", font=self.bold_font
+        ).grid(row=momentum_frame_rows, column=0, columnspan=4, sticky="ew", pady=y_padding)
         momentum_frame_rows += 1
 
         momentum_frame.grid_columnconfigure(0, weight=1)
@@ -279,8 +317,12 @@ class SetupTab:
         momentum_frame.grid_columnconfigure(2, weight=1)
         momentum_frame.grid_columnconfigure(3, weight=1)
 
-        ctk.CTkLabel(momentum_frame, text="Number of assets to select:", font=self.bold_font).grid(row=momentum_frame_rows, column=0, sticky="e", padx=5)
-        ctk.CTkEntry(momentum_frame, textvariable=self.num_assets_to_select_entry_var).grid(row=momentum_frame_rows, column=1, sticky="w", padx=5, pady=y_padding)
+        ctk.CTkLabel(
+            momentum_frame, text="Number of assets to select:", font=self.bold_font
+        ).grid(row=momentum_frame_rows, column=0, sticky="e", padx=5)
+        ctk.CTkEntry(
+            momentum_frame, textvariable=self.num_assets_to_select_entry_var
+        ).grid(row=momentum_frame_rows, column=1, sticky="w", padx=5, pady=y_padding)
         self.num_assets_to_select_entry_var.trace_add("write", self.update_num_assets_to_select)
 
         # ctk.CTkLabel(momentum_frame, text="Momentum Threshold Asset:", font=self.bold_font).grid(row=momentum_frame_rows, column=2, sticky="e", padx=5)
@@ -288,7 +330,9 @@ class SetupTab:
         # self.mom_threshold_asset_entry_var.trace_add("write", self.update_mom_threshold_asset)
         momentum_frame_rows += 1
 
-        ctk.CTkLabel(momentum_frame, text="Remove Negative Momentum:", font=self.bold_font).grid(row=momentum_frame_rows, column=0, sticky="e", padx=5)
+        ctk.CTkLabel(
+            momentum_frame, text="Remove Negative Momentum:", font=self.bold_font
+        ).grid(row=momentum_frame_rows, column=0, sticky="e", padx=5)
         negative_mom_allowed = ["True", "False"]
         ctk.CTkOptionMenu(
             momentum_frame,
@@ -306,10 +350,14 @@ class SetupTab:
         monte_carlo_frame_rows = 0
         monte_carlo_frame = ctk.CTkFrame(parent, fg_color="transparent")
         monte_carlo_frame.pack(fill="x", pady=10, padx=10)
-        ctk.CTkLabel(monte_carlo_frame, text="Monte Carlo Settings", font=self.bold_font).grid(row=monte_carlo_frame_rows, column=0, columnspan=4, sticky="ew")
+        ctk.CTkLabel(
+            monte_carlo_frame, text="Monte Carlo Settings", font=self.bold_font
+        ).grid(row=monte_carlo_frame_rows, column=0, columnspan=4, sticky="ew")
         monte_carlo_frame_rows += 1
 
-        ctk.CTkLabel(monte_carlo_frame, text="Sets the Monte Carlo parameters of the trading model.", font=self.bold_font).grid(row=monte_carlo_frame_rows, column=0, columnspan=4, sticky="ew", pady=y_padding)
+        ctk.CTkLabel(
+            monte_carlo_frame, text="Sets the Monte Carlo parameters of the trading model.", font=self.bold_font
+        ).grid(row=monte_carlo_frame_rows, column=0, columnspan=4, sticky="ew", pady=y_padding)
         monte_carlo_frame_rows += 1
 
         monte_carlo_frame.grid_columnconfigure(0, weight=1)
@@ -317,17 +365,29 @@ class SetupTab:
         monte_carlo_frame.grid_columnconfigure(2, weight=1)
         monte_carlo_frame.grid_columnconfigure(3, weight=1)
 
-        ctk.CTkLabel(monte_carlo_frame, text="Simulation Horizon:", font=self.bold_font).grid(row=monte_carlo_frame_rows, column=0, sticky="e", padx=5)
-        ctk.CTkEntry(monte_carlo_frame, textvariable=self.simulation_horizon_entry_var).grid(row=monte_carlo_frame_rows, column=1, sticky="w", padx=5, pady=y_padding)
+        ctk.CTkLabel(
+            monte_carlo_frame, text="Simulation Horizon:", font=self.bold_font
+        ).grid(row=monte_carlo_frame_rows, column=0, sticky="e", padx=5)
+        ctk.CTkEntry(
+            monte_carlo_frame, textvariable=self.simulation_horizon_entry_var
+        ).grid(row=monte_carlo_frame_rows, column=1, sticky="w", padx=5, pady=y_padding)
         self.simulation_horizon_entry_var.trace_add("write", self.update_simulation_horizon)
 
-        ctk.CTkLabel(monte_carlo_frame, text="Number Simulations To Run:", font=self.bold_font).grid(row=monte_carlo_frame_rows, column=2, sticky="e", padx=5)
-        ctk.CTkEntry(monte_carlo_frame, textvariable=self.num_simulations_var).grid(row=monte_carlo_frame_rows, column=3, sticky="w", padx=5, pady=y_padding)
+        ctk.CTkLabel(
+            monte_carlo_frame, text="Number Simulations To Run:", font=self.bold_font
+        ).grid(row=monte_carlo_frame_rows, column=2, sticky="e", padx=5)
+        ctk.CTkEntry(
+            monte_carlo_frame, textvariable=self.num_simulations_var
+        ).grid(row=monte_carlo_frame_rows, column=3, sticky="w", padx=5, pady=y_padding)
         self.num_simulations_var.trace_add("write", self.update_num_simulations)
         monte_carlo_frame_rows += 1
 
-        ctk.CTkLabel(monte_carlo_frame, text="Contribution:", font=self.bold_font).grid(row=monte_carlo_frame_rows, column=0, sticky="e", padx=5)
-        ctk.CTkEntry(monte_carlo_frame, textvariable=self.contribution_entry_var).grid(row=monte_carlo_frame_rows, column=1, sticky="w", padx=5, pady=y_padding)
+        ctk.CTkLabel(
+            monte_carlo_frame, text="Contribution:", font=self.bold_font
+        ).grid(row=monte_carlo_frame_rows, column=0, sticky="e", padx=5)
+        ctk.CTkEntry(
+            monte_carlo_frame, textvariable=self.contribution_entry_var
+        ).grid(row=monte_carlo_frame_rows, column=1, sticky="w", padx=5, pady=y_padding)
         self.contribution_entry_var.trace_add("write", self.update_contribution)
 
         ctk.CTkLabel(monte_carlo_frame, text="Contribution Frequency:", font=self.bold_font).grid(row=monte_carlo_frame_rows, column=2, sticky="e", padx=5)
