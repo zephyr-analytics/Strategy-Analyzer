@@ -8,6 +8,9 @@ import pandas as pd
 
 
 class ModelsData:
+    """
+    Getter and setter class for storing inputs for models and backtesting.
+    """
     def __init__(self):
         """
         Initializes the Config class with default values for portfolio parameters.

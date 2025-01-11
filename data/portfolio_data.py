@@ -2,12 +2,13 @@
 Getter and Setter class for storing data.
 """
 
-from datetime import datetime
-
 import pandas as pd
 
 
 class PortfolioData:
+    """
+    Getter and setter class for storing data for models and backtesting.
+    """
     def __init__(self):
         """
         Initializes the Config class with default values for portfolio parameters.
@@ -146,7 +147,7 @@ class PortfolioData:
         """
         self._out_of_market_data = value
 
-    
+
     @property
     def trading_data(self):
         """

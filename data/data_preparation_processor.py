@@ -1,4 +1,5 @@
 """
+Module for preparing data for models and backtesting.
 """
 
 import logging
@@ -15,7 +16,6 @@ class DataPreparationProcessor:
     """
     Class for obtaining and persisting data with retry mechanisms and validation.
     """
-
     def __init__(self, models_data: ModelsData, portfolio_data: PortfolioData):
         self.data_models = models_data
         self.data_portfolio = portfolio_data
@@ -57,7 +57,7 @@ class DataPreparationProcessor:
 
                 for ticker in dropped_tickers:
                     self.data_models.assets_weights.pop(ticker, None)
-                self.data_models.assets_weights=self.asset_weights
+                self.data_models.assets_weights=self.data_models.assets_weights
 
             filtered_data = filtered_data.dropna(axis=1, how='any')
         else:
@@ -75,7 +75,12 @@ class DataPreparationProcessor:
         """
         tickers_to_check = (
             set(self.data_models.assets_weights.keys()) |
-            {self.data_models.cash_ticker, self.data_models.bond_ticker, self.data_models.ma_threshold_asset, self.data_models.benchmark_asset} |
+            {
+                self.data_models.cash_ticker,
+                self.data_models.bond_ticker,
+                self.data_models.ma_threshold_asset,
+                self.data_models.benchmark_asset
+            } |
             set(self.data_models.out_of_market_tickers)
         )
 
@@ -90,7 +95,9 @@ class DataPreparationProcessor:
 
         self.data_portfolio.trading_data = filtered_data
 
-        self.data_portfolio.assets_data = filtered_data.loc[:, filtered_data.columns.intersection(self.data_models.assets_weights.keys())]
+        self.data_portfolio.assets_data = filtered_data.loc[
+            :, filtered_data.columns.intersection(self.data_models.assets_weights.keys())
+        ]
 
         if self.data_models.cash_ticker in filtered_data.columns:
             self.data_portfolio.cash_data = filtered_data[[self.data_models.cash_ticker]]
@@ -104,7 +111,9 @@ class DataPreparationProcessor:
         if self.data_models.benchmark_asset in filtered_data.columns:
             self.data_portfolio.benchmark_data = filtered_data[[self.data_models.benchmark_asset]]
 
-        out_of_market_data = filtered_data.loc[:, filtered_data.columns.intersection(self.data_models.out_of_market_tickers)]
+        out_of_market_data = filtered_data.loc[
+            :, filtered_data.columns.intersection(self.data_models.out_of_market_tickers)
+        ]
         if not out_of_market_data.empty:
             self.data_portfolio.out_of_market_data = out_of_market_data
 
