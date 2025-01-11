@@ -16,7 +16,6 @@ class ResultsProcessor:
     """
     A class to process and visualize the results of portfolio backtests and simulations.
     """
-
     def __init__(self, models_data: ModelsData, models_results: ModelsResults):
         """
         Initializes the ResultsProcessor with the data from ModelsData.
