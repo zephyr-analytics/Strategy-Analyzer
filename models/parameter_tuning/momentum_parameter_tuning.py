@@ -87,16 +87,20 @@ class MomentumParameterTuning(ParameterTuningProcessor):
         self.data_models.num_assets_to_select = num_assets
         self.data_models.ma_type = ma_type
 
-        backtest = MomentumBacktestProcessor(models_data=self.data_models, portfolio_data=self.data_portfolio)
+        backtest = MomentumBacktestProcessor(
+            models_data=self.data_models, 
+            portfolio_data=self.data_portfolio,
+            models_results=self.results_models
+        )
         backtest.process()
 
         return {
-            "cagr": self.data_models.cagr,
-            "average_annual_return": self.data_models.average_annual_return,
-            "max_drawdown": self.data_models.max_drawdown,
-            "var": self.data_models.var,
-            "cvar": self.data_models.cvar,
-            "annual_volatility": self.data_models.annual_volatility,
+            "cagr": self.results_models.cagr,
+            "average_annual_return": self.results_models.average_annual_return,
+            "max_drawdown": self.results_models.max_drawdown,
+            "var": self.results_models.var,
+            "cvar": self.results_models.cvar,
+            "annual_volatility": self.results_models.annual_volatility,
         }
 
 # TODO this needs to be moved to the results processor.

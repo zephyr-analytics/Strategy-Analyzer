@@ -222,22 +222,22 @@ class BacktestingProcessor(ABC):
         Calculates and sets portfolio statistics.
         """
         self.results_models.cagr = utilities.calculate_cagr(
-            portfolio_value=self.data_models.portfolio_values
+            portfolio_value=self.results_models.portfolio_values
         )
         self.results_models.average_annual_return = utilities.calculate_average_annual_return(
-            returns=self.data_models.portfolio_returns
+            returns=self.results_models.portfolio_returns
         )
         self.results_models.max_drawdown = utilities.calculate_max_drawdown(
-            portfolio_value=self.data_models.portfolio_values
+            portfolio_value=self.results_models.portfolio_values
         )
         self.results_models.var, self.results_models.cvar = utilities.calculate_var_cvar(
-            returns=self.data_models.portfolio_returns
+            returns=self.results_models.portfolio_returns
         )
         self.results_models.annual_volatility = utilities.calculate_annual_volatility(
-            portfolio_returns=self.data_models.portfolio_returns
+            portfolio_returns=self.results_models.portfolio_returns
         )
         self.results_models.standard_deviation = utilities.calculate_standard_deviation(
-            returns=self.data_models.portfolio_returns
+            returns=self.results_models.portfolio_returns
         )
 
 
