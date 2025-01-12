@@ -234,7 +234,7 @@ class SetupTab:
             variable=trading_freq_var
         ).grid(row=trade_frame_rows, column=3, sticky="w", padx=5, pady=y_padding)
         trading_freq_var.trace_add(
-            "write", lambda *args: self.update_models_data("trading_freqency", trading_freq_var)
+            "write", lambda *args: self.update_models_data("trading_frequency", trading_freq_var)
         )
 
 

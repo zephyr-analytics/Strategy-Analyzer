@@ -51,6 +51,7 @@ class BacktestingProcessor(ABC):
         self.filter_negative_momentum = self.data_models.negative_mom
 
         self.trading_data = portfolio_data.trading_data
+        logger.info("Trading frequency: %s", self.trading_frequency)
         self.asset_data = portfolio_data.assets_data
         self.benchmark_data = portfolio_data.benchmark_data
         self.bond_data = portfolio_data.bond_data
@@ -130,32 +131,32 @@ class BacktestingProcessor(ABC):
         """
 
     
-    def calculate_weighting(self, adjusted_weights):
-        """
-        """
-        if self.risk_metric == "Standard Deviation":
-            utilities.calculate_standard_deviation_weighting(
-                returns_df=self.return_data,
-                weights=adjusted_weights,
-                cash_ticker=self.cash_ticker,
-                bond_ticker=self.bond_ticker
-            )
-        if self.risk_metric == "Conditional Value at Risk":
-            utilities.calculate_conditional_value_at_risk_weighting(
-                returns_df=self.return_data,
-                weights=adjusted_weights,
-                cash_ticker=self.cash_ticker,
-                bond_ticker=self.bond_ticker
-            )
-        if self.risk_metric == "Max Drawdown":
-            utilities.calculate_max_drawdown_weighting(
-                returns_df=self.return_data,
-                weights=adjusted_weights,
-                cash_ticker=self.cash_ticker,
-                bond_ticker=self.bond_ticker
-            )
+    # def calculate_weighting(self, adjusted_weights):
+    #     """
+    #     """
+    #     if self.risk_metric == "Standard Deviation":
+    #         utilities.calculate_standard_deviation_weighting(
+    #             returns_df=self.return_data,
+    #             weights=adjusted_weights,
+    #             cash_ticker=self.cash_ticker,
+    #             bond_ticker=self.bond_ticker
+    #         )
+    #     if self.risk_metric == "Conditional Value at Risk":
+    #         utilities.calculate_conditional_value_at_risk_weighting(
+    #             returns_df=self.return_data,
+    #             weights=adjusted_weights,
+    #             cash_ticker=self.cash_ticker,
+    #             bond_ticker=self.bond_ticker
+    #         )
+    #     if self.risk_metric == "Max Drawdown":
+    #         utilities.calculate_max_drawdown_weighting(
+    #             returns_df=self.return_data,
+    #             weights=adjusted_weights,
+    #             cash_ticker=self.cash_ticker,
+    #             bond_ticker=self.bond_ticker
+    #         )
 
-        return adjusted_weights
+    #     return adjusted_weights
 
 
     def run_backtest(self):
@@ -221,7 +222,6 @@ class BacktestingProcessor(ABC):
         portfolio_returns : pd.Series
             Series of all portfolio returns from the backtest.
         """
-        # TODO this needs to be created.
         self.results_models.adjusted_weights = pd.Series(
             all_adjusted_weights,
             index=pd.date_range(start=self.start_date, periods=len(all_adjusted_weights), freq="M")
