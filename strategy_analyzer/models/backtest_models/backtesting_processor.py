@@ -51,7 +51,6 @@ class BacktestingProcessor(ABC):
         self.filter_negative_momentum = self.data_models.negative_mom
 
         self.trading_data = portfolio_data.trading_data
-        logger.info("Trading frequency: %s", self.trading_frequency)
         self.asset_data = portfolio_data.assets_data
         self.benchmark_data = portfolio_data.benchmark_data
         self.bond_data = portfolio_data.bond_data
