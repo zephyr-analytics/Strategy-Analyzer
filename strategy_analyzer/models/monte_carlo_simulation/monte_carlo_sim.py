@@ -5,10 +5,10 @@ Processor for running MonteCarlo simulations.
 import numpy as np
 import pandas as pd
 
-import utilities as utilities
-from results.results_processor import ResultsProcessor
-from models.models_data import ModelsData
-from results.models_results import ModelsResults
+from strategy_analyzer.results.results_processor import ResultsProcessor
+from strategy_analyzer.models.models_data import ModelsData
+from strategy_analyzer.results.models_results import ModelsResults
+
 
 class MonteCarloSimulation:
     """

@@ -5,10 +5,10 @@ Module for preparing data for models and backtesting.
 import logging
 import pandas as pd
 
-import utilities
+import strategy_analyzer.utilities as utilities
 from strategy_analyzer.logger import logger
-from models.models_data import ModelsData
-from data.portfolio_data import PortfolioData
+from strategy_analyzer.models.models_data import ModelsData
+from strategy_analyzer.data.portfolio_data import PortfolioData
 
 logger = logging.getLogger(__name__)
 

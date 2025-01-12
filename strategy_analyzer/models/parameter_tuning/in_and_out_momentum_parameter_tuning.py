@@ -4,11 +4,11 @@ Module for creating momentum based parameters.
 
 from multiprocessing import Pool
 
-from models.models_data import ModelsData
-from data.portfolio_data import PortfolioData
-from models.parameter_tuning.parameter_tuning_processor import ParameterTuningProcessor
-from models.backtest_models.iao_momentum_backtest_processor import IAOMomentumBacktestProcessor
-from results.models_results import ModelsResults
+from strategy_analyzer.models.models_data import ModelsData
+from strategy_analyzer.data.portfolio_data import PortfolioData
+from strategy_analyzer.models.parameter_tuning.parameter_tuning_processor import ParameterTuningProcessor
+from strategy_analyzer.models.backtest_models.iao_momentum_backtest_processor import IAOMomentumBacktestProcessor
+from strategy_analyzer.results.models_results import ModelsResults
 
 
 class InAndOutMomentumParameterTuning(ParameterTuningProcessor):

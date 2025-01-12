@@ -2,11 +2,11 @@
 Module for creating IAO momentum trading signals.
 """
 
-from models.create_signals.signals_processor import SignalsProcessor
-from models.backtest_models.iao_momentum_backtest_processor import IAOMomentumBacktestProcessor
-from models.models_data import ModelsData
-from data.portfolio_data import PortfolioData
-from results.models_results import ModelsResults
+from strategy_analyzer.models.create_signals.signals_processor import SignalsProcessor
+from strategy_analyzer.models.backtest_models.iao_momentum_backtest_processor import IAOMomentumBacktestProcessor
+from strategy_analyzer.models.models_data import ModelsData
+from strategy_analyzer.data.portfolio_data import PortfolioData
+from strategy_analyzer.results.models_results import ModelsResults
 
 
 class CreateMomentumInAndOutSignals(SignalsProcessor):

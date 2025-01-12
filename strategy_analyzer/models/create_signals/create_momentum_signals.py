@@ -2,11 +2,11 @@
 Module for creating momentum trading signals.
 """
 
-from models.create_signals.signals_processor import SignalsProcessor
-from models.backtest_models.momentum_backtest_processor import MomentumBacktestProcessor
-from models.models_data import ModelsData
-from data.portfolio_data import PortfolioData
-from results.models_results import ModelsResults
+from strategy_analyzer.models.create_signals.signals_processor import SignalsProcessor
+from strategy_analyzer.models.backtest_models.momentum_backtest_processor import MomentumBacktestProcessor
+from strategy_analyzer.models.models_data import ModelsData
+from strategy_analyzer.data.portfolio_data import PortfolioData
+from strategy_analyzer.results.models_results import ModelsResults
 
 
 class CreateMomentumSignals(SignalsProcessor):

@@ -6,11 +6,10 @@ import json
 import os
 from abc import ABC, abstractmethod
 
-import utilities as utilities
-from models.models_data import ModelsData
-from data.portfolio_data import PortfolioData
-from results.models_results import ModelsResults
-from results.parameter_tuning_results_processor import ParameterTuningResultsProcessor
+from strategy_analyzer.models.models_data import ModelsData
+from strategy_analyzer.data.portfolio_data import PortfolioData
+from strategy_analyzer.results.models_results import ModelsResults
+from strategy_analyzer.results.parameter_tuning_results_processor import ParameterTuningResultsProcessor
 
 
 class ParameterTuningProcessor(ABC):

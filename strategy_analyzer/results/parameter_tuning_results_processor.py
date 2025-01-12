@@ -4,10 +4,10 @@ Processor for processing results from models.
 
 import plotly.express as px
 
-import utilities as utilities
-from models.models_data import ModelsData
-from results.models_results import ModelsResults
-from results.results_processor import ResultsProcessor
+import strategy_analyzer.utilities as utilities
+from strategy_analyzer.models.models_data import ModelsData
+from strategy_analyzer.results.models_results import ModelsResults
+from strategy_analyzer.results.results_processor import ResultsProcessor
 
 
 class ParameterTuningResultsProcessor(ResultsProcessor):

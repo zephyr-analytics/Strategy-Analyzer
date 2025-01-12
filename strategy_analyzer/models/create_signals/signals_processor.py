@@ -7,10 +7,10 @@ from abc import ABC, abstractmethod
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
-import utilities as utilities
-from models.models_data import ModelsData
-from data.portfolio_data import PortfolioData
-from results.models_results import ModelsResults
+import strategy_analyzer.utilities as utilities
+from strategy_analyzer.models.models_data import ModelsData
+from strategy_analyzer.data.portfolio_data import PortfolioData
+from strategy_analyzer.results.models_results import ModelsResults
 
 
 class SignalsProcessor(ABC):

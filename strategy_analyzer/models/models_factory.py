@@ -2,14 +2,14 @@
 Models factory for handling differnet backtesting models and runs.
 """
 
-from processing_types import *
-from models.create_signals import *
-from models.backtest_models import *
-from models.monte_carlo_simulation import *
-from models.parameter_tuning import *
-from models.models_data import ModelsData
-from data.portfolio_data import PortfolioData
-from results.models_results import ModelsResults
+from strategy_analyzer.processing_types import *
+from strategy_analyzer.models.create_signals import *
+from strategy_analyzer.models.backtest_models import *
+from strategy_analyzer.models.monte_carlo_simulation import *
+from strategy_analyzer.models.parameter_tuning import *
+from strategy_analyzer.models.models_data import ModelsData
+from strategy_analyzer.data.portfolio_data import PortfolioData
+from strategy_analyzer.results.models_results import ModelsResults
 
 
 class ModelsFactory:

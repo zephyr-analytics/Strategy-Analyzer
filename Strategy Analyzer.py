@@ -6,11 +6,11 @@ import multiprocessing
 
 import customtkinter as ctk
 
-import utilities
-from gui import *
-from data.portfolio_data import PortfolioData
-from models.models_data import ModelsData
-from results.models_results import ModelsResults
+import strategy_analyzer.utilities as utilities
+from strategy_analyzer.gui import *
+from strategy_analyzer.data.portfolio_data import PortfolioData
+from strategy_analyzer.models.models_data import ModelsData
+from strategy_analyzer.results.models_results import ModelsResults
 
 
 class StrategyAnalyzer(ctk.CTk):

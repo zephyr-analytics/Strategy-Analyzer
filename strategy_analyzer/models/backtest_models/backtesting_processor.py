@@ -9,13 +9,13 @@ from abc import ABC, abstractmethod
 
 import pandas as pd
 
-import utilities
+import strategy_analyzer.utilities as utilities
 from strategy_analyzer.logger import logger
-from data.portfolio_data import PortfolioData
-from models.models_data import ModelsData
-from processing_types import *
-from results.models_results import ModelsResults
-from results.results_processor import ResultsProcessor
+from strategy_analyzer.data.portfolio_data import PortfolioData
+from strategy_analyzer.models.models_data import ModelsData
+from strategy_analyzer.processing_types import *
+from strategy_analyzer.results.models_results import ModelsResults
+from strategy_analyzer.results.results_processor import ResultsProcessor
 
 logger = logging.getLogger(__name__)
 

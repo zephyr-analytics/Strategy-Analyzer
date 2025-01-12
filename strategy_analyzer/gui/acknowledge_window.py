@@ -6,7 +6,7 @@ import customtkinter as ctk
 
 from PIL import Image, ImageTk
 
-import utilities as utilities
+import strategy_analyzer.utilities as utilities
 
 
 class AcknowledgmentPopup(ctk.CTkToplevel):
