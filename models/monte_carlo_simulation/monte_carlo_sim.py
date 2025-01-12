@@ -58,7 +58,7 @@ class MonteCarloSimulation:
         Encapsulates the entire process of running the Monte Carlo simulation and plotting the results.
         """
         simulation_results = self.run_simulation()
-        results_processor = ResultsProcessor(self.data_models)
+        results_processor = ResultsProcessor(models_data=self.data_models, models_results=self.results_models)
         results_processor.plot_monte_carlo_simulation(simulation_results, self.simulation_horizon, self.output_filename)
 
 

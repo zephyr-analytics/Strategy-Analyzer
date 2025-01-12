@@ -189,10 +189,9 @@ class ResultsProcessor:
         filename : str, optional
             The name of the HTML file to save the plot. Default is 'var_cvar.html'.
         """
-        returns = self.portfolio_returns
-        portfolio_value = self.portfolio_values
+        returns = self.results_models.portfolio_returns
 
-        if self.theme.lower() == "dark":
+        if self.data_models.theme_mode.lower() == "dark":
             line_color = "white"
         else:
             line_color = "black"
@@ -208,18 +207,18 @@ class ResultsProcessor:
             )
         )
         fig.add_shape(type="line",
-                    x0=self.var, y0=0, x1=self.var, y1=1,
+                    x0=self.results_models.var, y0=0, x1=self.results_models.var, y1=1,
                     line=dict(color=line_color, dash="dash"),
                     xref='x', yref='paper',
-                    name=f'VaR ({confidence_level * 100}%): {self.var:.2%}')
+                    name=f'VaR ({confidence_level * 100}%): {self.results_models.var:.2%}')
         fig.add_shape(type="line",
-                    x0=self.cvar, y0=0, x1=self.cvar, y1=1,
+                    x0=self.results_models.cvar, y0=0, x1=self.results_models.cvar, y1=1,
                     line=dict(color=line_color, dash="dash"),
                     xref='x', yref='paper',
-                    name=f'CVaR ({confidence_level * 100}%): {self.cvar:.2%}')
+                    name=f'CVaR ({confidence_level * 100}%): {self.results_models.cvar:.2%}')
 
-        chart_theme = "plotly_dark" if self.theme.lower() == "dark" else "plotly"
-        
+        chart_theme = "plotly_dark" if self.data_models.theme_mode.lower() == "dark" else "plotly"
+
         fig.update_layout(
             template=chart_theme,
             title='Portfolio Returns with VaR and CVaR',
@@ -237,31 +236,31 @@ class ResultsProcessor:
                 dict(
                     xref='paper', yref='paper', x=0.5, y=1,
                     xanchor='center', yanchor='bottom',
-                    text=f'CAGR: {self.cagr:.2%}',
+                    text=f'CAGR: {self.results_models.cagr:.2%}',
                     showarrow=False
                 ),
                 dict(
                     xref='paper', yref='paper', x=0.25, y=1,
                     xanchor='center', yanchor='bottom',
-                    text=f'Avg Annual Return: {self.avg_annual_return:.2%}',
+                    text=f'Avg Annual Return: {self.results_models.average_annual_return:.2%}',
                     showarrow=False
                 ),
                 dict(
                     xref='paper', yref='paper', x=0.1, y=1,
                     xanchor='center', yanchor='bottom',
-                    text=f'Max Drawdown: {self.max_drawdown:.2%}',
+                    text=f'Max Drawdown: {self.results_models.max_drawdown:.2%}',
                     showarrow=False
                 ),
                 dict(
                     xref='paper', yref='paper', x=0.75, y=1,
                     xanchor='center', yanchor='bottom',
-                    text=f'VaR ({confidence_level * 100}%): {self.var:.2%}',
+                    text=f'VaR ({confidence_level * 100}%): {self.results_models.var:.2%}',
                     showarrow=False
                 ),
                 dict(
                     xref='paper', yref='paper', x=0.9, y=1,
                     xanchor='center', yanchor='bottom',
-                    text=f'CVaR ({confidence_level * 100}%): {self.cvar:.2%}',
+                    text=f'CVaR ({confidence_level * 100}%): {self.results_models.cvar:.2%}',
                     showarrow=False
                 ),
                 dict(
@@ -278,12 +277,12 @@ class ResultsProcessor:
         utilities.save_html(
             fig,
             filename,
-            self.weights_filename,
-            self.ma_type,
-            self.processing_type,
-            self.num_assets,
-            self.ma_window,
-            self.trading_frequency
+            self.data_models.weights_filename,
+            self.data_models.ma_type,
+            self.data_models.processing_type,
+            self.data_models.num_assets_to_select,
+            self.data_models.ma_window,
+            self.data_models.trading_frequency
         )
 
 
@@ -340,7 +339,7 @@ class ResultsProcessor:
             line=dict(color='green', dash='dash')
         ))
 
-        chart_theme = "plotly_dark" if self.theme.lower() == "dark" else "plotly"
+        chart_theme = "plotly_dark" if self.data_models.theme_mode.lower() == "dark" else "plotly"
         
         fig.update_layout(
             template=chart_theme,
@@ -364,12 +363,12 @@ class ResultsProcessor:
         utilities.save_html(
             fig,
             filename,
-            self.weights_filename,
-            self.ma_type,
-            self.processing_type,
-            self.num_assets,
-            self.ma_window,
-            self.trading_frequency
+            self.data_models.weights_filename,
+            self.data_models.ma_type,
+            self.data_models.processing_type,
+            self.data_models.num_assets_to_select,
+            self.data_models.ma_window,
+            self.data_models.trading_frequency
         )
 
 
@@ -383,8 +382,8 @@ class ResultsProcessor:
         filename : str, optional
             The name of the file to save the plot. Default is 'returns_heatmap.html'.
         """
-        monthly_returns = self.portfolio_returns.resample('M').sum()
-        yearly_returns = self.portfolio_returns.resample('Y').sum()
+        monthly_returns = self.results_models.portfolio_returns.resample('M').sum()
+        yearly_returns = self.results_models.portfolio_returns.resample('Y').sum()
         monthly_returns.index = monthly_returns.index + pd.DateOffset(months=1)
         monthly_returns_df = monthly_returns.to_frame(name='Monthly Return')
         monthly_returns_df['Monthly Return'] *= 100
@@ -471,7 +470,7 @@ class ResultsProcessor:
                 )
             )
 
-        chart_theme = "plotly_dark" if self.theme.lower() == "dark" else "plotly"
+        chart_theme = "plotly_dark" if self.data_models.theme_mode.lower() == "dark" else "plotly"
         
         fig.update_layout(
             template=chart_theme,
@@ -489,11 +488,12 @@ class ResultsProcessor:
         )
 
         utilities.save_html(
-            fig, filename,
-            self.weights_filename,
-            self.ma_type,
-            self.processing_type,
-            self.num_assets,
-            self.ma_window,
-            self.trading_frequency
+            fig,
+            filename,
+            self.data_models.weights_filename,
+            self.data_models.ma_type,
+            self.data_models.processing_type,
+            self.data_models.num_assets_to_select,
+            self.data_models.ma_window,
+            self.data_models.trading_frequency
         )
