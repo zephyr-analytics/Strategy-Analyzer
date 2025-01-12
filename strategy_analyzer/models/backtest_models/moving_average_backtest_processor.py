@@ -20,7 +20,6 @@ class MovingAverageBacktestProcessor(BacktestingProcessor):
     """
     A class to backtest a static portfolio with adjustable weights based on Simple Moving Average (SMA).
     """
-
     def __init__(self, models_data: ModelsData, portfolio_data: PortfolioData, models_results: ModelsResults):
         """
         Initializes the BacktestStaticPortfolio class with data from ModelsData.
@@ -62,8 +61,8 @@ class MovingAverageBacktestProcessor(BacktestingProcessor):
         dict
             Dictionary of adjusted asset weights.
         """
-        adjusted_weights = self.assets_weights.copy() if selected_assets is None else selected_assets.copy()
-        # NOTE this can be a utilities method
+        adjusted_weights = self.data_models.assets_weights.copy() if selected_assets is None else selected_assets.copy()
+
         def get_replacement_asset():
             """
             Determines the replacement asset (cash or bond) based on SMA.
@@ -73,12 +72,11 @@ class MovingAverageBacktestProcessor(BacktestingProcessor):
             str
                 The replacement asset ticker.
             """
-            if self.bond_ticker and self.bond_ticker in self.bond_data.columns:
-                if not is_below_ma(self.bond_ticker, self.bond_data):
-                    return self.bond_ticker
-            return self.cash_ticker if self.cash_ticker in self.cash_data.columns else None
+            if self.data_models.bond_ticker and self.data_models.bond_ticker in self.data_portfolio.bond_data.columns:
+                if not is_below_ma(self.data_models.bond_ticker, self.data_portfolio.bond_data):
+                    return self.data_models.bond_ticker
+            return self.data_models.cash_ticker if self.data_models.cash_ticker in self.data_portfolio.cash_data.columns else None
 
-        # NOTE this can be a utilities method
         def is_below_ma(ticker, data):
             """
             Checks if the price of the given ticker is below its moving average.
@@ -100,24 +98,24 @@ class MovingAverageBacktestProcessor(BacktestingProcessor):
 
             price = data.loc[:current_date, ticker].iloc[-1]
 
-            if self.ma_type == "SMA":
-                ma = data.loc[:current_date, ticker].rolling(window=self.ma_period).mean().iloc[-1]
-            elif self.ma_type == "EMA":
-                ma = data.loc[:current_date, ticker].ewm(span=self.ma_period).mean().iloc[-1]
+            if self.data_models.ma_type == "SMA":
+                ma = data.loc[:current_date, ticker].rolling(window=self.data_models.ma_window).mean().iloc[-1]
+            elif self.data_models.ma_type == "EMA":
+                ma = data.loc[:current_date, ticker].ewm(span=self.data_models.ma_window).mean().iloc[-1]
             else:
                 raise ValueError("Invalid ma_type. Choose 'SMA' or 'EMA'.")
 
             return price < ma
 
-        if not self.ma_threshold_asset:
+        if not self.data_models.ma_threshold_asset:
             pass
-        elif is_below_ma(self.ma_threshold_asset, self.ma_threshold_data):
+        elif is_below_ma(self.data_models.ma_threshold_asset, self.data_portfolio.ma_threshold_data):
             replacement_asset = get_replacement_asset()
             if replacement_asset:
                 return {replacement_asset: 1.0}
 
         for ticker, weight in list(adjusted_weights.items()):
-            if ticker in self.asset_data.columns and is_below_ma(ticker, self.asset_data):
+            if ticker in self.data_portfolio.assets_data.columns and is_below_ma(ticker, self.data_portfolio.assets_data):
                 replacement_asset = get_replacement_asset()
                 if replacement_asset:
                     adjusted_weights[replacement_asset] = adjusted_weights.get(replacement_asset, 0) + weight
