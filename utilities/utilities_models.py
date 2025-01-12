@@ -29,10 +29,11 @@ def min_volatility_weighting(cov_matrix):
     constraints = {'type': 'eq', 'fun': lambda x: np.sum(x) - 1.0}
     bounds = tuple((0, 1) for _ in range(num_assets))
 
-    result = minimize(portfolio_volatility, initial_weights, args=(cov_matrix,), 
+    result = minimize(portfolio_volatility, initial_weights, args=(cov_matrix,),
                       method='SLSQP', bounds=bounds, constraints=constraints)
 
     return result.x
+
 
 def max_sharpe_ratio_weighting(cov_matrix, returns, risk_free_rate=0.01):
     """
@@ -50,8 +51,8 @@ def max_sharpe_ratio_weighting(cov_matrix, returns, risk_free_rate=0.01):
     constraints = {'type': 'eq', 'fun': lambda x: np.sum(x) - 1.0}
     bounds = tuple((0, 1) for _ in range(num_assets))
 
-    result = minimize(negative_sharpe_ratio, initial_weights, 
-                      args=(returns, cov_matrix, risk_free_rate), 
+    result = minimize(negative_sharpe_ratio, initial_weights,
+                      args=(returns, cov_matrix, risk_free_rate),
                       method='SLSQP', bounds=bounds, constraints=constraints)
 
     return result.x
@@ -75,32 +76,7 @@ def risk_contribution_weighting(cov_matrix, assets_weights):
     constraints = {'type': 'eq', 'fun': lambda x: np.sum(x) - 1.0}
     bounds = tuple((0, 1) for _ in range(num_assets))
 
-    result = minimize(risk_contribution, initial_weights, args=(cov_matrix,), 
+    result = minimize(risk_contribution, initial_weights, args=(cov_matrix,),
                       method='SLSQP', bounds=bounds, constraints=constraints)
 
     return dict(zip(assets_weights.keys(), result.x))
-
-# TODO implement this through out the backtesting process.
-    # def _rebalance_portfolio(self, current_weights):
-    #     """
-    #     Rebalances the portfolio if the weights are outside their target range.
-
-    #     Parameters
-    #     ----------
-    #     current_weights : dict
-    #         Dictionary of current asset weights.
-
-    #     Returns
-    #     -------
-    #     dict
-    #         Dictionary of rebalanced asset weights.
-    #     """
-    #     rebalanced_weights = current_weights.copy()
-    #     for ticker, target_weight in self.assets_weights.items():
-    #         if abs(current_weights[ticker] - target_weight) > self.rebalance_threshold:
-    #             rebalanced_weights[ticker] = target_weight
-    #     total_weight = sum(rebalanced_weights.values())
-    #     for ticker in rebalanced_weights:
-    #         rebalanced_weights[ticker] /= total_weight
-
-    #     return rebalanced_weights

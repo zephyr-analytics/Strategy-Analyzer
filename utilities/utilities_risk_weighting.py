@@ -1,3 +1,7 @@
+"""
+Utilities module for adjusting weights.
+"""
+
 import numpy as np
 import pandas as pd
 
@@ -44,7 +48,9 @@ def calculate_standard_deviation_weighting(returns_df, weights, cash_ticker=None
     fixed_assets = {cash_ticker, bond_ticker} & set(weights.keys())
     adjustable_weights = {k: v for k, v in weights.items() if k not in fixed_assets}
 
-    portfolio_std = np.sqrt((returns_df[list(adjustable_weights.keys())] * list(adjustable_weights.values())).sum(axis=1).var() * 252)
+    portfolio_std = np.sqrt((
+        returns_df[list(adjustable_weights.keys())] * list(adjustable_weights.values())
+    ).sum(axis=1).var() * 252)
     risk_contributions = {asset: (returns_df[asset].std() * np.sqrt(252)) / portfolio_std for asset in adjustable_weights}
     total_risk_contribution = sum(risk_contributions.values())
     adjusted_weights = {asset: (1 - (risk / total_risk_contribution)) for asset, risk in risk_contributions.items()}
@@ -82,8 +88,12 @@ def calculate_value_at_risk_weighting(returns_df, weights, confidence_level=0.95
     fixed_assets = {cash_ticker, bond_ticker} & set(weights.keys())
     adjustable_weights = {k: v for k, v in weights.items() if k not in fixed_assets}
 
-    portfolio_var = np.percentile((returns_df[list(adjustable_weights.keys())] * list(adjustable_weights.values())).sum(axis=1), (1 - confidence_level) * 100) * np.sqrt(252)
-    risk_contributions = {asset: (-np.percentile(returns_df[asset], (1 - confidence_level) * 100) * np.sqrt(252)) / portfolio_var for asset in adjustable_weights}
+    portfolio_var = np.percentile((
+        returns_df[list(adjustable_weights.keys())] * list(adjustable_weights.values())
+    ).sum(axis=1), (1 - confidence_level) * 100) * np.sqrt(252)
+    risk_contributions = {asset: (
+        -np.percentile(returns_df[asset], (1 - confidence_level) * 100) * np.sqrt(252)
+    ) / portfolio_var for asset in adjustable_weights}
     total_risk_contribution = sum(risk_contributions.values())
     adjusted_weights = {asset: (1 - (risk / total_risk_contribution)) for asset, risk in risk_contributions.items()}
     adjusted_weights = {asset: weight / sum(adjusted_weights.values()) for asset, weight in adjusted_weights.items()}
@@ -121,7 +131,9 @@ def calculate_conditional_value_at_risk_weighting(returns_df, weights, confidenc
     adjustable_weights = {k: v for k, v in weights.items() if k not in fixed_assets}
 
     portfolio_cvar = (returns_df[list(adjustable_weights.keys())] * list(adjustable_weights.values())).sum(axis=1)
-    portfolio_cvar = portfolio_cvar[portfolio_cvar <= np.percentile(portfolio_cvar, (1 - confidence_level) * 100)].mean() * np.sqrt(252)
+    portfolio_cvar = portfolio_cvar[
+        portfolio_cvar <= np.percentile(portfolio_cvar, (1 - confidence_level) * 100)
+    ].mean() * np.sqrt(252)
     risk_contributions = {}
     for asset in adjustable_weights:
         daily_var = -np.percentile(returns_df[asset], (1 - confidence_level) * 100)
@@ -161,7 +173,9 @@ def calculate_max_drawdown_weighting(returns_df, weights, cash_ticker=None, bond
     fixed_assets = {cash_ticker, bond_ticker} & set(weights.keys())
     adjustable_weights = {k: v for k, v in weights.items() if k not in fixed_assets}
 
-    portfolio_drawdown = (returns_df[list(adjustable_weights.keys())] * list(adjustable_weights.values())).sum(axis=1)
+    portfolio_drawdown = (
+        returns_df[list(adjustable_weights.keys())] * list(adjustable_weights.values())
+    ).sum(axis=1)
     cumulative_returns = (1 + portfolio_drawdown).cumprod()
     running_max = cumulative_returns.cummax()
     portfolio_max_drawdown = ((cumulative_returns - running_max) / running_max).min()
