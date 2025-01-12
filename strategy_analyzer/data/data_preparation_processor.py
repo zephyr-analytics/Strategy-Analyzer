@@ -12,6 +12,7 @@ from strategy_analyzer.data.portfolio_data import PortfolioData
 
 logger = logging.getLogger(__name__)
 
+
 class DataPreparationProcessor:
     """
     Class for obtaining and persisting data with retry mechanisms and validation.

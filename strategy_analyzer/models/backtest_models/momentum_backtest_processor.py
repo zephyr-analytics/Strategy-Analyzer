@@ -12,7 +12,6 @@ from strategy_analyzer.data.portfolio_data import PortfolioData
 from strategy_analyzer.models.models_data import ModelsData
 from strategy_analyzer.models.backtest_models.backtesting_processor import BacktestingProcessor
 from strategy_analyzer.results.models_results import ModelsResults
-from strategy_analyzer.results.results_processor import ResultsProcessor
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +65,7 @@ class MomentumBacktestProcessor(BacktestingProcessor):
         return (momentum_3m + momentum_6m + momentum_9m + momentum_12m) / 4
 
     def adjust_weights(
-            self, current_date: datetime, selected_assets: pd.DataFrame =None, selected_out_of_market_assets: pd.DataFrame=None
+            self, current_date: datetime, selected_assets: pd.DataFrame=None, selected_out_of_market_assets: pd.DataFrame=None
     ) -> dict:
         """
         Adjusts the weights of the assets based on their SMA and the selected weighting strategy.

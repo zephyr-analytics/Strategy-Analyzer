@@ -12,9 +12,9 @@ from strategy_analyzer.models.models_data import ModelsData
 from strategy_analyzer.data.portfolio_data import PortfolioData
 from strategy_analyzer.models.backtest_models.backtesting_processor import BacktestingProcessor
 from strategy_analyzer.results.models_results import ModelsResults
-from strategy_analyzer.results.results_processor import ResultsProcessor
 
 logger = logging.getLogger(__name__)
+
 
 class IAOMomentumBacktestProcessor(BacktestingProcessor):
     """

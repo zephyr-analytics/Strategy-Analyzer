@@ -18,10 +18,10 @@ class DataObtainmentProcessor:
     """
     Class for obtaining and saving data.
     """
-
     def __init__(self, models_data: ModelsData):
         self.data_models = models_data
         self.end_date = pd.to_datetime(self.data_models.end_date)
+        # TODO when pulling a single asset that asset needs to be relabeled from Adj Close to the ticker symbol.
 
     def process(self):
         """
