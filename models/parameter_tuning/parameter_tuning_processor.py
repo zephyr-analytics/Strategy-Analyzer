@@ -10,6 +10,8 @@ import utilities as utilities
 from models.models_data import ModelsData
 from data.portfolio_data import PortfolioData
 from results.models_results import ModelsResults
+from results.parameter_tuning_results_processor import ParameterTuningResultsProcessor
+
 
 class ParameterTuningProcessor(ABC):
     """
@@ -28,9 +30,6 @@ class ParameterTuningProcessor(ABC):
         self.data_portfolio = portfolio_data
         self.results_models = models_results
 
-        self.theme = models_data.theme_mode
-        self.portfolio_name = models_data.weights_filename
-
     def process(self):
         """
         Abstract method to process data and generate trading signals.
@@ -45,10 +44,16 @@ class ParameterTuningProcessor(ABC):
         Abstract method to generate trading results for all parameters.
         """
 
-    @abstractmethod
     def plot_results(self, results: dict):
         """
         """
+        results_process = ParameterTuningResultsProcessor(
+            models_data=self.data_models,
+            models_results=self.results_models,
+            results=results
+        )
+        results_process.process()
+
 
     def persist_results(self, results: dict):
         """

@@ -4,9 +4,6 @@ Module for creating momentum based parameters.
 
 from multiprocessing import Pool
 
-import plotly.express as px
-
-import utilities as utilities
 from models.models_data import ModelsData
 from data.portfolio_data import PortfolioData
 from models.parameter_tuning.parameter_tuning_processor import ParameterTuningProcessor
@@ -102,68 +99,3 @@ class MomentumParameterTuning(ParameterTuningProcessor):
             "cvar": self.results_models.cvar,
             "annual_volatility": self.results_models.annual_volatility,
         }
-
-# TODO this needs to be moved to the results processor.
-    def plot_results(self, results: dict):
-        """
-        Plot results from the momentum strategy testing.
-
-        Parameters
-        ----------
-        results : dict
-            Dictionary of results from parameter tuning.
-        """
-        data = {
-            "Momentum_Strategy": [
-                f"MA:{key[0]} Freq:{key[1]} Assets:{key[2]} Type:{key[3]}" for key in results.keys()
-            ],
-            "cagr": [round(v["cagr"] * 100, 2) for v in results.values()],
-            "average_annual_return": [round(v["average_annual_return"] * 100, 2) for v in results.values()],
-            "annual_volatility": [round(v["annual_volatility"] * 100, 2) for v in results.values()],
-            "max_drawdown": [round(v["max_drawdown"] * 100, 2) for v in results.values()],
-            "var": [round(v["var"] * 100, 2) for v in results.values()],
-            "cvar": [round(v["cvar"] * 100, 2) for v in results.values()],
-            "sharpe_ratio": [
-                round(v["cagr"] / v["annual_volatility"], 2) if v["annual_volatility"] != 0 else None
-                for v in results.values()
-            ]
-        }
-
-        trimmed_twilight = px.colors.cyclical.Twilight[1:]
-        fig = px.scatter(
-            data,
-            x='annual_volatility',
-            y='cagr',
-            color='sharpe_ratio',
-            color_continuous_scale=trimmed_twilight[::-1],
-            hover_data=['Momentum_Strategy', 'max_drawdown', 'var', 'cvar', "average_annual_return"],
-            labels={
-                "cagr": "Compound Annual Growth Rate",
-                "annual_volatility": "Annual Volatility",
-                "max_drawdown": "Maximum Drawdown",
-                "cvar": "Conditional Value at Risk",
-                "var": "Value at Risk",
-                "sharpe_ratio": "Sharpe Ratio",
-                "average_annual_return": "Annualized Return"
-            },
-            title=f"Possible Momentum Strategies - {self.portfolio_name}"
-        )
-        chart_theme = "plotly_dark" if self.theme.lower() == "dark" else "plotly"
-
-        fig.update_layout(
-            template=chart_theme,
-            coloraxis_colorbar_title="Sharpe Ratio",
-            annotations=[
-                dict(
-                    xref='paper', yref='paper', x=0.5, y=0.2,
-                    text="© Zephyr Analytics",
-                    showarrow=False,
-                    font=dict(size=80, color="#f8f9f9"),
-                    xanchor='center',
-                    yanchor='bottom',
-                    opacity=0.5
-                )
-            ]
-        )
-
-        utilities.save_fig(fig, self.data_models.weights_filename, self.data_models.processing_type)

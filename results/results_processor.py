@@ -2,6 +2,8 @@
 Processor for processing results from models.
 """
 
+from abc import ABC, abstractmethod
+
 import numpy as np
 import pandas as pd
 import plotly.subplots as sp
@@ -12,7 +14,7 @@ from models.models_data import ModelsData
 from results.models_results import ModelsResults
 
 
-class ResultsProcessor:
+class ResultsProcessor(ABC):
     """
     A class to process and visualize the results of portfolio backtests and simulations.
     """
