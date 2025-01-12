@@ -10,7 +10,7 @@ from abc import ABC, abstractmethod
 import pandas as pd
 
 import utilities
-from logger import logger
+from strategy_analyzer.logger import logger
 from data.portfolio_data import PortfolioData
 from models.models_data import ModelsData
 from processing_types import *

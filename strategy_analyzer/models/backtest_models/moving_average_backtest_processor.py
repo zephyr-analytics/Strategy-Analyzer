@@ -7,7 +7,7 @@ import logging
 
 import pandas as pd
 
-from logger import logger
+from strategy_analyzer.logger import logger
 from data.portfolio_data import PortfolioData
 from models.models_data import ModelsData
 from models.backtest_models.backtesting_processor import BacktestingProcessor

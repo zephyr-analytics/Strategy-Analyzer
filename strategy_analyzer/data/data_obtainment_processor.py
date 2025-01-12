@@ -9,7 +9,7 @@ from datetime import datetime
 import pandas as pd
 
 import utilities
-from logger import logger
+from strategy_analyzer.logger import logger
 from models.models_data import ModelsData
 
 logger = logging.getLogger(__name__)
