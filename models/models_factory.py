@@ -78,7 +78,7 @@ class ModelsFactory:
         if not self.data_models.assets_weights:
             return "Please load asset weights file."
         backtest = MovingAverageBacktestProcessor(
-            models_data=self.data_models, 
+            models_data=self.data_models,
             portfolio_data=self.data_portfolio,
             models_results=self.results_models
         )
@@ -225,7 +225,7 @@ class ModelsFactory:
         if not self.data_models.out_of_market_tickers:
             return "Please load out of market assets file."
         signals = CreateMomentumInAndOutSignals(
-            models_data=self.data_models, 
+            models_data=self.data_models,
             portfolio_data=self.data_portfolio,
             models_results=self.results_models
         )
@@ -257,7 +257,7 @@ class ModelsFactory:
         if not self.data_models.assets_weights:
             return "Please load asset weights file."
         parameter_tune = MomentumParameterTuning(
-            models_data=self.data_models, 
+            models_data=self.data_models,
             portfolio_data=self.data_portfolio,
             models_results=self.results_models
         )
@@ -272,7 +272,7 @@ class ModelsFactory:
         if not self.data_models.out_of_market_tickers:
             return "Please load out of market assets file."
         parameter_tune = InAndOutMomentumParameterTuning(
-            models_data=self.data_models, 
+            models_data=self.data_models,
             portfolio_data=self.data_portfolio,
             models_results=self.results_models
         )
@@ -287,7 +287,7 @@ class ModelsFactory:
         if not self.data_models.out_of_market_tickers:
             return "Please load out of market assets file."
         backtest = IAOMomentumBacktestProcessor(
-            models_data=self.data_models, 
+            models_data=self.data_models,
             portfolio_data=self.data_portfolio,
             models_results=self.results_models
         )
@@ -305,7 +305,7 @@ class ModelsFactory:
         if not self.data_models.assets_weights:
             return "Please load asset weights file."
         backtest = MovingAverageCrossoverProcessor(
-            models_data=self.data_models, 
+            models_data=self.data_models,
             portfolio_data=self.data_portfolio,
             models_results=self.results_models
         )
