@@ -7,7 +7,11 @@ import customtkinter as ctk
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
+
 class InteractivePieChartApp(ctk.CTk):
+    """
+    Class for creating the interactive portfolio backtesting.
+    """
     def __init__(self, root):
         super().__init__()
         self.root = root
@@ -24,6 +28,8 @@ class InteractivePieChartApp(ctk.CTk):
         self.update_pie_chart()
 
     def create_layout(self):
+        """
+        """
         # Frame for inputs
         self.input_frame = ctk.CTkFrame(self.root)
         self.input_frame.pack(side=tk.LEFT, fill=tk.BOTH, padx=10, pady=10)
@@ -54,11 +60,11 @@ class InteractivePieChartApp(ctk.CTk):
 
         name_label = ctk.CTkLabel(self.input_frame, text=f"Category {current_index + 1}")
         name_label.grid(row=current_index, column=0, pady=5, padx=5, sticky="w")
-        
+
         name_entry = ctk.CTkEntry(self.input_frame)
         name_entry.insert(0, category)
         name_entry.grid(row=current_index, column=1, pady=5, padx=5)
-        
+
         value_entry = ctk.CTkEntry(self.input_frame)
         value_entry.insert(0, str(value))
         value_entry.grid(row=current_index, column=2, pady=5, padx=5)
@@ -78,14 +84,18 @@ class InteractivePieChartApp(ctk.CTk):
         self.row_count += 1  # Increment the row counter
 
     def add_category(self):
-        """Add a new category input row and shift buttons down."""
+        """
+        Add a new category input row and shift buttons down.
+        """
         self.add_category_input(f"Category {self.row_count + 1}", 0)
         # Move the buttons down
         self.add_button.grid(row=self.row_count, column=0, columnspan=3, pady=10)
         self.update_button.grid(row=self.row_count + 1, column=0, columnspan=3, pady=10)
 
     def remove_category(self, index):
-        """Remove a category input row."""
+        """
+        Remove a category input row.
+        """
         # Remove the widgets for the specified index
         self.name_entries[index].destroy()
         self.value_entries[index].destroy()
@@ -108,6 +118,8 @@ class InteractivePieChartApp(ctk.CTk):
         self.update_button.grid(row=self.row_count + 1, column=0, columnspan=3, pady=10)
 
     def update_pie_chart(self):
+        """
+        """
         # Get updated data
         new_data = {}
         for name_entry, value_entry in zip(self.name_entries, self.value_entries):

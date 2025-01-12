@@ -6,6 +6,9 @@ import pandas as pd
 
 
 class ModelsResults:
+    """
+    Getter and setter class for storing model results.
+    """
     def __init__(self):
         """
         Initializes the Config class with default values for portfolio parameters.
