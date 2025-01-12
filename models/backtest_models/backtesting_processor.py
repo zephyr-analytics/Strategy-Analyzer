@@ -3,17 +3,21 @@ Abstract module for processing momentum trading models.
 """
 
 import datetime
+import logging
 from datetime import datetime
 from abc import ABC, abstractmethod
 
 import pandas as pd
 
 import utilities
-
+from logger import logger
 from data.portfolio_data import PortfolioData
 from models.models_data import ModelsData
 from processing_types import *
 from results.models_results import ModelsResults
+from results.results_processor import ResultsProcessor
+
+logger = logging.getLogger(__name__)
 
 
 class BacktestingProcessor(ABC):
@@ -57,11 +61,26 @@ class BacktestingProcessor(ABC):
         self.return_data = self.trading_data.pct_change().dropna()
 
 
-    @abstractmethod
     def process(self):
         """
         Processes the backtest by fetching data, running the backtest, and generating the plots.
         """
+        logger.info(f"Momentum backtest for: {self.weights_filename}, Trading Freq:{self.trading_frequency}, Moving Average:{self.ma_period}, Type:{self.ma_type}, Assets:{self.num_assets_to_select}")
+        all_adjusted_weights, portfolio_values, portfolio_returns = self.run_backtest()
+        self._persist_portfolio_data(
+            all_adjusted_weights=all_adjusted_weights,
+            portfolio_values=portfolio_values,
+            portfolio_returns=portfolio_returns
+        )
+        self._get_portfolio_statistics()
+        self._calculate_buy_and_hold()
+        self._calculate_benchmark()
+        self.persist_data()
+        if self.processing_type.endswith("BACKTEST"):
+            results_processor = ResultsProcessor(models_data=self.data_models, models_results=self.results_models)
+            results_processor.plot_portfolio_value()
+            results_processor.plot_var_cvar()
+            results_processor.plot_returns_heatmaps()
 
     @abstractmethod
     def get_portfolio_assets_and_weights(self, current_date: datetime):

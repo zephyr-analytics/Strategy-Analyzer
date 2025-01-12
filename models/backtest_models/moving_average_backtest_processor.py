@@ -33,27 +33,6 @@ class MovingAverageBacktestProcessor(BacktestingProcessor):
         """
         super().__init__(models_data=models_data, portfolio_data=portfolio_data, models_results=models_results)
 
-    def process(self):
-        """
-        Processes the backtest by fetching data, running the backtest, and generating the plots.
-        """
-        logger.info(f"Moving Average backtest for: {self.weights_filename}, Trading Freq:{self.trading_frequency}, Moving Average:{self.ma_period}, Type:{self.ma_type}")
-        all_adjusted_weights, portfolio_values, portfolio_returns = self.run_backtest()
-        self._persist_portfolio_data(
-            all_adjusted_weights=all_adjusted_weights,
-            portfolio_values=portfolio_values,
-            portfolio_returns=portfolio_returns
-        )
-        self._get_portfolio_statistics()
-        self._calculate_buy_and_hold()
-        self._calculate_benchmark()
-        self.persist_data()
-        if self.processing_type.endswith("BACKTEST"):
-            results_processor = ResultsProcessor(models_data=self.data_models, models_results=self.results_models)
-            results_processor.plot_portfolio_value()
-            results_processor.plot_var_cvar()
-            results_processor.plot_returns_heatmaps()
-
     def get_portfolio_assets_and_weights(self, current_date):
         """
         """
