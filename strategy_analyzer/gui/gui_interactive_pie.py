@@ -18,17 +18,15 @@ class InteractivePieChartApp(ctk.CTk):
         self.root.title("Interactive Pie Chart")
         self.root.geometry("1200x600")
 
-        # Initial data for the pie chart
         self.data = {"Category A": 40, "Category B": 30, "Category C": 20, "Category D": 10}
 
-        # Create the layout
         self.create_layout()
 
-        # Draw the initial pie chart
         self.update_pie_chart()
 
     def create_layout(self):
         """
+        Method to create the layout of the portfolio window.
         """
         # Frame for inputs
         self.input_frame = ctk.CTkFrame(self.root)
@@ -55,7 +53,16 @@ class InteractivePieChartApp(ctk.CTk):
         self.chart_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=10, pady=10)
 
     def add_category_input(self, category, value):
-        """Add input fields for a category."""
+        """
+        Add input fields for a category.
+
+        Parameters
+        ----------
+        category : str
+            String representing the name of the category for the chart.
+        value : int
+            Integer representing the value for the pie chart.
+        """
         current_index = self.row_count
 
         name_label = ctk.CTkLabel(self.input_frame, text=f"Category {current_index + 1}")
@@ -95,6 +102,10 @@ class InteractivePieChartApp(ctk.CTk):
     def remove_category(self, index):
         """
         Remove a category input row.
+
+        Parameters
+        ----------
+        index :
         """
         # Remove the widgets for the specified index
         self.name_entries[index].destroy()
@@ -119,6 +130,7 @@ class InteractivePieChartApp(ctk.CTk):
 
     def update_pie_chart(self):
         """
+        Method to update the pie chart based on user adjustments.
         """
         # Get updated data
         new_data = {}
