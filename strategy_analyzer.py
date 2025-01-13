@@ -53,11 +53,9 @@ class StrategyAnalyzer(ctk.CTk):
         self.grid_rowconfigure(0, weight=1)
         self.grid_rowconfigure(1, weight=10)
 
-        # Central Frame
         center_frame = ctk.CTkFrame(self, fg_color=["#edeaea", "#2b2c2d"])
         center_frame.grid(row=0, column=1, rowspan=1, columnspan=3, sticky="nsew")
 
-        # High-Level Tab Control
         self.high_level_tab_control = ctk.CTkTabview(
             center_frame,
             border_color=["#edeaea", "#2b2c2d"],
@@ -71,7 +69,6 @@ class StrategyAnalyzer(ctk.CTk):
         )
         self.high_level_tab_control.pack(expand=1, fill="both", anchor="w")
 
-        # Add Multi Portfolio Tab
         multi_portfolio_tab_frame = self.high_level_tab_control.add("Multi Portfolio")
         self.multi_portfolio_tab_control = ctk.CTkTabview(
             multi_portfolio_tab_frame,
@@ -85,7 +82,6 @@ class StrategyAnalyzer(ctk.CTk):
         )
         self.multi_portfolio_tab_control.pack(expand=1, fill="both", anchor="w")
 
-        # Add Single Portfolio Tab
         single_portfolio_tab_frame = self.high_level_tab_control.add("Single Portfolio")
         self.single_portfolio_tab_control = ctk.CTkTabview(
             single_portfolio_tab_frame,
@@ -99,11 +95,9 @@ class StrategyAnalyzer(ctk.CTk):
         )
         self.single_portfolio_tab_control.pack(expand=1, fill="both", anchor="w")
 
-        # Add Initial Testing Setup Tab under Multi Portfolio
         setup_tab_frame = self.multi_portfolio_tab_control.add("Initial Testing Setup")
         self.setup_tab = SetupTab(setup_tab_frame, models_data=self.data_models, portfolio_data=self.data_portfolio)
 
-        # Add Testing Tab under Multi Portfolio
         testing_tab_frame = self.multi_portfolio_tab_control.add("Testing")
         self.testing_tab = TestingTab(
             testing_tab_frame,
@@ -112,11 +106,9 @@ class StrategyAnalyzer(ctk.CTk):
             models_results=self.results_models
         )
 
-        # Add Initial Testing Setup Tab under Single Portfolio
         setup_tab_frame_single = self.single_portfolio_tab_control.add("Initial Testing Setup")
         self.setup_tab_single = SetupTab(setup_tab_frame_single, models_data=self.data_models, portfolio_data=self.data_portfolio)
 
-        # Add Testing Tab under Single Portfolio
         testing_tab_frame_single = self.single_portfolio_tab_control.add("Testing")
         self.testing_tab_single = TestingTab(
             testing_tab_frame_single,
@@ -125,7 +117,6 @@ class StrategyAnalyzer(ctk.CTk):
             models_results=self.results_models
         )
 
-        # Set initial tab
         self.high_level_tab_control.set("Multi Portfolio")
 
     def on_tab_switch(self):
@@ -144,6 +135,9 @@ class StrategyAnalyzer(ctk.CTk):
                 self.testing_tab_single.update_tab()
 
     def on_close(self):
+        """
+        Method for cleaning up when closing down the GUI.
+        """
         print("Cleaning up resources...")
         self.data_models = None
         self.data_portfolio = None
