@@ -88,6 +88,20 @@ class ParameterTuningResultsProcessor(ResultsProcessor):
             title=title
         )
 
+        # TODO add buy and hold as a marker to the plot.
+        # for key, value in results.items():
+        # if key == "Buy_and_Hold":
+        #     fig.add_trace(
+        #         go.Scatter(
+        #             x=[round(value["annual_volatility"] * 100, 2)],
+        #             y=[round(value["cagr"] * 100, 2)],
+        #             mode='markers+text',
+        #             marker=dict(size=15, color='red', symbol='asterisk'),
+        #             text='* Buy & Hold',
+        #             textposition='top center'
+        #         )
+        #     )
+
         chart_theme = "plotly_dark" if self.data_models.theme_mode.lower() == "dark" else "plotly"
         fig.update_layout(
             template=chart_theme,

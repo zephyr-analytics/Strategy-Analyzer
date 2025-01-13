@@ -234,7 +234,7 @@ class BacktestingProcessor(ABC):
         """
         Calculates the buy-and-hold performance of the portfolio with the same assets and weights over the time frame.
         """
-        bnh_data = self.data_portfolio.asset_data
+        bnh_data = self.data_portfolio.assets_data
 
         portfolio_values = [int(self.data_models.initial_portfolio_value)]
         portfolio_returns = []

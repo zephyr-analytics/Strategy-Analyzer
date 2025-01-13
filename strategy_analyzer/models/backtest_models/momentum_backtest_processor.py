@@ -127,7 +127,7 @@ class MomentumBacktestProcessor(BacktestingProcessor):
                 ma_type=self.data_models.ma_type,
                 ma_window=self.data_models.ma_window,
             ):
-                replacement_asset = get_replacement_asset()
+                replacement_asset = get_replacement_asset(current_date=current_date)
                 if replacement_asset:
                     return {replacement_asset: 1.0}
 
@@ -148,7 +148,7 @@ class MomentumBacktestProcessor(BacktestingProcessor):
                     ma_window=self.data_models.ma_window,
                 )
             ):
-                replacement_asset = get_replacement_asset()
+                replacement_asset = get_replacement_asset(current_date=current_date)
                 if replacement_asset:
                     adjusted_weights[replacement_asset] = adjusted_weights.get(replacement_asset, 0) + 1
             else:
