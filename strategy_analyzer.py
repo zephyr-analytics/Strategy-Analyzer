@@ -34,7 +34,7 @@ class StrategyAnalyzer(ctk.CTk):
         self.iconbitmap(icon_path)
 
         # self.show_acknowledgment_popup()
-
+        self.protocol("WM_DELETE_WINDOW", self.on_close)
         self.create_widgets()
 
     def show_acknowledgment_popup(self):
@@ -142,6 +142,14 @@ class StrategyAnalyzer(ctk.CTk):
             sub_active_tab = self.single_portfolio_tab_control.get()
             if sub_active_tab == "Testing":
                 self.testing_tab_single.update_tab()
+
+    def on_close(self):
+        print("Cleaning up resources...")
+        self.data_models = None
+        self.data_portfolio = None
+        self.results_models = None
+        self.quit()
+        self.destroy()
 
 def main():
     """

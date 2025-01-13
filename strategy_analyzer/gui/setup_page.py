@@ -12,7 +12,6 @@ import strategy_analyzer.utilities as utilities
 from strategy_analyzer.data.data_obtainment_processor import DataObtainmentProcessor
 from strategy_analyzer.data.portfolio_data import PortfolioData
 from strategy_analyzer.data.data_preparation_processor import DataPreparationProcessor
-from strategy_analyzer.gui.gui_interactive_pie import InteractivePieChartApp
 from strategy_analyzer.models.models_data import ModelsData
 
 
@@ -26,7 +25,6 @@ class SetupTab:
 
         self.parent = parent
         self.bold_font = ctk.CTkFont(size=12, weight="bold", family="Arial")
-        self.bottom_text_frame = ctk.CTkFrame(parent, fg_color="transparent")
         self.theme_mode_var = ctk.StringVar(value="Light")
         self.chart_frame = None
         self.process(parent=parent)
