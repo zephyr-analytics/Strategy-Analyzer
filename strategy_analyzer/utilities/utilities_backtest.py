@@ -130,3 +130,31 @@ def calculate_standard_deviation(returns: pd.Series) -> FloatingPointError:
         Standard deviation of returns.
     """
     return returns.std()
+
+
+def is_below_ma(current_date, ticker, data, ma_type, ma_window):
+    """
+    Checks if the price of the given ticker is below its moving average.
+
+    Parameters
+    ----------
+    ticker : str
+        The ticker to check.
+    data : DataFrame
+        The DataFrame containing the ticker's data.
+
+    Returns
+    -------
+    bool
+        True if the price is below the moving average, False otherwise.
+    """
+    price = data.loc[:current_date, ticker].iloc[-1]
+
+    if ma_type == "SMA":
+        ma = data.loc[:current_date, ticker].rolling(window=ma_window).mean().iloc[-1]
+    elif ma_type == "EMA":
+        ma = data.loc[:current_date, ticker].ewm(span=ma_window).mean().iloc[-1]
+    else:
+        raise ValueError("Invalid ma_type. Choose 'SMA' or 'EMA'.")
+
+    return price < ma

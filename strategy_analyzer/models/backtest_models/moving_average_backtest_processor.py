@@ -7,6 +7,7 @@ import logging
 
 import pandas as pd
 
+import strategy_analyzer.utilities as utilities
 from strategy_analyzer.logger import logger
 from strategy_analyzer.data.portfolio_data import PortfolioData
 from strategy_analyzer.models.models_data import ModelsData
@@ -42,7 +43,10 @@ class MovingAverageBacktestProcessor(BacktestingProcessor):
         pass
 
     def adjust_weights(
-            self, current_date: datetime, selected_assets: pd.DataFrame =None, selected_out_of_market_asset: pd.DataFrame=None
+            self,
+            current_date: datetime,
+            selected_assets: pd.DataFrame =None,
+            selected_out_of_market_asset: pd.DataFrame=None
     ) -> dict:
         """
         Adjusts the weights of the assets based on their SMA and the selected weighting strategy.
@@ -63,59 +67,58 @@ class MovingAverageBacktestProcessor(BacktestingProcessor):
         """
         adjusted_weights = self.data_models.assets_weights.copy() if selected_assets is None else selected_assets.copy()
 
-        def get_replacement_asset():
+        def get_replacement_asset(current_date):
             """
-            Determines the replacement asset (cash or bond) based on SMA.
-
-            Returns
-            -------
-            str
-                The replacement asset ticker.
-            """
-            if self.data_models.bond_ticker and self.data_models.bond_ticker in self.data_portfolio.bond_data.columns:
-                if not is_below_ma(self.data_models.bond_ticker, self.data_portfolio.bond_data):
-                    return self.data_models.bond_ticker
-            return self.data_models.cash_ticker if self.data_models.cash_ticker in self.data_portfolio.cash_data.columns else None
-
-        def is_below_ma(ticker, data):
-            """
-            Checks if the price of the given ticker is below its moving average.
+            Determines the replacement asset (cash or bond) based on the moving average (MA) threshold.
 
             Parameters
             ----------
-            ticker : str
-                The ticker to check.
-            data : DataFrame
-                The DataFrame containing the ticker's data.
+            current_date : datetime
+                The current date for which to evaluate the MA condition.
 
             Returns
             -------
-            bool
-                True if the price is below the moving average, False otherwise.
+            str or None
+                The replacement asset ticker, either a bond or cash ticker. Returns None if no valid replacement asset is found.
             """
-            if ticker not in data.columns:
-                return False
+            if (
+                self.data_models.bond_ticker
+                and self.data_models.bond_ticker in self.data_portfolio.bond_data.columns
+            ):
+                if not utilities.is_below_ma(
+                    current_date=current_date,
+                    ticker=self.data_models.bond_ticker,
+                    data=self.data_portfolio.bond_data,
+                    ma_type=self.data_models.ma_type,
+                    ma_window=self.data_models.ma_window,
+                ):
+                    return self.data_models.bond_ticker
 
-            price = data.loc[:current_date, ticker].iloc[-1]
+            return self.data_models.cash_ticker
 
-            if self.data_models.ma_type == "SMA":
-                ma = data.loc[:current_date, ticker].rolling(window=self.data_models.ma_window).mean().iloc[-1]
-            elif self.data_models.ma_type == "EMA":
-                ma = data.loc[:current_date, ticker].ewm(span=self.data_models.ma_window).mean().iloc[-1]
-            else:
-                raise ValueError("Invalid ma_type. Choose 'SMA' or 'EMA'.")
-
-            return price < ma
-
-        if not self.data_models.ma_threshold_asset:
-            pass
-        elif is_below_ma(self.data_models.ma_threshold_asset, self.data_portfolio.ma_threshold_data):
-            replacement_asset = get_replacement_asset()
-            if replacement_asset:
-                return {replacement_asset: 1.0}
+        if self.data_models.ma_threshold_asset:
+            if utilities.is_below_ma(
+                current_date=current_date,
+                ticker=self.data_models.ma_threshold_asset,
+                data=self.data_portfolio.ma_threshold_data,
+                ma_type=self.data_models.ma_type,
+                ma_window=self.data_models.ma_window,
+            ):
+                replacement_asset = get_replacement_asset()
+                if replacement_asset:
+                    return {replacement_asset: 1.0}
 
         for ticker, weight in list(adjusted_weights.items()):
-            if ticker in self.data_portfolio.assets_data.columns and is_below_ma(ticker, self.data_portfolio.assets_data):
+            if (
+                ticker in self.data_portfolio.assets_data.columns
+                and utilities.is_below_ma(
+                    current_date=current_date,
+                    ticker=ticker,
+                    data=self.data_portfolio.assets_data,
+                    ma_type=self.data_models.ma_type,
+                    ma_window=self.data_models.ma_window,
+                )
+            ):
                 replacement_asset = get_replacement_asset()
                 if replacement_asset:
                     adjusted_weights[replacement_asset] = adjusted_weights.get(replacement_asset, 0) + weight
