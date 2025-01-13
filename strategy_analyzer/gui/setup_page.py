@@ -22,11 +22,25 @@ class SetupTab:
 
         self.parent = parent
         self.bold_font = ctk.CTkFont(size=12, weight="bold", family="Arial")
-        self.bottom_text_frame = ctk.CTkFrame(self.parent, fg_color="transparent")
-        self.create_initial_testing_tab(self.parent)
+        self.bottom_text_frame = ctk.CTkFrame(parent, fg_color="transparent")
+        self.theme_mode_var = ctk.StringVar(value="Light")
+        self.process(parent=parent)
 
 
-    def create_initial_testing_tab(self, parent):
+    def process(self, parent):
+        """
+        """
+        y_padding = 2
+        self.create_initial_testing_tab(parent)
+        self.build_data_frame(parent=parent, y_padding=y_padding)
+        self.build_trade_frame(parent=parent, y_padding=y_padding)
+        self.build_moving_avergae_frame(parent=parent, y_padding=y_padding)
+        self.build_momentum_frame(parent=parent, y_padding=y_padding)
+        self.build_monte_carlo_frame(parent=parent, y_padding=y_padding)
+        self.build_bottom_frame(parent=parent)
+
+
+    def create_initial_testing_tab(self, parent: ctk.CTkFrame):
         """
         Creates the Initial Testing Setup parent with categorized inputs for data, SMA, and momentum settings,
         arranged using grid layout within frames and pack for frame placement.
@@ -47,10 +61,9 @@ class SetupTab:
             anchor="center"
         ).grid(row=0, column=0, pady=10, sticky="ew")
 
-        self.theme_label = ctk.CTkLabel(parent, text="Select Theme:", font=self.bold_font)
-        self.theme_label.pack(pady=0)
-        self.theme_mode_var = ctk.StringVar(value="Light")
-        self.mode_dropdown = ctk.CTkOptionMenu(
+        theme_label = ctk.CTkLabel(parent, text="Select Theme:", font=self.bold_font)
+        theme_label.pack(pady=0)
+        mode_dropdown = ctk.CTkOptionMenu(
             parent,
             fg_color="#bb8fce",
             text_color="#000000",
@@ -60,12 +73,12 @@ class SetupTab:
             variable=self.theme_mode_var,
             command=self.update_theme_mode
         )
-        self.mode_dropdown.pack(pady=5)
+        mode_dropdown.pack(pady=5)
 
-        # Label for display
 
-        y_padding = 2
-
+    def build_data_frame(self, parent: ctk.CTkFrame, y_padding):
+        """
+        """
         # Data Settings
         data_frame_rows = 0
         data_frame = ctk.CTkFrame(parent, fg_color="transparent")
@@ -189,7 +202,9 @@ class SetupTab:
         ).grid(row=data_frame_rows, column=2, columnspan=2, padx=5, pady=y_padding)
 
 
-        # Trade Settings
+    def build_trade_frame(self, parent: ctk.CTkFrame, y_padding):
+        """
+        """
         trade_frame_rows = 0
         trade_frame = ctk.CTkFrame(parent, fg_color="transparent")
         trade_frame.pack(fill="x", pady=10, padx=10)
@@ -238,7 +253,9 @@ class SetupTab:
         )
 
 
-        # MA Settings
+    def build_moving_avergae_frame(self, parent: ctk.CTkFrame, y_padding):
+        """
+        """
         ma_frame_rows = 0
         ma_frame = ctk.CTkFrame(parent, fg_color="transparent")
         ma_frame.pack(fill="x", pady=10, padx=10)
@@ -306,7 +323,9 @@ class SetupTab:
         )
 
 
-        # Momentum Settings
+    def build_momentum_frame(self, parent: ctk.CTkFrame, y_padding):
+        """
+        """
         momentum_frame_rows = 0
         momentum_frame = ctk.CTkFrame(parent, fg_color="transparent")
         momentum_frame.pack(fill="x", pady=10, padx=10)
@@ -356,7 +375,9 @@ class SetupTab:
         )
 
 
-        # Monte Carlo Settings
+    def build_monte_carlo_frame(self, parent: ctk.CTkFrame, y_padding):
+        """
+        """
         monte_carlo_frame_rows = 0
         monte_carlo_frame = ctk.CTkFrame(parent, fg_color="transparent")
         monte_carlo_frame.pack(fill="x", pady=10, padx=10)
@@ -427,6 +448,10 @@ class SetupTab:
             "write", lambda *args: self.update_models_data("contribution_frequency", contribution_freq_var)
         )
 
+
+    def build_bottom_frame(self, parent: ctk.CTkFrame):
+        """
+        """
         ctk.CTkButton(
             parent,
             text="Launch Multi Portfolio",
@@ -447,6 +472,7 @@ class SetupTab:
             font=ctk.CTkFont(size=12)
         )
         copyright_label.pack()
+
 
     def launch_multiportfolio(self):
         """
@@ -495,21 +521,17 @@ class SetupTab:
         if len(self.data_models.assets_weights) > 10:
             assets_text += f"\n... (and {(len(self.data_models.assets_weights)-10)} more)"
 
-        self.bottom_text = ctk.CTkLabel(
+        bottom_text = ctk.CTkLabel(
             self.bottom_text_frame,
             text=f"Loaded Assets and Weights from: \n\n{self.data_models.weights_filename}:\n{assets_text}",
             font=self.bold_font,
             fg_color="transparent"
         )
-        self.bottom_text.pack(pady=5)
+        bottom_text.pack(pady=5)
 
     def load_weights_and_update(self):
         """
-        Loads the asset weights from a file and updates the assets_weights attribute.
-
-        Parameters
-        ----------
-        None
+        Loads the assets and weights from file and updates the attribute.
         """
         self.clear_bottom_text()
         self.data_models.assets_weights, self.data_models.weights_filename = utilities.load_weights()
@@ -521,13 +543,9 @@ class SetupTab:
 
     def load_out_of_market_weights_and_update(self):
         """
-        Loads the asset weights from a file and updates the assets_weights attribute.
-
-        Parameters
-        ----------
-        None
+        Loads the out of market assets and weights from file and updates the attribute.
         """
-        self.data_models.out_of_market_tickers, self.file_name = utilities.load_weights()
+        self.data_models.out_of_market_tickers, file_name = utilities.load_weights()
 
     def update_theme_mode(self, *args):
         """
