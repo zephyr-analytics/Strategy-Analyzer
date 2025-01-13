@@ -22,7 +22,7 @@ class ModelsData:
         self._initial_portfolio_value = 10000
         self._num_simulations = 1000
         self._simulation_horizon = 10
-        self._ma_window = "21"
+        self._ma_window = ""
         self._start_date = "Earliest"
         self._theme_mode = "Light"
         self._trading_frequency = "Monthly"
@@ -30,7 +30,7 @@ class ModelsData:
         self._weights_filename = ""
         self._max_distance = 1.5
         self._ma_threshold_asset = ""
-        self._num_assets_to_select = 1
+        self._num_assets_to_select = ""
         self._out_of_market_tickers = {}
         self._processing_type = str
         self._benchmark_asset = ""
@@ -200,7 +200,7 @@ class ModelsData:
         Returns:
             int: The SMA window in days.
         """
-        return self._ma_window
+        return int(self._ma_window)
 
     @ma_window.setter
     def ma_window(self, value):
@@ -362,7 +362,7 @@ class ModelsData:
         Returns:
             str: The threshold asset as a string.
         """
-        return self._num_assets_to_select
+        return int(self._num_assets_to_select)
 
     @num_assets_to_select.setter
     def num_assets_to_select(self, value):

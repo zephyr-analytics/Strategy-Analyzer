@@ -2,11 +2,16 @@
 Module for creating sma based porfolio signals.
 """
 
+import logging
+
+from strategy_analyzer.logger import logger
 from strategy_analyzer.models.create_signals.signals_processor import SignalsProcessor
 from strategy_analyzer.models.backtest_models.moving_average_backtest_processor import MovingAverageBacktestProcessor
 from strategy_analyzer.models.models_data import ModelsData
 from strategy_analyzer.data.portfolio_data import PortfolioData
 from strategy_analyzer.results.models_results import ModelsResults
+
+logger = logging.getLogger(__name__)
 
 
 class CreateMovingAverageSignals(SignalsProcessor):
@@ -24,7 +29,6 @@ class CreateMovingAverageSignals(SignalsProcessor):
         """
         super().__init__(models_data=models_data, portfolio_data=portfolio_data, models_results=models_results)
 
-
     def generate_signals(self):
         """
         Generates trading signals by running the backtest and pulling the latest weights.
@@ -37,4 +41,5 @@ class CreateMovingAverageSignals(SignalsProcessor):
         self.backtest_portfolio.process()
         latest_weights = self.results_models.adjusted_weights
         latest_weights = latest_weights.iloc[-1]
+        logger.info("Latest signals: %s", latest_weights)
         self.plot_signals(latest_weights)

@@ -1,12 +1,16 @@
 """
 Module for creating momentum trading signals.
 """
+import logging
 
+from strategy_analyzer.logger import logger
 from strategy_analyzer.models.create_signals.signals_processor import SignalsProcessor
 from strategy_analyzer.models.backtest_models.momentum_backtest_processor import MomentumBacktestProcessor
 from strategy_analyzer.models.models_data import ModelsData
 from strategy_analyzer.data.portfolio_data import PortfolioData
 from strategy_analyzer.results.models_results import ModelsResults
+
+logger = logging.getLogger(__name__)
 
 
 class CreateMomentumSignals(SignalsProcessor):
@@ -37,4 +41,5 @@ class CreateMomentumSignals(SignalsProcessor):
         self.backtest_portfolio.process()
         latest_weights = self.results_models.adjusted_weights
         latest_weights = latest_weights.iloc[-1]
+        logger.info("Latest signals: %s", latest_weights)
         self.plot_signals(latest_weights)
