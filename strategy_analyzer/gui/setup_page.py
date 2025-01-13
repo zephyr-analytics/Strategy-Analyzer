@@ -2,7 +2,11 @@
 Module for creating the setup page.
 """
 
+import tkinter as tk
+
 import customtkinter as ctk
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 import strategy_analyzer.utilities as utilities
 from strategy_analyzer.data.data_obtainment_processor import DataObtainmentProcessor
@@ -24,6 +28,7 @@ class SetupTab:
         self.bold_font = ctk.CTkFont(size=12, weight="bold", family="Arial")
         self.bottom_text_frame = ctk.CTkFrame(parent, fg_color="transparent")
         self.theme_mode_var = ctk.StringVar(value="Light")
+        self.chart_frame = None
         self.process(parent=parent)
 
 
@@ -32,6 +37,7 @@ class SetupTab:
         """
         y_padding = 2
         self.create_initial_testing_tab(parent)
+        self.build_chart(parent=parent)
         self.build_data_frame(parent=parent, y_padding=y_padding)
         self.build_trade_frame(parent=parent, y_padding=y_padding)
         self.build_moving_avergae_frame(parent=parent, y_padding=y_padding)
@@ -74,6 +80,59 @@ class SetupTab:
             command=self.update_theme_mode
         )
         mode_dropdown.pack(pady=5)
+
+
+    def build_chart(self, parent):
+        """
+        Build an empty pie chart during GUI initialization.
+        """
+        # Create an empty pie chart
+        fig, ax = plt.subplots(figsize=(5, 5))
+        ax.text(0.5, 0.5, "No Data Available", ha="center", va="center", fontsize=16, color="gray")
+        ax.axis("equal")  # Ensure the pie chart is circular
+
+        # Embed the empty chart in the GUI
+        self.chart_frame = ctk.CTkFrame(parent)
+        self.chart_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=10, pady=10)
+
+        canvas = FigureCanvasTkAgg(fig, master=self.chart_frame)
+        canvas.draw()
+        canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+
+
+    def update_chart_with_data(self, data: dict):
+        """
+        Update the pie chart with the given dictionary of data.
+
+        Parameters
+        ----------
+        data : dict
+            A dictionary with category names as keys and corresponding values.
+        """
+        # Clear the existing chart
+        for widget in self.chart_frame.winfo_children():
+            widget.destroy()
+
+        # Check if the data is empty
+        if not data:
+            fig, ax = plt.subplots(figsize=(5, 5))
+            ax.text(0.5, 0.5, "No Data Available", ha="center", va="center", fontsize=16, color="gray")
+        else:
+            # Create a pie chart with the given data
+            fig, ax = plt.subplots(figsize=(5, 5))
+            ax.pie(
+                data.values(),
+                labels=data.keys(),
+                autopct='%1.1f%%',
+                startangle=90,
+                wedgeprops={"edgecolor": "black"}
+            )
+            ax.axis("equal")  # Ensure the pie chart is circular
+
+        # Embed the chart in the GUI
+        canvas = FigureCanvasTkAgg(fig, master=self.chart_frame)
+        canvas.draw()
+        canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
 
     def build_data_frame(self, parent: ctk.CTkFrame, y_padding):
@@ -452,35 +511,14 @@ class SetupTab:
     def build_bottom_frame(self, parent: ctk.CTkFrame):
         """
         """
-        ctk.CTkButton(
-            parent,
-            text="Launch Multi Portfolio",
-            fg_color="#bb8fce",
-            text_color="#000000",
-            hover_color="#8e44ad",
-            command=self.launch_multiportfolio,
-        ).pack()
-
-        self.bottom_text_frame.pack(padx=5, pady=5)
-        # Footer Section
         footer_frame = ctk.CTkFrame(parent, fg_color="transparent")
         footer_frame.pack(fill="x", pady=10)
-        # Add copyright info
         copyright_label = ctk.CTkLabel(
             footer_frame,
             text="© Zephyr Analytics 2025",
             font=ctk.CTkFont(size=12)
         )
         copyright_label.pack()
-
-
-    def launch_multiportfolio(self):
-        """
-        Method to launch multi-portfolio analysis window.
-        """
-        root_window = ctk.CTk()
-        InteractivePieChartApp(root=root_window)
-        root_window.mainloop()
 
     def obtain_data(self):
         """
@@ -496,50 +534,16 @@ class SetupTab:
         data_prepare = DataPreparationProcessor(models_data=self.data_models, portfolio_data=self.data_portfolio)
         data_prepare.process()
 
-    def clear_bottom_text(self):
-        """
-        Clears the text at the bottom of the GUI.
-
-        Parameters
-        ----------
-        None
-        """
-        for widget in self.bottom_text_frame.winfo_children():
-            widget.destroy()
-
-    def display_asset_weights(self):
-        """
-        Displays the loaded asset weights in the GUI, capped at 10.
-
-        Parameters
-        ----------
-        None
-        """
-        assets_text = "\n".join(
-            [f"{asset}: {weight}" for asset, weight in list(self.data_models.assets_weights.items())[:10]]
-        )
-        if len(self.data_models.assets_weights) > 10:
-            assets_text += f"\n... (and {(len(self.data_models.assets_weights)-10)} more)"
-
-        bottom_text = ctk.CTkLabel(
-            self.bottom_text_frame,
-            text=f"Loaded Assets and Weights from: \n\n{self.data_models.weights_filename}:\n{assets_text}",
-            font=self.bold_font,
-            fg_color="transparent"
-        )
-        bottom_text.pack(pady=5)
-
     def load_weights_and_update(self):
         """
         Loads the assets and weights from file and updates the attribute.
         """
-        self.clear_bottom_text()
         self.data_models.assets_weights, self.data_models.weights_filename = utilities.load_weights()
         if self.data_models.assets_weights:
             self.data_models.weights_filename = utilities.strip_csv_extension(
                 self.data_models.weights_filename
             )
-            self.display_asset_weights()
+            self.update_chart_with_data(self.data_models.assets_weights)
 
     def load_out_of_market_weights_and_update(self):
         """
