@@ -36,7 +36,8 @@ class ModelsFactory:
             (Models.IN_AND_OUT_OF_MARKET, Runs.BACKTEST): self._run_backtest,
             (Models.IN_AND_OUT_OF_MARKET, Runs.SIGNALS): self._run_signals,
             (Models.IN_AND_OUT_OF_MARKET, Runs.SIMULATION): self._run_simulation,
-            (Models.IN_AND_OUT_OF_MARKET, Runs.PARAMETER_TUNE): self._run_parameter_tune
+            (Models.IN_AND_OUT_OF_MARKET, Runs.PARAMETER_TUNE): self._run_parameter_tune,
+            (Models.MACHINE_LEARNING, Runs.BACKTEST): self._run_backtest
         }
 
         method = model_run_map.get((model, run_type))
@@ -137,6 +138,9 @@ class ModelsFactory:
                 "signals": CreateMomentumInAndOutSignals,
                 "simulation": MonteCarloSimulation,
                 "tune": InAndOutMomentumParameterTuning
+            },
+            "MACHINE_LEARNING": {
+                "backtest": HierarchicalClusteringBacktestProcessor
             }
         }
         return processor_map.get(model.name, {}).get(process_type)

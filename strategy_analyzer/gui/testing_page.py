@@ -85,6 +85,7 @@ class TestingTab:
         self.create_testing_tab("Momentum Strategies")
         self.create_testing_tab("Momentum In & Out Strategies")
         self.create_testing_tab("Moving Average Crossover Strategies")
+        self.create_testing_tab("Machine Learning")
 
 
     def create_testing_tab(self, tab_name):
@@ -162,7 +163,8 @@ class TestingTab:
             "Moving Average Strategies": Models.MA,
             "Momentum Strategies": Models.MOMENTUM,
             "Momentum In & Out Strategies": Models.IN_AND_OUT_OF_MARKET,
-            "Moving Average Crossover Strategies": Models.MA_CROSSOVER
+            "Moving Average Crossover Strategies": Models.MA_CROSSOVER,
+            "Machine Learning": Models.MACHINE_LEARNING
         }
 
         model_enum = tab_to_model_map.get(tab_name)

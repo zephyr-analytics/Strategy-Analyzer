@@ -80,7 +80,8 @@ class BacktestingProcessor(ABC):
             self,
             current_date: datetime,
             selected_assets: pd.DataFrame =None,
-            selected_out_of_market_asset: pd.DataFrame=None
+            selected_out_of_market_asset: pd.DataFrame=None,
+            distances: pd.DataFrame=None
     ) -> dict:
         """
         Adjusts the weights of the assets based on their SMA and the selected weighting strategy.
