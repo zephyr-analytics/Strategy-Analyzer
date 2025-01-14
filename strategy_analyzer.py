@@ -64,23 +64,22 @@ class StrategyAnalyzer(ctk.CTk):
             segmented_button_unselected_color="#bb8fce",
             segmented_button_selected_color="#8e44ad",
             text_color="#000000",
-            segmented_button_selected_hover_color="#8e44ad",
-            command=self.on_tab_switch
+            segmented_button_selected_hover_color="#8e44ad"
         )
         self.high_level_tab_control.pack(expand=1, fill="both", anchor="w")
 
-        multi_portfolio_tab_frame = self.high_level_tab_control.add("Multi Portfolio")
-        self.multi_portfolio_tab_control = ctk.CTkTabview(
-            multi_portfolio_tab_frame,
-            border_color=["#edeaea", "#2b2c2d"],
-            fg_color=["#edeaea", "#2b2c2d"],
-            segmented_button_fg_color=["#edeaea", "#2b2c2d"],
-            segmented_button_unselected_color="#bb8fce",
-            segmented_button_selected_color="#8e44ad",
-            text_color="#000000",
-            segmented_button_selected_hover_color="#8e44ad"
-        )
-        self.multi_portfolio_tab_control.pack(expand=1, fill="both", anchor="w")
+        # multi_portfolio_tab_frame = self.high_level_tab_control.add("Multi Portfolio")
+        # self.multi_portfolio_tab_control = ctk.CTkTabview(
+        #     multi_portfolio_tab_frame,
+        #     border_color=["#edeaea", "#2b2c2d"],
+        #     fg_color=["#edeaea", "#2b2c2d"],
+        #     segmented_button_fg_color=["#edeaea", "#2b2c2d"],
+        #     segmented_button_unselected_color="#bb8fce",
+        #     segmented_button_selected_color="#8e44ad",
+        #     text_color="#000000",
+        #     segmented_button_selected_hover_color="#8e44ad"
+        # )
+        # self.multi_portfolio_tab_control.pack(expand=1, fill="both", anchor="w")
 
         single_portfolio_tab_frame = self.high_level_tab_control.add("Single Portfolio")
         self.single_portfolio_tab_control = ctk.CTkTabview(
@@ -95,16 +94,16 @@ class StrategyAnalyzer(ctk.CTk):
         )
         self.single_portfolio_tab_control.pack(expand=1, fill="both", anchor="w")
 
-        setup_tab_frame = self.multi_portfolio_tab_control.add("Initial Testing Setup")
-        self.setup_tab = SetupTab(setup_tab_frame, models_data=self.data_models, portfolio_data=self.data_portfolio)
+        # setup_tab_frame = self.multi_portfolio_tab_control.add("Initial Testing Setup")
+        # self.setup_tab = SetupTab(setup_tab_frame, models_data=self.data_models, portfolio_data=self.data_portfolio)
 
-        testing_tab_frame = self.multi_portfolio_tab_control.add("Testing")
-        self.testing_tab = TestingTab(
-            testing_tab_frame,
-            models_data=self.data_models,
-            portfolio_data=self.data_portfolio,
-            models_results=self.results_models
-        )
+        # testing_tab_frame = self.multi_portfolio_tab_control.add("Testing")
+        # self.testing_tab = TestingTab(
+        #     testing_tab_frame,
+        #     models_data=self.data_models,
+        #     portfolio_data=self.data_portfolio,
+        #     models_results=self.results_models
+        # )
 
         setup_tab_frame_single = self.single_portfolio_tab_control.add("Initial Testing Setup")
         self.setup_tab_single = SetupTab(setup_tab_frame_single, models_data=self.data_models, portfolio_data=self.data_portfolio)
@@ -117,22 +116,7 @@ class StrategyAnalyzer(ctk.CTk):
             models_results=self.results_models
         )
 
-        self.high_level_tab_control.set("Multi Portfolio")
-
-    def on_tab_switch(self):
-        """
-        Callback for tab switching.
-        Determines the active tab and calls the update_tab method of the respective tab.
-        """
-        active_tab = self.high_level_tab_control.get()
-        if active_tab == "Multi Portfolio":
-            sub_active_tab = self.multi_portfolio_tab_control.get()
-            if sub_active_tab == "Testing":
-                self.testing_tab.update_tab()
-        elif active_tab == "Single Portfolio":
-            sub_active_tab = self.single_portfolio_tab_control.get()
-            if sub_active_tab == "Testing":
-                self.testing_tab_single.update_tab()
+        self.high_level_tab_control.set("Single Portfolio")
 
     def on_close(self):
         """
