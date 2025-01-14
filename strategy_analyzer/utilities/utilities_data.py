@@ -3,7 +3,6 @@ Utilities module for loading and processing data.
 """
 
 import os
-import time
 
 from datetime import datetime
 from tkinter import filedialog
@@ -40,7 +39,9 @@ def fetch_data(all_tickers, start_date=None, end_date=None):
     if start_date and end_date is None:
         data = yf.download(all_tickers, timeout=30, session=session, threads=False)['Adj Close']
     else:
-        data = yf.download(all_tickers, start=start_date, end=end_date, timeout=30, session=session, threads=False)['Adj Close']
+        data = yf.download(
+            all_tickers, start=start_date, end=end_date, timeout=30, session=session, threads=False
+        )['Adj Close']
     session.close()
 
     return data
@@ -123,7 +124,10 @@ def save_html(fig, filename, weights_filename, ma_type, processing_type, num_ass
     artifacts_directory = os.path.join(current_directory, 'artifacts', "plots", f"{weights_filename}")
     os.makedirs(artifacts_directory, exist_ok=True)
 
-    file_path = os.path.join(artifacts_directory, f"{current_date}_{processing_type}_{ma_type}{sma_window}_assets{num_assets}_{trading_frequency}_{filename}.html")
+    file_path = os.path.join(
+        artifacts_directory,
+        f"{current_date}_{processing_type}_{ma_type}{sma_window}_assets{num_assets}_{trading_frequency}_{filename}.html"
+    )
     fig.write_html(file_path)
 
 
@@ -160,7 +164,10 @@ def save_dataframe_to_csv(data, output_filename, processing_type, num_assets):
     artifacts_directory = os.path.join(current_directory, "artifacts", "data", f"{output_filename}")
     os.makedirs(artifacts_directory, exist_ok=True)
 
-    full_path = os.path.join(artifacts_directory, f"{output_filename}_{current_date}_{processing_type}_assets{num_assets}.csv")
+    full_path = os.path.join(
+        artifacts_directory,
+        f"{output_filename}_{current_date}_{processing_type}_assets{num_assets}.csv"
+    )
 
     data.to_csv(full_path, index=True)
 
@@ -183,3 +190,4 @@ def write_raw_dataframe_to_csv(dataframe, file_path):
     None
     """
     dataframe.to_csv(file_path, index=True)
+    

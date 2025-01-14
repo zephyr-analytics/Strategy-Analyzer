@@ -48,7 +48,7 @@ class ResultsProcessor(ABC):
         if self.data_models.theme_mode.lower() == "dark":
             line_color = "white"
         else:
-            line_color = "black" 
+            line_color = "black"
 
         fig = go.Figure()
 
@@ -342,7 +342,7 @@ class ResultsProcessor(ABC):
         ))
 
         chart_theme = "plotly_dark" if self.data_models.theme_mode.lower() == "dark" else "plotly"
-        
+
         fig.update_layout(
             template=chart_theme,
             title='Monte Carlo Simulation of Portfolio Value',
@@ -473,7 +473,7 @@ class ResultsProcessor(ABC):
             )
 
         chart_theme = "plotly_dark" if self.data_models.theme_mode.lower() == "dark" else "plotly"
-        
+
         fig.update_layout(
             template=chart_theme,
             annotations=monthly_annotations + yearly_annotations + [

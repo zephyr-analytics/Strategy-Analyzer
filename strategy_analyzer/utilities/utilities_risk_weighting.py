@@ -3,7 +3,6 @@ Utilities module for adjusting weights.
 """
 
 import numpy as np
-import pandas as pd
 
 
 def validate_weights(weights):
@@ -27,7 +26,7 @@ def validate_weights(weights):
 
 def calculate_standard_deviation_weighting(returns_df, weights, cash_ticker=None, bond_ticker=None):
     """
-    Calculate the standard deviation (volatility) for each asset and adjust weights accordingly based on contribution to total risk.
+    Calculate the standard deviation for each asset and adjust weights based on contribution to total risk.
 
     Parameters
     ----------
@@ -51,7 +50,9 @@ def calculate_standard_deviation_weighting(returns_df, weights, cash_ticker=None
     portfolio_std = np.sqrt((
         returns_df[list(adjustable_weights.keys())] * list(adjustable_weights.values())
     ).sum(axis=1).var() * 252)
-    risk_contributions = {asset: (returns_df[asset].std() * np.sqrt(252)) / portfolio_std for asset in adjustable_weights}
+    risk_contributions = {
+        asset: (returns_df[asset].std() * np.sqrt(252)) / portfolio_std for asset in adjustable_weights
+    }
     total_risk_contribution = sum(risk_contributions.values())
     adjusted_weights = {asset: (1 - (risk / total_risk_contribution)) for asset, risk in risk_contributions.items()}
     adjusted_weights = {asset: weight / sum(adjusted_weights.values()) for asset, weight in adjusted_weights.items()}
@@ -105,9 +106,14 @@ def calculate_value_at_risk_weighting(returns_df, weights, confidence_level=0.95
     return adjusted_weights
 
 
-def calculate_conditional_value_at_risk_weighting(returns_df, weights, confidence_level=0.95, cash_ticker=None, bond_ticker=None):
+def calculate_conditional_value_at_risk_weighting(
+        returns_df, weights,
+        confidence_level=0.95,
+        cash_ticker=None,
+        bond_ticker=None
+):
     """
-    Calculate the Conditional Value at Risk (CVaR) for each asset and adjust weights accordingly based on contribution to total risk.
+    Calculate the Conditional Value at Risk for each asset and adjust weights based on contribution to total risk.
 
     Parameters
     ----------

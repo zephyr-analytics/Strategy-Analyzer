@@ -29,8 +29,8 @@ def round_corners(image, radius):
 def resource_path(relative_path: str) -> str:
     """
     Get the absolute path to a resource.
-    
-    This method works both when running as a standalone script and when bundled with PyInstaller.
+
+    Works both when running as a standalone script and when bundled with PyInstaller.
 
     Args:
         relative_path (str): The relative path to the resource file.
@@ -38,9 +38,5 @@ def resource_path(relative_path: str) -> str:
     Returns:
         str: The absolute path to the resource.
     """
-    try:
-        base_path = sys._MEIPASS
-    except AttributeError:
-        base_path = os.path.abspath(".")
-
+    base_path = getattr(sys, '_MEIPASS', os.path.abspath("."))
     return os.path.join(base_path, relative_path)
