@@ -45,8 +45,8 @@ class TestingTab:
         self.bottom_text_frame = ctk.CTkFrame(self.parent, fg_color="transparent")
         self.bottom_text_frame.pack()
 
-        self.bottom_text = ctk.CTkFrame(self.bottom_text_frame)
-        self.bottom_text.pack()
+        # self.bottom_text = ctk.CTkFrame(self.bottom_text_frame)
+        # self.bottom_text.pack()
 
         self.bottom_text_result_display = ctk.CTkLabel(self.bottom_text_frame)
         self.bottom_text_result_display.pack()
@@ -147,7 +147,7 @@ class TestingTab:
         ).pack(pady=50)
 
 
-    def execute_task_for_tab(self, tab_name):
+    def execute_task_for_tab(self, tab_name: str):
         """
         Executes the task based on the selected tab and run type.
 
@@ -232,34 +232,34 @@ class TestingTab:
         self.bottom_text_result_display.destroy()
 
 
-    def clear_bottom_text(self):
-        """
-        Clears the text at the bottom of the GUI.
+    # def clear_bottom_text(self):
+    #     """
+    #     Clears the text at the bottom of the GUI.
 
-        Parameters
-        ----------
-        None
-        """
-        self.bottom_text.destroy()
+    #     Parameters
+    #     ----------
+    #     None
+    #     """
+    #     self.bottom_text.destroy()
 
 
-    def display_asset_weights(self):
-        """
-        Displays the loaded asset weights in the GUI, capped at 10.
-        """
-        assets_text = "\n".join(
-            [f"{asset}: {weight}" for asset, weight in list(self.data_models.assets_weights.items())[:10]]
-        )
-        if len(self.data_models.assets_weights) > 10:
-            assets_text += f"\n... (and {(len(self.data_models.assets_weights)-10)} more)"
+    # def display_asset_weights(self):
+    #     """
+    #     Displays the loaded asset weights in the GUI, capped at 10.
+    #     """
+    #     assets_text = "\n".join(
+    #         [f"{asset}: {weight}" for asset, weight in list(self.data_models.assets_weights.items())[:10]]
+    #     )
+    #     if len(self.data_models.assets_weights) > 10:
+    #         assets_text += f"\n... (and {(len(self.data_models.assets_weights)-10)} more)"
 
-        self.bottom_text = ctk.CTkLabel(
-            self.bottom_text_frame,
-            text=f"Loaded Assets and Weights from: \n\n{self.data_models.weights_filename}:\n{assets_text}",
-            font=self.bold_font,
-            fg_color="transparent"
-        )
-        self.bottom_text.pack(pady=5)
+    #     self.bottom_text = ctk.CTkLabel(
+    #         self.bottom_text_frame,
+    #         text=f"Loaded Assets and Weights from: \n\n{self.data_models.weights_filename}:\n{assets_text}",
+    #         font=self.bold_font,
+    #         fg_color="transparent"
+    #     )
+    #     self.bottom_text.pack(pady=5)
 
 
     def display_result(self, result: str):
@@ -279,10 +279,10 @@ class TestingTab:
         self.bottom_text_result_display.pack(pady=5)
 
 
-    def update_tab(self):
-        """
-        Method used by GUI to update tab components.
-        """
-        self.clear_bottom_text()
-        self.clear_message_text()
-        self.display_asset_weights()
+    # def update_tab(self):
+    #     """
+    #     Method used by GUI to update tab components.
+    #     """
+    #     self.clear_bottom_text()
+    #     self.clear_message_text()
+    #     self.display_asset_weights()

@@ -531,7 +531,9 @@ class SetupTab:
         """
         Loads the assets and weights from file and updates the attribute.
         """
-        self.data_models.assets_weights, self.data_models.weights_filename = utilities.load_weights()
+        assets_weights, weights_filename = utilities.load_weights()
+        self.data_models.assets_weights = assets_weights
+        self.data_models.weights_filename = weights_filename
         if self.data_models.assets_weights:
             self.data_models.weights_filename = utilities.strip_csv_extension(
                 self.data_models.weights_filename

@@ -21,6 +21,7 @@ class StrategyAnalyzer(ctk.CTk):
         super().__init__()
         self.title("Strategy Analyzer")
         self.geometry("1920x1080")
+
         models_data = ModelsData()
         self.data_models = models_data
         portfolio_data = PortfolioData()
