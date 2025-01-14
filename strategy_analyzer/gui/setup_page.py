@@ -82,23 +82,18 @@ class SetupTab:
 
     def build_chart(self, parent):
         """
-        Build an empty pie chart during GUI initialization.
+        Build the chart frame during GUI initialization.
         """
-        # Create an empty pie chart
-        fig, ax = plt.subplots(figsize=(5, 5))
-        ax.text(0.5, 0.5, "No Data Available", ha="center", va="center", fontsize=16, color="gray")
-        ax.axis("equal")  # Ensure the pie chart is circular
-
-        # Embed the empty chart in the GUI
         self.chart_frame = ctk.CTkFrame(parent)
-        self.chart_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=10, pady=10)
+        self.chart_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=10, pady=10)
 
-        canvas = FigureCanvasTkAgg(fig, master=self.chart_frame)
-        canvas.draw()
-        canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+        self.no_data_label = tk.Label(
+            self.chart_frame, text="No Data Available", font=("Arial", 16), fg="gray"
+        )
+        self.no_data_label.pack(expand=True)
 
 
-    def update_chart_with_data(self, data: dict):
+    def update_chart_with_data(self, data: dict, title: str):
         """
         Update the pie chart with the given dictionary of data.
 
@@ -107,17 +102,16 @@ class SetupTab:
         data : dict
             A dictionary with category names as keys and corresponding values.
         """
-        # Clear the existing chart
         for widget in self.chart_frame.winfo_children():
             widget.destroy()
 
-        # Check if the data is empty
         if not data:
-            fig, ax = plt.subplots(figsize=(5, 5))
-            ax.text(0.5, 0.5, "No Data Available", ha="center", va="center", fontsize=16, color="gray")
+            self.no_data_label = tk.Label(
+                self.chart_frame, text="No Data Available", font=("Arial", 16), fg="gray"
+            )
+            self.no_data_label.pack(expand=True)
         else:
-            # Create a pie chart with the given data
-            fig, ax = plt.subplots(figsize=(5, 5))
+            fig, ax = plt.subplots(figsize=(10, 8))
             ax.pie(
                 data.values(),
                 labels=data.keys(),
@@ -125,12 +119,13 @@ class SetupTab:
                 startangle=90,
                 wedgeprops={"edgecolor": "black"}
             )
-            ax.axis("equal")  # Ensure the pie chart is circular
+            ax.axis("equal")
+            ax.set_title(f"{title}", fontsize=18, fontweight="bold", pad=20)
 
-        # Embed the chart in the GUI
-        canvas = FigureCanvasTkAgg(fig, master=self.chart_frame)
-        canvas.draw()
-        canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+            # Embed the chart in the GUI
+            canvas = FigureCanvasTkAgg(fig, master=self.chart_frame)
+            canvas.draw()
+            canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
 
     def build_data_frame(self, parent: ctk.CTkFrame, y_padding):
@@ -541,7 +536,7 @@ class SetupTab:
             self.data_models.weights_filename = utilities.strip_csv_extension(
                 self.data_models.weights_filename
             )
-            self.update_chart_with_data(self.data_models.assets_weights)
+            self.update_chart_with_data(data=self.data_models.assets_weights, title=self.data_models.weights_filename)
 
     def load_out_of_market_weights_and_update(self):
         """
