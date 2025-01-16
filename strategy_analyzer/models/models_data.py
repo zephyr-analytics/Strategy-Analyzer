@@ -3,8 +3,7 @@ Getter and Setter class for storing environment variables.
 """
 
 from datetime import datetime
-
-import pandas as pd
+import calendar
 
 
 class ModelsData:
@@ -18,7 +17,8 @@ class ModelsData:
         self._assets_weights = {}
         self._bond_ticker = ""
         self._cash_ticker = "SHV"
-        self._end_date = datetime.today().strftime('%Y-%m-%d')
+        last_day_of_month = calendar.monthrange(datetime.today().year, datetime.today().month)[1]
+        self._end_date = datetime(datetime.today().year, datetime.today().month, last_day_of_month).strftime('%Y-%m-%d')
         self._initial_portfolio_value = 10000
         self._num_simulations = 1000
         self._simulation_horizon = 10

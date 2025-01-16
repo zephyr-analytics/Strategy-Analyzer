@@ -4,7 +4,7 @@ Module for obtaining and saving data to the raw directory.
 
 import logging
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import pandas as pd
 
@@ -20,7 +20,7 @@ class DataObtainmentProcessor:
     """
     def __init__(self, models_data: ModelsData):
         self.data_models = models_data
-        self.end_date = pd.to_datetime(self.data_models.end_date)
+        self.end_date = datetime.now() + timedelta(days=1)
         # TODO when pulling a single asset that asset needs to be relabeled from Adj Close to the ticker symbol.
 
     def process(self):

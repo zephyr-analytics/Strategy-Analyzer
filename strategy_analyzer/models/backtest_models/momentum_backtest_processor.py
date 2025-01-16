@@ -32,19 +32,39 @@ class MomentumBacktestProcessor(BacktestingProcessor):
             An instance of the ModelsData class containing all relevant parameters and data for backtesting.
         """
         super().__init__(models_data=models_data, portfolio_data=portfolio_data, models_results=models_results)
+        self.remove_momentum_outliers = ""
 
     def get_portfolio_assets_and_weights(self, current_date):
         """
+        Select portfolio assets and adjust their weights based on momentum and custom rules.
+        If an asset has momentum greater than 1.0, replace it with a fallback asset.
         """
         momentum = self.calculate_momentum(current_date=current_date)
+
         selected_assets = pd.DataFrame({
             'Asset': momentum.nlargest(self.data_models.num_assets_to_select).index,
             'Momentum': momentum.nlargest(self.data_models.num_assets_to_select).values
         })
-        selected_assets = selected_assets[selected_assets['Asset'].isin(self.data_models.assets_weights.keys())]
+
+        if self.remove_momentum_outliers:
+            selected_assets = selected_assets[selected_assets['Asset'].isin(self.data_models.assets_weights.keys())]
+            high_momentum_assets = selected_assets[selected_assets['Momentum'] > 0.75]
+            if not high_momentum_assets.empty:
+                fallback_assets = momentum[~momentum.index.isin(selected_assets['Asset'])].nlargest(
+                    len(high_momentum_assets)
+                )
+                for idx, _ in high_momentum_assets.iterrows():
+                    if not fallback_assets.empty:
+                        replacement_asset = fallback_assets.idxmax()
+                        replacement_momentum = fallback_assets.max()
+                        selected_assets.loc[idx, 'Asset'] = replacement_asset
+                        selected_assets.loc[idx, 'Momentum'] = replacement_momentum
+                        fallback_assets = fallback_assets.drop(replacement_asset)
+
         adjusted_weights = self.adjust_weights(current_date=current_date, selected_assets=selected_assets)
 
         return adjusted_weights
+
 
     def calculate_momentum(self, current_date: datetime) -> pd.Series:
         """
