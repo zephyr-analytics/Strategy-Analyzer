@@ -24,48 +24,47 @@ class HierarchicalClusteringBacktestProcessor(BacktestingProcessor):
         """
         Select assets based on hierarchical clustering and adjust weights based on SMA filtering.
         """
-        # Calculate momentum and filter assets based on average momentum
+        # Step 1: Calculate momentum and filter assets based on average momentum
         momentum = self.calculate_momentum(current_date)
         avg_momentum = momentum.mean()
         selected_assets = momentum[momentum > avg_momentum].index.tolist()
 
-        # Perform hierarchical clustering on selected assets using covariance
+        # Step 2: Get asset returns data
         asset_data = self.data_portfolio.assets_data[selected_assets].loc[:current_date].pct_change().dropna()
         if asset_data.empty:
             return {}
 
+        # Step 3: Perform hierarchical clustering
         distance_matrix = pdist(asset_data.T.cov())
         clusters = fcluster(linkage(distance_matrix, method='ward'), t=0.5, criterion='distance')
 
-        # Ensure the lengths of selected_assets and clusters match
-        if len(selected_assets) != len(clusters):
-            selected_assets = selected_assets[:len(clusters)]
+        # Step 4: Map clusters to assets and filter them
+        asset_cluster_mapping = {asset: cluster for asset, cluster in zip(asset_data.columns, clusters)}
+        clustered_assets = pd.Series(asset_cluster_mapping).reset_index()
+        clustered_assets.columns = ['Asset', 'Cluster']
 
-        # Create a DataFrame to map assets to their clusters
-        clustered_assets = pd.DataFrame({'Asset': selected_assets, 'Cluster': clusters})
-
-        # Calculate the distance matrix for the selected assets
-        distances = pd.DataFrame(squareform(distance_matrix), index=selected_assets, columns=selected_assets)
-
-        # Select assets from each cluster based on distance
+        # Step 5: Select multiple representative assets from each cluster
         final_selected_assets = []
-        for cluster in clustered_assets['Cluster'].unique():
-            cluster_assets = clustered_assets[clustered_assets['Cluster'] == cluster]['Asset'].tolist()
-            cluster_distances = distances.loc[cluster_assets, cluster_assets]
 
-            # Select the first asset with the highest momentum
-            top_asset = cluster_assets[0]
+        for cluster_id in clustered_assets['Cluster'].unique():
+            cluster_assets = clustered_assets[clustered_assets['Cluster'] == cluster_id]['Asset'].tolist()
+            cluster_momentum = momentum.loc[cluster_assets]
+
+            # Select the top asset based on momentum
+            top_asset = cluster_momentum.idxmax()
             final_selected_assets.append(top_asset)
 
-            # Select other assets that are sufficiently distant from the already selected ones
-            for asset in cluster_assets[1:]:
-                if all(cluster_distances.loc[asset, selected_asset] > 0.5 for selected_asset in final_selected_assets):
-                    final_selected_assets.append(asset)
+            # Select additional assets based on a distance threshold
+            for asset in cluster_assets:
+                if asset != top_asset:
+                    distances = squareform(pdist(asset_data[cluster_assets].T))
+                    if all(distances[cluster_assets.index(asset), cluster_assets.index(selected_asset)] > 0.5 for selected_asset in final_selected_assets):
+                        final_selected_assets.append(asset)
 
-        # Convert final selected assets to DataFrame
-        selected_assets_df = pd.DataFrame({'Asset': final_selected_assets})
 
-        # Adjust weights within each cluster using the selected assets
+        # Step 6: Extract price data for the final selected assets
+        selected_assets_df = self.data_portfolio.assets_data[final_selected_assets].loc[:current_date]
+        # Step 7: Adjust weights within each cluster using the selected assets
         adjusted_weights = self.adjust_weights(current_date, selected_assets=selected_assets_df)
 
         return adjusted_weights
@@ -100,8 +99,7 @@ class HierarchicalClusteringBacktestProcessor(BacktestingProcessor):
         adjusted_weights = {}
         total_weight = 0
 
-        for _, row in selected_assets.iterrows():
-            asset = row['Asset']
+        for asset in selected_assets.columns:
             if utilities.is_below_ma(
                 current_date=current_date,
                 ticker=asset,

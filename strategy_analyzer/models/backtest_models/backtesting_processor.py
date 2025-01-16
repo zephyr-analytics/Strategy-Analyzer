@@ -36,7 +36,6 @@ class BacktestingProcessor(ABC):
         """
         Processes the backtest by fetching data, running the backtest, and generating the plots.
         """
-        logger.info(f"Momentum backtest for: {self.data_models.weights_filename}, Trading Freq:{self.data_models.trading_frequency}, Moving Average:{self.data_models.ma_window}, Type:{self.data_models.ma_type}, Assets:{self.data_models.num_assets_to_select}")
         all_adjusted_weights, portfolio_values, portfolio_returns = self.run_backtest()
         self._persist_portfolio_data(
             all_adjusted_weights=all_adjusted_weights,
@@ -134,7 +133,15 @@ class BacktestingProcessor(ABC):
         """
         Runs the backtest by calculating portfolio values and returns over time.
         """
+        # Generate monthly dates within the backtest range
         monthly_dates = pd.date_range(start=self.data_models.start_date, end=self.data_models.end_date, freq='M')
+
+        # Add the next month-end date after end_date
+        last_month_end = monthly_dates[-1]
+        next_month_end = (last_month_end + pd.offsets.MonthEnd(1))
+        if next_month_end not in monthly_dates:
+            monthly_dates = monthly_dates.append(pd.DatetimeIndex([next_month_end]))
+
         portfolio_values = [int(self.data_models.initial_portfolio_value)]
         portfolio_returns = []
         all_adjusted_weights = []
@@ -156,13 +163,15 @@ class BacktestingProcessor(ABC):
                 self.data_portfolio.trading_data.index.get_loc(current_date, method='pad')
             ]
 
-            adjusted_weights=self.get_portfolio_assets_and_weights(current_date=last_date_current_month)
+            adjusted_weights = self.get_portfolio_assets_and_weights(current_date=last_date_current_month)
 
             for j in range(step):
                 if i + j >= len(monthly_dates) - 1:
                     break
                 next_date = monthly_dates[i + j + 1]
-                last_date_next_month = self.data_portfolio.trading_data.index[self.data_portfolio.trading_data.index.get_loc(next_date, method='pad')]
+                last_date_next_month = self.data_portfolio.trading_data.index[
+                    self.data_portfolio.trading_data.index.get_loc(next_date, method='pad')
+                ]
                 month_end_data = self.data_portfolio.trading_data.loc[last_date_current_month]
                 next_month_end_data = self.data_portfolio.trading_data.loc[last_date_next_month]
                 monthly_returns = (next_month_end_data / month_end_data) - 1
@@ -176,6 +185,7 @@ class BacktestingProcessor(ABC):
                 all_adjusted_weights.append(adjusted_weights)
 
         return all_adjusted_weights, portfolio_values, portfolio_returns
+
 
 
     def _persist_portfolio_data(
@@ -302,8 +312,6 @@ class BacktestingProcessor(ABC):
     def persist_data(self):
         """
         Saves combined datasets to a single CSV file in the specified directory.
-
-        Handles adjusted weights, portfolio returns, and portfolio values dynamically.
         """
         adjusted_weights_df = pd.DataFrame(
             list(self.results_models.adjusted_weights), index=self.results_models.adjusted_weights.index
