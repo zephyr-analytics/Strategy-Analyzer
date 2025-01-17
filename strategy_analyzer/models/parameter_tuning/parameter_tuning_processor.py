@@ -38,9 +38,31 @@ class ParameterTuningProcessor(ABC):
         self.persist_results(results=results)
 
     @abstractmethod
-    def get_portfolio_results(self):
+    def get_portfolio_results(self) -> dict:
         """
-        Abstract method to generate trading results for all parameters.
+        Processes parameters for tuning using joblib to parallelize execution.
+
+        Returns
+        -------
+        dict
+            A dictionary of backtest results and portfolio statistics from parameter tuning.
+        """
+
+    @abstractmethod
+    def process_combination_wrapper(self, args) -> dict:
+        """
+        Wrapper function for processing a combination.
+        Calls the class method with unpacked arguments.
+
+        Parameters
+        ----------
+        args : tuple
+            A tuple containing (ma, frequency, ma_type).
+
+        Returns
+        -------
+        dict
+            The result of the combination processing.
         """
 
     def plot_results(self, results: dict):

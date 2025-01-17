@@ -143,7 +143,7 @@ def save_fig(fig, weights_filename, processing_type):
     fig.write_html(file_path)
 
 
-def save_dataframe_to_csv(data, output_filename, processing_type, num_assets):
+def save_dataframe_to_csv(data, output_filename, processing_type):
     """
     Saves a pandas DataFrame to a CSV file in a structured directory with metadata in the file name.
 
@@ -166,7 +166,7 @@ def save_dataframe_to_csv(data, output_filename, processing_type, num_assets):
 
     full_path = os.path.join(
         artifacts_directory,
-        f"{output_filename}_{current_date}_{processing_type}_assets{num_assets}.csv"
+        f"{output_filename}_{current_date}_{processing_type}.csv"
     )
 
     data.to_csv(full_path, index=True)
