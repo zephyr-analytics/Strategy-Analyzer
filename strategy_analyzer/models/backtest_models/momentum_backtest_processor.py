@@ -46,20 +46,20 @@ class MomentumBacktestProcessor(BacktestingProcessor):
             'Momentum': momentum.nlargest(self.data_models.num_assets_to_select).values
         })
 
-        if self.remove_momentum_outliers:
-            selected_assets = selected_assets[selected_assets['Asset'].isin(self.data_models.assets_weights.keys())]
-            high_momentum_assets = selected_assets[selected_assets['Momentum'] > 0.75]
-            if not high_momentum_assets.empty:
-                fallback_assets = momentum[~momentum.index.isin(selected_assets['Asset'])].nlargest(
-                    len(high_momentum_assets)
-                )
-                for idx, _ in high_momentum_assets.iterrows():
-                    if not fallback_assets.empty:
-                        replacement_asset = fallback_assets.idxmax()
-                        replacement_momentum = fallback_assets.max()
-                        selected_assets.loc[idx, 'Asset'] = replacement_asset
-                        selected_assets.loc[idx, 'Momentum'] = replacement_momentum
-                        fallback_assets = fallback_assets.drop(replacement_asset)
+        # if self.remove_momentum_outliers:
+        #     selected_assets = selected_assets[selected_assets['Asset'].isin(self.data_models.assets_weights.keys())]
+        #     high_momentum_assets = selected_assets[selected_assets['Momentum'] > 0.75]
+        #     if not high_momentum_assets.empty:
+        #         fallback_assets = momentum[~momentum.index.isin(selected_assets['Asset'])].nlargest(
+        #             len(high_momentum_assets)
+        #         )
+        #         for idx, _ in high_momentum_assets.iterrows():
+        #             if not fallback_assets.empty:
+        #                 replacement_asset = fallback_assets.idxmax()
+        #                 replacement_momentum = fallback_assets.max()
+        #                 selected_assets.loc[idx, 'Asset'] = replacement_asset
+        #                 selected_assets.loc[idx, 'Momentum'] = replacement_momentum
+        #                 fallback_assets = fallback_assets.drop(replacement_asset)
 
         adjusted_weights = self.adjust_weights(current_date=current_date, selected_assets=selected_assets)
 

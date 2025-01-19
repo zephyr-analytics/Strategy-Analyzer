@@ -107,42 +107,6 @@ def strip_csv_extension(filename):
     return os.path.splitext(filename)[0]
 
 
-def save_html(fig, filename, weights_filename, ma_type, processing_type, num_assets, sma_window, trading_frequency):
-    """
-    Save the HTML file to the 'artifacts' directory within the current working directory.
-
-    Parameters:
-    fig : plotly.graph_objects.Figure
-        The figure object to save as an HTML file.
-    filename : str
-        The name of the HTML file.
-    output_filename : str
-        The output filename to include in the file path.
-    """
-    current_directory = os.getcwd()
-    current_date = datetime.now().strftime("%Y-%m-%d")
-    artifacts_directory = os.path.join(current_directory, 'artifacts', "plots", f"{weights_filename}")
-    os.makedirs(artifacts_directory, exist_ok=True)
-
-    file_path = os.path.join(
-        artifacts_directory,
-        f"{current_date}_{processing_type}_{ma_type}{sma_window}_assets{num_assets}_{trading_frequency}_{filename}.html"
-    )
-    fig.write_html(file_path)
-
-
-def save_fig(fig, weights_filename, processing_type):
-    """
-    """
-    current_directory = os.getcwd()
-    current_date = datetime.now().strftime("%Y-%m-%d")
-    artifacts_directory = os.path.join(current_directory, 'artifacts', "plots", f"{weights_filename}")
-    os.makedirs(artifacts_directory, exist_ok=True)
-
-    file_path = os.path.join(artifacts_directory, f"{current_date}_{processing_type}.html")
-    fig.write_html(file_path)
-
-
 def save_dataframe_to_csv(data, output_filename, processing_type):
     """
     Saves a pandas DataFrame to a CSV file in a structured directory with metadata in the file name.

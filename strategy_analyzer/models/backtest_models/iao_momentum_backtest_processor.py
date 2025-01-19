@@ -83,7 +83,10 @@ class IAOMomentumBacktestProcessor(BacktestingProcessor):
         return in_market_momentum, out_of_market_momentum
 
     def adjust_weights(
-            self, current_date: datetime, selected_assets: pd.DataFrame =None, selected_out_of_market_asset: pd.DataFrame=None
+            self,
+            current_date: datetime,
+            selected_assets: pd.DataFrame =None,
+            selected_out_of_market_asset: pd.DataFrame=None
     ) -> dict:
         """
         Adjusts the weights of the assets based on their SMA and the selected weighting strategy.

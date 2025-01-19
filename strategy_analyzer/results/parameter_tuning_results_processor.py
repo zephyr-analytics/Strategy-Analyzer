@@ -30,9 +30,11 @@ class ParameterTuningResultsProcessor(ResultsProcessor):
         self.results = results
 
     def process(self):
-        self.plot_results(results=self.results)
+        """
+        """
+        self.plot_parametertune_results(results=self.results)
 
-    def plot_results(self, results: dict):
+    def plot_parametertune_results(self, results: dict, filename=""):
         """
         Plot results from strategy testing (Momentum or Moving Average).
 
@@ -119,4 +121,9 @@ class ParameterTuningResultsProcessor(ResultsProcessor):
             ]
         )
 
-        utilities.save_fig(fig, self.data_models.weights_filename, self.data_models.processing_type)
+        utilities.save_html(
+            fig,
+            filename,
+            self.data_models.weights_filename,
+            self.data_models.processing_type
+        )

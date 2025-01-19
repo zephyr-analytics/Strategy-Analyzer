@@ -15,7 +15,7 @@ from strategy_analyzer.data.portfolio_data import PortfolioData
 from strategy_analyzer.models.models_data import ModelsData
 from strategy_analyzer.processing_types import *
 from strategy_analyzer.results.models_results import ModelsResults
-from strategy_analyzer.results.results_processor import ResultsProcessor
+from strategy_analyzer.results.backtest_results_processor import BacktestResultsProcessor
 
 logger = logging.getLogger(__name__)
 
@@ -47,10 +47,8 @@ class BacktestingProcessor(ABC):
         self._calculate_benchmark()
         self.persist_data()
         if self.data_models.processing_type.endswith("BACKTEST"):
-            results_processor = ResultsProcessor(models_data=self.data_models, models_results=self.results_models)
-            results_processor.plot_portfolio_value()
-            results_processor.plot_var_cvar()
-            results_processor.plot_returns_heatmaps()
+            results_processor = BacktestResultsProcessor(models_data=self.data_models, models_results=self.results_models)
+            results_processor.process()
 
     @abstractmethod
     def get_portfolio_assets_and_weights(self, current_date: datetime):
@@ -100,7 +98,6 @@ class BacktestingProcessor(ABC):
             Dictionary of adjusted asset weights.
         """
 
-    
     # def calculate_weighting(self, adjusted_weights):
     #     """
     #     """
@@ -128,15 +125,11 @@ class BacktestingProcessor(ABC):
 
     #     return adjusted_weights
 
-
     def run_backtest(self):
         """
         Runs the backtest by calculating portfolio values and returns over time.
         """
-        # Generate monthly dates within the backtest range
         monthly_dates = pd.date_range(start=self.data_models.start_date, end=self.data_models.end_date, freq='M')
-
-        # Add the next month-end date after end_date
         last_month_end = monthly_dates[-1]
         next_month_end = (last_month_end + pd.offsets.MonthEnd(1))
         if next_month_end not in monthly_dates:
@@ -215,12 +208,13 @@ class BacktestingProcessor(ABC):
             portfolio_returns,
             index=pd.date_range(start=self.data_models.start_date, periods=len(portfolio_returns), freq="M")
         )
-
+        # logger.info("Portfolio Returns: %s, Portfolio Values: %s", self.results_models.portfolio_returns, self.results_models.portfolio_values)
 
     def _get_portfolio_statistics(self):
         """
         Calculates and sets portfolio statistics.
         """
+        # TODO length of these needs to be adjusted.
         self.results_models.cagr = utilities.calculate_cagr(
             portfolio_value=self.results_models.portfolio_values
         )
