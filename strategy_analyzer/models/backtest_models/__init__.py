@@ -1,0 +1,10 @@
+"""
+Module to initialize momentum_models.
+"""
+
+from strategy_analyzer.models.backtest_models.backtesting_processor import BacktestingProcessor
+from strategy_analyzer.models.backtest_models.iao_momentum_backtest_processor import IAOMomentumBacktestProcessor
+from strategy_analyzer.models.backtest_models.momentum_backtest_processor import MomentumBacktestProcessor
+from strategy_analyzer.models.backtest_models.moving_average_backtest_processor import MovingAverageBacktestProcessor
+from strategy_analyzer.models.backtest_models.moving_average_crossover_processor import MovingAverageCrossoverProcessor
+from strategy_analyzer.models.backtest_models.hierarchal_clustering_processor import HierarchicalClusteringBacktestProcessor

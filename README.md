@@ -80,3 +80,6 @@ Generate trading signals and visualize market opportunities through automated mo
 ### Generating Signals
 1. Set the SMA window for generating signals.
 2. Run the signal generation process and view the signals plotted in the GUI.
+
+### Run Linting
+pylint strategy_analyzer

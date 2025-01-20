@@ -1,0 +1,8 @@
+"""
+Module to initialize create signals.
+"""
+
+from strategy_analyzer.models.create_signals.signals_processor import SignalsProcessor
+from strategy_analyzer.models.create_signals.create_momentum_signals import CreateMomentumSignals
+from strategy_analyzer.models.create_signals.create_momentumiao_signals import CreateMomentumInAndOutSignals
+from strategy_analyzer.models.create_signals.create_moving_average_signals import CreateMovingAverageSignals
