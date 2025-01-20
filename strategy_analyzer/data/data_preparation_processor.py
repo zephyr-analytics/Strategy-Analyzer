@@ -109,6 +109,14 @@ class DataPreparationProcessor:
         ----------
         filtered_data : Dataframe
         """
+        tickers_to_check = (
+            set(self.data_models.assets_weights.keys()) |
+            {self.data_models.cash_ticker, self.data_models.bond_ticker, self.data_models.ma_threshold_asset, self.data_models.benchmark_asset} |
+            set(self.data_models.out_of_market_tickers)
+        )
+
+        filtered_data = filtered_data.loc[:, filtered_data.columns.intersection(tickers_to_check)]
+
         self.data_portfolio.trading_data = filtered_data
 
         self.data_portfolio.assets_data = filtered_data.loc[
