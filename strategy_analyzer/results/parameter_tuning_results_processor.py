@@ -3,6 +3,7 @@ Processor for processing results from models.
 """
 
 import plotly.express as px
+import statsmodels.api as sm
 
 import strategy_analyzer.utilities as utilities
 from strategy_analyzer.models.models_data import ModelsData
@@ -32,7 +33,7 @@ class ParameterTuningResultsProcessor:
         """
         self.plot_parametertune_results(results=self.results)
 
-    def plot_parametertune_results(self, results: dict, filename=""):
+    def plot_parametertune_results(self, results: dict, filename="parameter_tune"):
         """
         Plot results from strategy testing (Momentum or Moving Average).
 
@@ -85,7 +86,25 @@ class ParameterTuningResultsProcessor:
                 "sharpe_ratio": "Sharpe Ratio",
                 "average_annual_return": "Annualized Return"
             },
-            title=title
+            title=title,
+            trendline="ols"
+        )
+
+        rf = 0.04
+        market_return = max(data["cagr"]) / 100
+        market_volatility = max(data["annual_volatility"]) / 100
+
+        slope = (market_return - rf) / market_volatility
+
+        cal_volatility = [0, market_volatility * 1.5]
+        cal_return = [rf + slope * vol for vol in cal_volatility]
+
+        fig.add_scatter(
+            x=[v * 100 for v in cal_volatility],
+            y=[r * 100 for r in cal_return],
+            mode='lines',
+            line=dict(color='red', width=2, dash='dash'),
+            name='Capital Allocation Line'
         )
 
         # TODO add buy and hold as a marker to the plot.

@@ -42,8 +42,8 @@ class BacktestingProcessor(ABC):
         self._get_portfolio_statistics()
         self._calculate_buy_and_hold()
         self._calculate_benchmark()
-        self.persist_data()
         if self.data_models.processing_type.endswith("BACKTEST"):
+            self.persist_data()
             results_processor = BacktestResultsProcessor(models_data=self.data_models, models_results=self.results_models)
             results_processor.process()
 
