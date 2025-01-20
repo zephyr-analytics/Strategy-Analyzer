@@ -7,10 +7,9 @@ import plotly.express as px
 import strategy_analyzer.utilities as utilities
 from strategy_analyzer.models.models_data import ModelsData
 from strategy_analyzer.results.models_results import ModelsResults
-from strategy_analyzer.results.results_processor import ResultsProcessor
 
 
-class ParameterTuningResultsProcessor(ResultsProcessor):
+class ParameterTuningResultsProcessor:
     """
     A class to process and visualize the results of portfolio backtests and simulations.
     """
@@ -24,7 +23,6 @@ class ParameterTuningResultsProcessor(ResultsProcessor):
             An instance of the ModelsData class containing all
             relevant parameters and data for processing results.
         """
-        super().__init__(models_data=models_data, models_results=models_results)
         self.data_models = models_data
         self.results_models = models_results
         self.results = results

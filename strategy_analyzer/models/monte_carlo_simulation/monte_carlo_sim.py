@@ -5,7 +5,7 @@ Processor for running MonteCarlo simulations.
 import numpy as np
 import pandas as pd
 
-from strategy_analyzer.results.results_processor import ResultsProcessor
+from strategy_analyzer.results.simulation_results_processor import SimulationResultsProcessor
 from strategy_analyzer.models.models_data import ModelsData
 from strategy_analyzer.results.models_results import ModelsResults
 
@@ -57,6 +57,7 @@ class MonteCarloSimulation:
         """
         Encapsulates the entire process of running the Monte Carlo simulation and plotting the results.
         """
+        # TODO this needs to be shifted to models results and simulation results.
         simulation_results = self.run_simulation()
         results_processor = ResultsProcessor(models_data=self.data_models, models_results=self.results_models)
         results_processor.plot_monte_carlo_simulation(simulation_results, self.simulation_horizon, self.output_filename)

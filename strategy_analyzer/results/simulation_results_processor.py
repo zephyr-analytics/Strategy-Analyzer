@@ -2,8 +2,6 @@
 Processor for processing results from models.
 """
 
-from abc import ABC, abstractmethod
-
 import numpy as np
 import pandas as pd
 import plotly.subplots as sp
@@ -14,7 +12,7 @@ from strategy_analyzer.models.models_data import ModelsData
 from strategy_analyzer.results.models_results import ModelsResults
 
 
-class ResultsProcessor(ABC):
+class SimulationResultsProcessor:
     """
     A class to process and visualize the results of portfolio backtests and simulations.
     """
@@ -31,11 +29,11 @@ class ResultsProcessor(ABC):
         self.data_models = models_data
         self.results_models = models_results
 
-    @abstractmethod
-    def process():
+    def process(self):
         """
         Method for processing results from models.
         """
+        self.plot_monte_carlo_simulation()
 
     def plot_monte_carlo_simulation(
             self,
@@ -115,11 +113,5 @@ class ResultsProcessor(ABC):
             fig,
             filename,
             self.data_models.weights_filename,
-            self.data_models.ma_type,
-            self.data_models.processing_type,
-            self.data_models.num_assets_to_select,
-            self.data_models.ma_window,
-            self.data_models.trading_frequency
+            self.data_models.processing_type
         )
-
-

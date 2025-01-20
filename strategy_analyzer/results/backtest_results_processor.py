@@ -2,8 +2,6 @@
 Processor for processing results from models.
 """
 
-from abc import ABC, abstractmethod
-
 import numpy as np
 import pandas as pd
 import plotly.subplots as sp
@@ -12,10 +10,9 @@ import plotly.graph_objects as go
 import strategy_analyzer.utilities as utilities
 from strategy_analyzer.models.models_data import ModelsData
 from strategy_analyzer.results.models_results import ModelsResults
-from strategy_analyzer.results.results_processor import ResultsProcessor
 
 
-class BacktestResultsProcessor(ResultsProcessor):
+class BacktestResultsProcessor:
     """
     A class to process and visualize the results of portfolio backtests and simulations.
     """
@@ -29,7 +26,6 @@ class BacktestResultsProcessor(ResultsProcessor):
             An instance of the ModelsData class containing all
             relevant parameters and data for processing results.
         """
-        super().__init__(models_data=models_data, models_results=models_results)
         self.data_models = models_data
         self.results_models = models_results
     
@@ -161,7 +157,7 @@ class BacktestResultsProcessor(ResultsProcessor):
         fig.update_layout(
             template=chart_theme,
             title=dict(
-                text=f'Portfolio Value: {self.data_models.weights_filename}, Assets: {self.data_models.num_assets_to_select}, Trading Freq: {self.data_models.trading_frequency}',
+                text=f'Portfolio Value: {self.data_models.weights_filename}',
                 x=0.5,
                 y=1,
                 xanchor='center',
