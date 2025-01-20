@@ -55,6 +55,7 @@ class BacktestResultsProcessor(ResultsProcessor):
         portfolio_value = self.results_models.portfolio_values
         final_value = portfolio_value.iloc[-1]
 
+
         if self.data_models.theme_mode.lower() == "dark":
             line_color = "white"
         else:
@@ -80,7 +81,7 @@ class BacktestResultsProcessor(ResultsProcessor):
                 line=dict(color="#ce93d8")
             ))
 
-        if self.results_models.benchmark_values is not None and not self.results_models.benchmark_values.empty:
+        if self.results_models.benchmark_values is not None:
             final_benchmark_value = self.results_models.benchmark_values.iloc[-1]
             fig.add_trace(go.Scatter(
                 x=self.results_models.benchmark_values.index,
@@ -132,7 +133,7 @@ class BacktestResultsProcessor(ResultsProcessor):
                 )
             )
 
-        if self.results_models.benchmark_values is not None and not self.results_models.benchmark_values.empty:
+        if self.results_models.benchmark_values is not None:
             annotations.append(
                 dict(
                     xref='paper', yref='paper', x=0.5, y=0.95,

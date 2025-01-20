@@ -25,8 +25,8 @@ class ModelsResults:
         self._annual_volatility = None
         self._standard_deviation = None
         self._benchmark_asset = ""
-        self._benchmark_values = pd.Series
-        self._benchmark_returns = pd.Series
+        self._benchmark_values = None
+        self._benchmark_returns = None
         self._contribution = None
         self._contribution_frequency = None
         self._adjusted_weights = {}

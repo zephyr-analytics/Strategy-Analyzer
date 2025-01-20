@@ -29,9 +29,6 @@ class BacktestingProcessor(ABC):
         self.data_portfolio = portfolio_data
         self.results_models = models_results
 
-        self.return_data = self.data_portfolio.trading_data.pct_change().dropna()
-
-
     def process(self):
         """
         Processes the backtest by fetching data, running the backtest, and generating the plots.
@@ -97,33 +94,6 @@ class BacktestingProcessor(ABC):
         dict
             Dictionary of adjusted asset weights.
         """
-
-    # def calculate_weighting(self, adjusted_weights):
-    #     """
-    #     """
-    #     if self.risk_metric == "Standard Deviation":
-    #         utilities.calculate_standard_deviation_weighting(
-    #             returns_df=self.return_data,
-    #             weights=adjusted_weights,
-    #             cash_ticker=self.cash_ticker,
-    #             bond_ticker=self.bond_ticker
-    #         )
-    #     if self.risk_metric == "Conditional Value at Risk":
-    #         utilities.calculate_conditional_value_at_risk_weighting(
-    #             returns_df=self.return_data,
-    #             weights=adjusted_weights,
-    #             cash_ticker=self.cash_ticker,
-    #             bond_ticker=self.bond_ticker
-    #         )
-    #     if self.risk_metric == "Max Drawdown":
-    #         utilities.calculate_max_drawdown_weighting(
-    #             returns_df=self.return_data,
-    #             weights=adjusted_weights,
-    #             cash_ticker=self.cash_ticker,
-    #             bond_ticker=self.bond_ticker
-    #         )
-
-    #     return adjusted_weights
 
     def run_backtest(self):
         """
@@ -200,15 +170,18 @@ class BacktestingProcessor(ABC):
             all_adjusted_weights,
             index=pd.date_range(start=self.data_models.start_date, periods=len(all_adjusted_weights), freq="M")
         )
-        self.results_models.portfolio_values = pd.Series(
+
+        portfolio_values = pd.Series(
             portfolio_values,
             index=pd.date_range(start=self.data_models.start_date, periods=len(portfolio_values), freq="M")
         )
+        self.results_models.portfolio_values = portfolio_values = portfolio_values.iloc[:-1]
+        print(portfolio_values.index)
         self.results_models.portfolio_returns = pd.Series(
             portfolio_returns,
             index=pd.date_range(start=self.data_models.start_date, periods=len(portfolio_returns), freq="M")
         )
-        # logger.info("Portfolio Returns: %s, Portfolio Values: %s", self.results_models.portfolio_returns, self.results_models.portfolio_values)
+        logger.info("Portfolio Values: %s", len(self.results_models.portfolio_values))
 
     def _get_portfolio_statistics(self):
         """
@@ -261,9 +234,12 @@ class BacktestingProcessor(ABC):
             portfolio_values.append(new_portfolio_value)
             portfolio_returns.append(month_return)
 
-        self.results_models.buy_and_hold_values = pd.Series(
+        portfolio_values = pd.Series(
             portfolio_values, index=monthly_dates[:len(portfolio_values)]
         )
+        print(portfolio_values.index)
+        self.results_models._buy_and_hold_values = portfolio_values.iloc[:-1]
+
         self.results_models.buy_and_hold_returns = pd.Series(
             portfolio_returns, index=monthly_dates[1:len(portfolio_returns)+1]
         )
@@ -274,7 +250,7 @@ class BacktestingProcessor(ABC):
         Calculates the performance of a benchmark asset over the specified timeframe.
         """
         if not self.data_models.benchmark_asset:
-            return
+            pass
         else:
             benchmark_values = [int(self.data_models.initial_portfolio_value)]
             benchmark_returns = []

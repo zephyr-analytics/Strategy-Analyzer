@@ -65,10 +65,16 @@ def load_weights():
     return {}, ""
 
 
-def load_raw_data_file():
+def load_raw_data_file(filename):
     """
+    Loads raw data file for portfolio.
+
+    Parameters
+    ----------
+    filename : str
+        String representing the portfolio name.
     """
-    file_path = os.path.join(os.getcwd(), "artifacts", "raw", "raw.csv")
+    file_path = os.path.join(os.getcwd(), "artifacts", f"{filename}", "data", f"{filename}.csv")
     df = pd.read_csv(file_path, index_col=0, parse_dates=True)
     return df
 
@@ -89,6 +95,7 @@ def read_data(file_path: str):
     """
     df = pd.read_csv(file_path, index_col=0, parse_dates=True)
     return df
+
 
 def strip_csv_extension(filename):
     """

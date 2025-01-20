@@ -39,13 +39,13 @@ class DataObtainmentProcessor:
         Ensures that all necessary tickers are present in the raw data file and updates it if needed.
         If the end_date is not within 3 days of the current date, fetch new data rows for all columns.
         """
-        file_dir = os.path.join(os.getcwd(), "artifacts", "raw")
-        file_path = os.path.join(file_dir, "raw.csv")
+        file_dir = os.path.join(os.getcwd(), "artifacts", self.data_models.weights_filename, "data")
+        file_path = os.path.join(file_dir, f"{self.data_models.weights_filename}.csv")
 
         os.makedirs(file_dir, exist_ok=True)
 
         try:
-            df = utilities.load_raw_data_file()
+            df = utilities.load_raw_data_file(filename=self.data_models.weights_filename)
         except FileNotFoundError:
             logger.info("Raw data file not found. Creating a new one.")
             df = pd.DataFrame()
