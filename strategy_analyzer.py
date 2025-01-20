@@ -39,11 +39,16 @@ class StrategyAnalyzer(ctk.CTk):
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
 
+        self.process()
+
+    def process(self):
+        """
+        """
         self.build_top_frame()
         self.create_strategy_analyzer_tools_page()
         self.create_individual_pages()
         self.create_navigation_menu()
-
+        self.build_bottom_frame()
         self.show_page("Strategy Analyzer Tools")
 
     def build_top_frame(self):
@@ -165,6 +170,18 @@ class StrategyAnalyzer(ctk.CTk):
                 fg_color="#8e44ad",
                 hover_color="#bb8fce"
             ).grid(row=0, column=i, sticky="ew", padx=5, pady=5)
+
+    def build_bottom_frame(self):
+        """
+        """
+        footer_frame = ctk.CTkFrame(self.center_frame, fg_color="transparent")
+        footer_frame.grid(row=3, column=0, columnspan=6)
+        copyright_label = ctk.CTkLabel(
+            footer_frame,
+            text="© Zephyr Analytics 2025",
+            font=ctk.CTkFont(size=12)
+        )
+        copyright_label.grid(row=0, column=0)
 
     def show_page(self, page_name):
         """

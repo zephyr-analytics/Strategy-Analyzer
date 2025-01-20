@@ -21,13 +21,14 @@ from strategy_analyzer.gui.page_processor import PageProcessor
 logger = logging.getLogger(__name__)
 
 
-class SignalsCreationPage(ctk.CTkFrame):
+class SignalsCreationPage(PageProcessor):
     def __init__(self, parent, controller, models_data: ModelsData, portfolio_data: PortfolioData, models_results: ModelsResults):
-        super().__init__(parent)
+        super().__init__(parent, controller, models_data, portfolio_data, models_results)
         self.controller = controller
         self.models_data = models_data
         self.portfolio_data = portfolio_data
         self.models_results = models_results
+        self.parent = parent
 
     def build_frame(self):
         """

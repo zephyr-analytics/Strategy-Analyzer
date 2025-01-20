@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 class PageProcessor(ABC, ctk.CTkFrame):
     def __init__(self, parent, controller, models_data: ModelsData, portfolio_data: PortfolioData, models_results: ModelsResults):
+        super().__init__(master=parent)
         self.data_models = models_data
         self.data_portfolio = portfolio_data
         self.results_models = models_results
