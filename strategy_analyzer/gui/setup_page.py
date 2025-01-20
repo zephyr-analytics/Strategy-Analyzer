@@ -376,6 +376,11 @@ class SetupTab:
         ma_frame_rows += 1
 
         ctk.CTkLabel(
+            ma_frame, text="Sets the moving average parameters for MA Crossover.", font=self.bold_font
+        ).grid(row=ma_frame_rows, column=0, columnspan=4, sticky="ew", pady=y_padding)
+        ma_frame_rows += 1
+
+        ctk.CTkLabel(
             ma_frame, text="Slow Moving Average:", font=self.bold_font
         ).grid(row=ma_frame_rows, column=0, sticky="e", padx=5)
         slow_ma = ["21", "42", "63", "84", "105", "126", "147", "168", "189", "210", "231", "252"]
