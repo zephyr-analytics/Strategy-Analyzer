@@ -32,6 +32,7 @@ class SetupTab:
 
     def process(self, parent):
         """
+        Method to process through building the Setup Tab.
         """
         y_padding = 2
         self.create_initial_testing_tab(parent)
