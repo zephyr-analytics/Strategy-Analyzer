@@ -23,9 +23,9 @@ def save_html(fig, filename, weights_filename, processing_type):
     current_directory = os.getcwd()
     timestamp = datetime.now().strftime("%Y-%m-%d_%H_%M_%S")
     artifacts_directory = os.path.join(
-        current_directory, "artifacts", weights_filename, timestamp
+        current_directory, "artifacts", weights_filename, processing_type
     )
-
     os.makedirs(artifacts_directory, exist_ok=True)
-    file_path = os.path.join(artifacts_directory, f"{processing_type}_{filename}.html")
+
+    file_path = os.path.join(artifacts_directory, f"{timestamp}_{filename}.html")
     fig.write_html(file_path)

@@ -297,6 +297,6 @@ class BacktestingProcessor(ABC):
 
         utilities.save_dataframe_to_csv(
             data=combined_df,
-            output_filename=self.data_models.weights_filename,
+            weights_filename=self.data_models.weights_filename,
             processing_type=self.data_models.processing_type
         )

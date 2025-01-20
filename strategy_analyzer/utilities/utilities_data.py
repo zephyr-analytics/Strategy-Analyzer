@@ -114,7 +114,7 @@ def strip_csv_extension(filename):
     return os.path.splitext(filename)[0]
 
 
-def save_dataframe_to_csv(data, output_filename, processing_type):
+def save_dataframe_to_csv(data, weights_filename, processing_type):
     """
     Saves a pandas DataFrame to a CSV file in a structured directory with metadata in the file name.
 
@@ -127,17 +127,16 @@ def save_dataframe_to_csv(data, output_filename, processing_type):
     Returns:
         str: The full path of the saved file.
     """
-    if not isinstance(data, pd.DataFrame):
-        raise ValueError("Data must be a pandas DataFrame.")
-
     current_directory = os.getcwd()
-    current_date = datetime.now().strftime("%Y-%m-%d")
-    artifacts_directory = os.path.join(current_directory, "artifacts", "data", f"{output_filename}")
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H_%M_%S")
+    artifacts_directory = os.path.join(
+        current_directory, "artifacts", weights_filename, processing_type
+    )
     os.makedirs(artifacts_directory, exist_ok=True)
 
     full_path = os.path.join(
         artifacts_directory,
-        f"{output_filename}_{current_date}_{processing_type}.csv"
+        f"{timestamp}_{weights_filename}_{processing_type}.csv"
     )
 
     data.to_csv(full_path, index=True)

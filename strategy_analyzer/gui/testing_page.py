@@ -207,7 +207,7 @@ class TestingTab:
         """
         Opens the artifacts plot directory on Windows.
         """
-        path = os.path.join(os.getcwd(), "artifacts", "plots")
+        path = os.path.join(os.getcwd(), "artifacts", self.data_models.weights_filename)
         artifacts_dir = path
 
         try:
