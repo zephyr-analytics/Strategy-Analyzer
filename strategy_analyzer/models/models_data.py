@@ -34,7 +34,7 @@ class ModelsData:
         self._out_of_market_tickers = {}
         self._processing_type = str
         self._benchmark_asset = ""
-        self._contribution = None
+        self._contribution = 0
         self._contribution_frequency = None
         self._return_metric = None
         self._risk_metric = "Max Drawdown"
@@ -137,7 +137,7 @@ class ModelsData:
         Returns:
             float: The initial portfolio value.
         """
-        return self._initial_portfolio_value
+        return int(self._initial_portfolio_value)
 
     @initial_portfolio_value.setter
     def initial_portfolio_value(self, value):
@@ -158,7 +158,7 @@ class ModelsData:
         Returns:
             int: The number of simulations.
         """
-        return self._num_simulations
+        return int(self._num_simulations)
 
     @num_simulations.setter
     def num_simulations(self, value):
@@ -179,7 +179,7 @@ class ModelsData:
         Returns:
             int: The simulation horizon in years.
         """
-        return self._simulation_horizon
+        return int(self._simulation_horizon)
 
     @simulation_horizon.setter
     def simulation_horizon(self, value):
@@ -446,7 +446,7 @@ class ModelsData:
         Returns:
             int: Integer representing the contribution.
         """
-        return self._contribution
+        return int(self._contribution)
 
     @contribution.setter
     def contribution(self, value):
@@ -551,7 +551,7 @@ class ModelsData:
         Returns:
             int: Integer representing the contribution.
         """
-        return self._negative_mom
+        return bool(self._negative_mom)
 
     @negative_mom.setter
     def negative_mom(self, value):

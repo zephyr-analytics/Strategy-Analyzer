@@ -29,6 +29,26 @@ def calculate_cagr(portfolio_value):
     return cagr
 
 
+def simulations_calculate_cagr(simulated_portfolio_value):
+    """
+    Calculates the Compound Annual Growth Rate (CAGR) of the portfolio for Monte Carlo simulation.
+
+    Parameters
+    ----------
+    simulated_portfolio_value : Series
+        Series containing the portfolio value over time.
+
+    Returns
+    -------
+    float
+        CAGR value.
+    """
+    total_years = len(simulated_portfolio_value) - 1
+
+    cagr = (simulated_portfolio_value.iloc[-1] / simulated_portfolio_value.iloc[0]) ** (1 / total_years) - 1
+    return cagr
+
+
 def calculate_average_annual_return(returns):
     """
     Calculates the average annual return of the portfolio.

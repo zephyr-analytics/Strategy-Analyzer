@@ -31,6 +31,7 @@ class ModelsResults:
         self._contribution_frequency = None
         self._adjusted_weights = {}
         self._latest_weights = None
+        self._simulation_results = None
 
     @property
     def adjusted_weights(self):
@@ -367,3 +368,24 @@ class ModelsResults:
             value (str): String representing the benchmark_asset.
         """
         self._latest_weights = value
+
+
+    @property
+    def simulation_results(self):
+        """
+        Gets the benchmark_asset.
+
+        Returns:
+            str: String representing the benchmark_asset.
+        """
+        return self._simulation_results
+
+    @simulation_results.setter
+    def simulation_results(self, value):
+        """
+        Sets the benchmark_asset.
+
+        Args:
+            value (str): String representing the benchmark_asset.
+        """
+        self._simulation_results = value

@@ -4,7 +4,6 @@ Processor for processing results from models.
 
 import numpy as np
 import pandas as pd
-import plotly.subplots as sp
 import plotly.graph_objects as go
 
 import strategy_analyzer.utilities as utilities
@@ -37,9 +36,6 @@ class SimulationResultsProcessor:
 
     def plot_monte_carlo_simulation(
             self,
-            simulation_results,
-            simulation_horizon,
-            output_filename,
             filename='monte_carlo_simulation'
         ):
         """
@@ -56,32 +52,33 @@ class SimulationResultsProcessor:
         filename : str, optional
             The name of the HTML file to save the plot. Default is 'monte_carlo_simulation.html'.
         """
-        average_simulation = simulation_results.mean(axis=1)
-        lower_bound = np.percentile(simulation_results, 5, axis=1)
-        upper_bound = np.percentile(simulation_results, 95, axis=1)
-        average_cagr = utilities.calculate_cagr(pd.Series(average_simulation))
-        lower_cagr = utilities.calculate_cagr(pd.Series(lower_bound))
-        upper_cagr = utilities.calculate_cagr(pd.Series(upper_bound))
+        average_simulation = self.results_models.simulation_results.mean(axis=1)
+        print(average_simulation)
+        lower_bound = np.percentile(self.results_models.simulation_results, 5, axis=1)
+        upper_bound = np.percentile(self.results_models.simulation_results, 95, axis=1)
+        average_cagr = utilities.simulations_calculate_cagr(pd.Series(average_simulation))
+        lower_cagr = utilities.simulations_calculate_cagr(pd.Series(lower_bound))
+        upper_cagr = utilities.simulations_calculate_cagr(pd.Series(upper_bound))
         average_end_value = pd.Series(average_simulation).iloc[-1]
         lower_end_value = pd.Series(lower_bound).iloc[-1]
         upper_end_value = pd.Series(upper_bound).iloc[-1]
         fig = go.Figure()
         fig.add_trace(go.Scatter(
-            x=list(range(simulation_horizon + 1)),
+            x=list(range(self.data_models.simulation_horizon + 1)),
             y=average_simulation,
             mode='lines',
             name=f'Average Simulation (CAGR: {average_cagr:.2%}, End Value: ${average_end_value:,.2f})',
             line=dict(color='blue')
         ))
         fig.add_trace(go.Scatter(
-            x=list(range(simulation_horizon + 1)),
+            x=list(range(self.data_models.simulation_horizon + 1)),
             y=lower_bound,
             mode='lines',
             name=f'Lower Bound (5%) (CAGR: {lower_cagr:.2%}, End Value: ${lower_end_value:,.2f})',
             line=dict(color='red', dash='dash')
         ))
         fig.add_trace(go.Scatter(
-            x=list(range(simulation_horizon + 1)),
+            x=list(range(self.data_models.simulation_horizon + 1)),
             y=upper_bound,
             mode='lines',
             name=f'Upper Bound (95%) (CAGR: {upper_cagr:.2%}, End Value: ${upper_end_value:,.2f})',
@@ -92,7 +89,7 @@ class SimulationResultsProcessor:
 
         fig.update_layout(
             template=chart_theme,
-            title='Monte Carlo Simulation of Portfolio Value',
+            title=f'Simulation of {self.data_models.weights_filename}',
             xaxis_title='Year',
             yaxis_title='Portfolio Value ($)',
             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),

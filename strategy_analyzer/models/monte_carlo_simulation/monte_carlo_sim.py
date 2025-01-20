@@ -42,25 +42,14 @@ class MonteCarloSimulation:
         self.data_models = models_data
         self.results_models = models_results
 
-        self.num_simulations = self.data_models.num_simulations
-        self.simulation_horizon = self.data_models.simulation_horizon
-        self.output_filename = self.data_models.weights_filename
-        self.annual_volatility = self.results_models.annual_volatility
-        self.average_annual_return = self.results_models.average_annual_return
-        self.portfolio_returns = self.results_models.portfolio_returns
-        self.initial_portfolio_value = self.data_models.initial_portfolio_value
-        self.contribution = self.data_models.contribution
-        self.contribution_frequency = self.data_models.contribution_frequency
-
 
     def process(self):
         """
         Encapsulates the entire process of running the Monte Carlo simulation and plotting the results.
         """
-        # TODO this needs to be shifted to models results and simulation results.
-        simulation_results = self.run_simulation()
-        results_processor = ResultsProcessor(models_data=self.data_models, models_results=self.results_models)
-        results_processor.plot_monte_carlo_simulation(simulation_results, self.simulation_horizon, self.output_filename)
+        self.run_simulation()
+        results_processor = SimulationResultsProcessor(models_data=self.data_models, models_results=self.results_models)
+        results_processor.process()
 
 
     def run_simulation(self):
@@ -79,25 +68,27 @@ class MonteCarloSimulation:
         DataFrame
             DataFrame containing the simulated portfolio values.
         """
-        simulation_results = np.zeros((self.simulation_horizon + 1, self.num_simulations))
-        simulation_results[0] = self.initial_portfolio_value
+        simulation_results = np.zeros((self.data_models.simulation_horizon + 1, self.data_models.num_simulations))
+        simulation_results[0] = self.data_models.initial_portfolio_value
 
-        if self.contribution and self.contribution_frequency:
-            if self.contribution_frequency == "Monthly":
-                contribution = self.contribution*12
-            elif self.contribution_frequency == "Quarterly":
-                contribution = self.contribution*4
-            elif self.contribution_frequency == "Yearly":
-                contribution = self.contribution
+        if self.data_models.contribution and self.data_models.contribution_frequency:
+            if self.data_models.contribution_frequency == "Monthly":
+                contribution = self.data_models.contribution*12
+            elif self.data_models.contribution_frequency == "Quarterly":
+                contribution = self.data_models.contribution*4
+            elif self.data_models.contribution_frequency == "Yearly":
+                contribution = self.data_models.contribution
             else:
                 raise ValueError("Invalid contribution frequency. Choose from 'monthly', 'quarterly', 'yearly'.")
         else:
             contribution = 0
 
-        for t in range(1, self.simulation_horizon + 1):
-            random_returns = np.random.normal(self.average_annual_return, self.annual_volatility, self.num_simulations)
+        for t in range(1, self.data_models.simulation_horizon + 1):
+            random_returns = np.random.normal(
+                self.results_models.average_annual_return, self.results_models.annual_volatility, self.data_models.num_simulations
+            )
             simulation_results[t] = simulation_results[t - 1] * (1 + random_returns)
 
             simulation_results[t] += contribution
-
-        return pd.DataFrame(simulation_results)
+        print(simulation_results)
+        self.results_models.simulation_results = simulation_results
