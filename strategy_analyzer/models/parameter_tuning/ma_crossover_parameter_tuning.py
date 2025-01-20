@@ -9,11 +9,11 @@ from tqdm import tqdm
 from strategy_analyzer.models.models_data import ModelsData
 from strategy_analyzer.data.portfolio_data import PortfolioData
 from strategy_analyzer.models.parameter_tuning.parameter_tuning_processor import ParameterTuningProcessor
-from strategy_analyzer.models.backtest_models.hierarchal_clustering_processor import HierarchicalClusteringBacktestProcessor
+from strategy_analyzer.models.backtest_models.moving_average_crossover_processor import MovingAverageCrossoverProcessor
 from strategy_analyzer.results.models_results import ModelsResults
 
 
-class HierarchalClusteringParameterTuning(ParameterTuningProcessor):
+class MaCrossoverParameterTuning(ParameterTuningProcessor):
     """
     Processor for parameter tuning based on the a momentum portfolio.
     """
@@ -39,17 +39,17 @@ class HierarchalClusteringParameterTuning(ParameterTuningProcessor):
         """
         results = {}
         ma_list = [21, 42, 63, 84, 105, 126, 147, 168, 189, 210, 231, 252]
-        num_asset_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        fast_ma_list = [21, 42, 63, 84, 105, 126, 147, 168, 189, 210, 231, 252]
+        slow_ma_list = [21, 42, 63, 84, 105, 126, 147, 168, 189, 210, 231, 252]
         trading_frequencies = ["Monthly", "Bi-Monthly", "Quarterly", "Yearly"]
         ma_types = ["SMA", "EMA"]
 
-        total_assets = len(self.data_models.assets_weights)
-
         parameter_combinations = [
-            (ma, ma, frequency, ma_type)
+            (ma, fast, slow, frequency, ma_type)
             for ma in ma_list
+            for fast in fast_ma_list
+            for slow in slow_ma_list
             for frequency in trading_frequencies
-            for num_assets in num_asset_list if num_assets <= total_assets
             for ma_type in ma_types
         ]
 
@@ -79,11 +79,11 @@ class HierarchalClusteringParameterTuning(ParameterTuningProcessor):
         dict
             The result of the combination processing.
         """
-        ma, frequency, num_assets, ma_type = args
+        ma, fast, slow, frequency, ma_type = args
 
-        return self.process_combination(ma, frequency, num_assets, ma_type)
+        return self.process_combination(ma, fast, slow, frequency, ma_type)
 
-    def process_combination(self, ma, frequency, num_assets, ma_type) -> dict:
+    def process_combination(self, ma, fast, slow, frequency, ma_type) -> dict:
         """
         Processes a single parameter combination and returns the backtest results.
 
@@ -105,10 +105,11 @@ class HierarchalClusteringParameterTuning(ParameterTuningProcessor):
         """
         self.data_models.ma_window = ma
         self.data_models.trading_frequency = frequency
-        self.data_models.num_assets_to_select = num_assets
         self.data_models.ma_type = ma_type
+        self.data_models.slow_ma_period = slow
+        self.data_models.fast_ma_period = fast
 
-        backtest = HierarchicalClusteringBacktestProcessor(
+        backtest = MovingAverageCrossoverProcessor(
             models_data=self.data_models, 
             portfolio_data=self.data_portfolio,
             models_results=self.results_models

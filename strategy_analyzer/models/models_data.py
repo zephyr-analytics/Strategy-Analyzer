@@ -593,7 +593,7 @@ class ModelsData:
         Returns:
             int: Integer representing the contribution.
         """
-        return self._fast_ma_period
+        return int(self._fast_ma_period)
 
     @fast_ma_period.setter
     def fast_ma_period(self, value):
@@ -614,7 +614,7 @@ class ModelsData:
         Returns:
             int: Integer representing the contribution.
         """
-        return self._slow_ma_period
+        return int(self._slow_ma_period)
 
     @slow_ma_period.setter
     def slow_ma_period(self, value):

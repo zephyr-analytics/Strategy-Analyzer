@@ -60,9 +60,9 @@ class MovingAverageCrossoverProcessor(BacktestingProcessor):
         Series
             The moving average values.
         """
-        if self.ma_type == "SMA":
+        if self.data_models.ma_type == "SMA":
             return data.rolling(window=period).mean()
-        elif self.ma_type == "EMA":
+        elif self.data_models.ma_type == "EMA":
             return data.ewm(span=period).mean()
         else:
             raise ValueError("Invalid ma_type. Choose 'SMA' or 'EMA'.")
@@ -85,12 +85,11 @@ class MovingAverageCrossoverProcessor(BacktestingProcessor):
         bool
             True if the price is below the moving average, False otherwise.
         """
-        # TODO I am not certain this implementation is corret.
         price = data.loc[:current_date, ticker].iloc[-1]
-        if self.ma_type == "SMA":
-            ma = data.loc[:current_date, ticker].rolling(window=self.slow_ma_period).mean().iloc[-1]
-        elif self.ma_type == "EMA":
-            ma = data.loc[:current_date, ticker].ewm(span=self.slow_ma_period).mean().iloc[-1]
+        if self.data_models.ma_type == "SMA":
+            ma = data.loc[:current_date, ticker].rolling(window=self.data_models.ma_window).mean().iloc[-1]
+        elif self.data_models.ma_type == "EMA":
+            ma = data.loc[:current_date, ticker].ewm(span=self.data_models.ma_window).mean().iloc[-1]
         else:
             raise ValueError("Invalid ma_type. Choose 'SMA' or 'EMA'.")
 
@@ -116,20 +115,20 @@ class MovingAverageCrossoverProcessor(BacktestingProcessor):
         dict
             Dictionary of adjusted asset weights.
         """
-        fast_ma = self.calculate_moving_averages(self.asset_data.loc[:current_date], self.fast_ma_period)
-        slow_ma = self.calculate_moving_averages(self.asset_data.loc[:current_date], self.slow_ma_period)
+        fast_ma = self.calculate_moving_averages(self.data_portfolio.assets_data.loc[:current_date], self.data_models.fast_ma_period)
+        slow_ma = self.calculate_moving_averages(self.data_portfolio.assets_data.loc[:current_date], self.data_models.slow_ma_period)
 
-        adjusted_weights = self.assets_weights.copy()
+        adjusted_weights = self.data_models.assets_weights.copy()
 
         for ticker, weight in list(adjusted_weights.items()):
             if fast_ma[ticker].iloc[-1] > slow_ma[ticker].iloc[-1]:
                 adjusted_weights[ticker] = weight
             else:
                 replacement_asset = None
-                if self.cash_ticker and self.is_below_ma(self.cash_ticker, self.cash_data, current_date):
-                    replacement_asset = self.cash_ticker
-                elif self.bond_ticker and self.is_below_ma(self.bond_ticker, self.bond_data, current_date):
-                    replacement_asset = self.bond_ticker
+                if self.data_models.cash_ticker and self.is_below_ma(self.data_models.cash_ticker, self.data_portfolio.cash_data, current_date):
+                    replacement_asset = self.data_models.cash_ticker
+                elif self.data_models.bond_ticker and self.is_below_ma(self.data_models.bond_ticker, self.data_portfolio.bond_data, current_date):
+                    replacement_asset = self.data_models.bond_ticker
 
                 if replacement_asset:
                     adjusted_weights[replacement_asset] = adjusted_weights.get(replacement_asset, 0) + weight

@@ -373,6 +373,43 @@ class SetupTab:
         ma_type_var.trace_add(
             "write", lambda *args: self.update_models_data("ma_type", ma_type_var)
         )
+        ma_frame_rows += 1
+
+        ctk.CTkLabel(
+            ma_frame, text="Slow Moving Average:", font=self.bold_font
+        ).grid(row=ma_frame_rows, column=0, sticky="e", padx=5)
+        slow_ma = ["21", "42", "63", "84", "105", "126", "147", "168", "189", "210", "231", "252"]
+        slow_ma_var = ctk.StringVar()
+        ctk.CTkOptionMenu(
+            ma_frame,
+            values=slow_ma,
+            fg_color="#bb8fce",
+            text_color="#000000",
+            button_color="#8e44ad",
+            button_hover_color="#8e44ad",
+            variable=slow_ma_var
+        ).grid(row=ma_frame_rows, column=1, sticky="w", padx=5, pady=y_padding)
+        slow_ma_var.trace_add(
+            "write", lambda *args: self.update_models_data("slow_ma_period", slow_ma_var)
+        )
+
+        ctk.CTkLabel(
+            ma_frame, text="Fast Moving Average:", font=self.bold_font
+        ).grid(row=ma_frame_rows, column=2, sticky="e", padx=5)
+        fast_ma = ["21", "42", "63", "84", "105", "126", "147", "168", "189", "210", "231", "252"]
+        fast_ma_var = ctk.StringVar()
+        ctk.CTkOptionMenu(
+            ma_frame,
+            values=fast_ma,
+            fg_color="#bb8fce",
+            text_color="#000000",
+            button_color="#8e44ad",
+            button_hover_color="#8e44ad",
+            variable=fast_ma_var
+        ).grid(row=ma_frame_rows, column=3, sticky="w", padx=5, pady=y_padding)
+        fast_ma_var.trace_add(
+            "write", lambda *args: self.update_models_data("fast_ma_period", fast_ma_var)
+        )
 
 
     def build_momentum_frame(self, parent: ctk.CTkFrame, y_padding):

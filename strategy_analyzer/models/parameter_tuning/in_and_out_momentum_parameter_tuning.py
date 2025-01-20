@@ -4,6 +4,8 @@ Module for creating momentum based parameters.
 
 from multiprocessing import Pool
 
+from tqdm import tqdm
+
 from strategy_analyzer.models.models_data import ModelsData
 from strategy_analyzer.data.portfolio_data import PortfolioData
 from strategy_analyzer.models.parameter_tuning.parameter_tuning_processor import ParameterTuningProcessor
@@ -52,12 +54,34 @@ class InAndOutMomentumParameterTuning(ParameterTuningProcessor):
         ]
 
         with Pool() as pool:
-            parallel_results = pool.starmap(self.process_combination, parameter_combinations)
-
-        for params, result in zip(parameter_combinations, parallel_results):
-            results[params] = result
+            for params, result in zip(
+                parameter_combinations,
+                tqdm(pool.imap(self.process_combination_wrapper, parameter_combinations), 
+                    total=len(parameter_combinations), 
+                    desc="Processing combinations")
+            ):
+                results[params] = result
 
         return results
+
+    def process_combination_wrapper(self, args) -> dict:
+        """
+        Wrapper function for processing a combination.
+        Calls the class method with unpacked arguments.
+
+        Parameters
+        ----------
+        args : tuple
+            A tuple containing (ma, frequency, ma_type).
+
+        Returns
+        -------
+        dict
+            The result of the combination processing.
+        """
+        ma, frequency, num_assets, ma_type = args
+
+        return self.process_combination(ma, frequency, num_assets, ma_type)
 
     def process_combination(self, ma, frequency, num_assets, ma_type) -> dict:
         """

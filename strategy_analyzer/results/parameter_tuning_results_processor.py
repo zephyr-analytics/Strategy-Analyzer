@@ -48,6 +48,12 @@ class ParameterTuningResultsProcessor:
                 f"MA:{key[0]} Freq:{key[1]} Assets:{key[2]} Type:{key[3]}" for key in results.keys()
             ]
             title = f"Possible Momentum Strategies - {self.data_models.weights_filename}"
+        elif self.data_models.processing_type.startswith("MA_CROSSOVER"):
+            strategy_label = "Moving_Average_Crossover_Strategy"
+            strategy_format = [
+                f"MA:{key[0]} Fast:{key[1]} Slow: {key[2]} Freq:{key[3]} Type:{key[4]}" for key in results.keys()
+            ]
+            title = f"Possible Moving Average Strategies - {self.data_models.weights_filename}"
         elif self.data_models.processing_type.startswith("MA"):
             strategy_label = "Moving_Average_Strategy"
             strategy_format = [
