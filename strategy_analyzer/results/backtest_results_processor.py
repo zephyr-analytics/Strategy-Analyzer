@@ -116,7 +116,7 @@ class BacktestResultsProcessor(ResultsProcessor):
             dict(
                 xref='paper', yref='paper', x=0.8, y=1,
                 xanchor='center', yanchor='bottom',
-                text=f'Standard Deviation: {self.results_models.standard_deviation:.2%}',
+                text=f'Annual Volaility: {self.results_models.annual_volatility:.2%}',
                 showarrow=False,
                 font=dict(size=12)
             )

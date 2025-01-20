@@ -87,14 +87,16 @@ class DataPreparationProcessor:
         """
         if self.data_models.start_date == "Earliest":
             earliest_dates = data.apply(lambda col: col.dropna().index.min(), axis=0)
-            overall_start_date = max(earliest_dates.max(), data.dropna(how='all').index.min())
+            overall_start_date = max(earliest_dates.max(), data.dropna(how='all').index.min()).date()
             logger.info("Using 'Earliest' start date based on data: %s", overall_start_date)
         else:
-            specified_start_date = pd.to_datetime(self.data_models.start_date)
-            overall_start_date = max(specified_start_date, data.dropna(how='all').index.min())
-            logger.info("Using 'Earliest' start date based on data: %s", overall_start_date)
+            specified_start_date = pd.to_datetime(self.data_models.start_date).date()
+            overall_start_date = max(specified_start_date, data.dropna(how='all').index.min().date())
+            logger.info("Using specified start date: %s", overall_start_date)
 
         self.data_models.start_date = overall_start_date
+
+        data.index = pd.to_datetime(data.index).date
         trimmed_data = data.loc[overall_start_date:self.end_date]
 
         return trimmed_data

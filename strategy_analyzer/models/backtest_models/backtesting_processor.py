@@ -176,12 +176,11 @@ class BacktestingProcessor(ABC):
             index=pd.date_range(start=self.data_models.start_date, periods=len(portfolio_values), freq="M")
         )
         self.results_models.portfolio_values = portfolio_values = portfolio_values.iloc[:-1]
-        print(portfolio_values.index)
+
         self.results_models.portfolio_returns = pd.Series(
             portfolio_returns,
             index=pd.date_range(start=self.data_models.start_date, periods=len(portfolio_returns), freq="M")
         )
-        logger.info("Portfolio Values: %s", len(self.results_models.portfolio_values))
 
     def _get_portfolio_statistics(self):
         """
@@ -234,11 +233,11 @@ class BacktestingProcessor(ABC):
             portfolio_values.append(new_portfolio_value)
             portfolio_returns.append(month_return)
 
-        portfolio_values = pd.Series(
+        self.results_models._buy_and_hold_values = pd.Series(
             portfolio_values, index=monthly_dates[:len(portfolio_values)]
         )
-        print(portfolio_values.index)
-        self.results_models._buy_and_hold_values = portfolio_values.iloc[:-1]
+
+        # self.results_models._buy_and_hold_values = portfolio_values.iloc[:-1]
 
         self.results_models.buy_and_hold_returns = pd.Series(
             portfolio_returns, index=monthly_dates[1:len(portfolio_returns)+1]
