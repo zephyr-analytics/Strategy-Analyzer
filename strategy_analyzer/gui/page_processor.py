@@ -133,7 +133,10 @@ class PageProcessor(ABC, ctk.CTkFrame):
         }
 
         run_map = {
-            "BACKTEST": Runs.BACKTEST
+            "BACKTEST": Runs.BACKTEST,
+            "SIGNALS": Runs.SIGNALS,
+            "TUNE": Runs.PARAMETER_TUNE,
+            "SIMULATION": Runs.SIMULATION
         }
 
         model_enum = model_map.get(model_type)

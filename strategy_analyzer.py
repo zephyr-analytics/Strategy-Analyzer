@@ -125,7 +125,7 @@ class StrategyAnalyzer(ctk.CTk):
         self.pages["Tactical Asset Allocation"] = TacticalAssetPage(parent=self.center_frame, controller=self, models_data=self.data_models, portfolio_data=self.data_portfolio, models_results=self.results_models)
         self.pages["Monte Carlo Simulation"] = MonteCarloSimPage(parent=self.center_frame, controller=self, models_data=self.data_models, portfolio_data=self.data_portfolio, models_results=self.results_models)
         self.pages["Signals Creation"] = SignalsCreationPage(parent=self.center_frame, controller=self, models_data=self.data_models, portfolio_data=self.data_portfolio, models_results=self.results_models)
-        # self.pages["Strategy Analysis"] = StrategyAnalysisPage(self.center_frame, self)
+        self.pages["Strategy Analysis"] = StrategyAnalysisPage(parent=self.center_frame, controller=self, models_data=self.data_models, portfolio_data=self.data_portfolio, models_results=self.results_models)
         # self.pages["Asset Analytics"] = AssetAnalyticsPage(self.center_frame, self)
 
         for page in self.pages.values():

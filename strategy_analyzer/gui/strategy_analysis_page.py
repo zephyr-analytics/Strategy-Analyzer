@@ -11,7 +11,7 @@ from strategy_analyzer.results.models_results import ModelsResults
 from strategy_analyzer.gui.page_processor import PageProcessor
 
 
-class MonteCarloSimPage(PageProcessor):
+class StrategyAnalysisPage(PageProcessor):
     def __init__(self, parent, controller, models_data: ModelsData, portfolio_data: PortfolioData, models_results: ModelsResults):
         super().__init__(parent, controller, models_data, portfolio_data, models_results)
         self.controller = controller
@@ -78,7 +78,7 @@ class MonteCarloSimPage(PageProcessor):
             fg_color="#bb8fce",
             text_color="#000000",
             hover_color="#8e44ad",
-            command=lambda: self.execute_task(run_type="BACKTEST", model_type=self.model_types_var.get()),
+            command=lambda: self.execute_task(run_type="TUNE", model_type=self.model_types_var.get()),
         ).grid(row=0, column=2)
 
         ctk.CTkButton(
