@@ -175,7 +175,6 @@ class TestingTab:
             args=(model_enum, run_enum),
         ).start()
 
-
     def _run_task(self, model, run_type):
         """
         Generic task runner for executing a specific model and run type in a separate thread.

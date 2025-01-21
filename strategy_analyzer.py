@@ -208,7 +208,6 @@ class StrategyAnalyzer(ctk.CTk):
 def main():
     """
     Main entry point for the application.
-    This function ensures that the GUI only runs in the main process.
     """
     app = StrategyAnalyzer()
     app.mainloop()
