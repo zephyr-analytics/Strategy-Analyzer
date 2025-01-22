@@ -30,9 +30,13 @@ class StrategyAnalyzer(ctk.CTk):
         self.data_portfolio = portfolio_data
         models_results = ModelsResults()
         self.results_models = models_results
+        self.theme_mode_var = ctk.StringVar(value="Light")
 
         self.pages = {}
-        self.bold_font = ctk.CTkFont(size=12, weight="bold", family="Arial")
+        self.bold_font = ctk.CTkFont(size=14, weight="bold", family="Arial")
+        self.text_font = ctk.CTkFont(size=14, family="Arial")
+        self.label_font = ctk.CTkFont(size=26, family="Copperplate Gothic Bold")
+        self.title_font = ctk.CTkFont(size=20, family="Copperplate Gothic Bold")
 
         icon_path = utilities.resource_path("images/Zephyr Analytics-Clipped.ico")
         self.iconbitmap(icon_path)
@@ -47,7 +51,7 @@ class StrategyAnalyzer(ctk.CTk):
     def process(self):
         """
         """
-        self.show_acknowledgment_popup()
+        # self.show_acknowledgment_popup()
         self.build_top_frame()
         self.create_strategy_analyzer_tools_page()
         self.create_individual_pages()
@@ -71,24 +75,21 @@ class StrategyAnalyzer(ctk.CTk):
         self.center_frame.grid_rowconfigure(1, weight=1)
         self.center_frame.grid_columnconfigure(0, weight=1)
 
-        self.top_frame = ctk.CTkFrame(self.center_frame, fg_color=["#bb8fce", "#bb8fce"])
+        self.top_frame = ctk.CTkFrame(self.center_frame, fg_color=["black", "black"])
         self.top_frame.grid(row=0, column=0, columnspan=6, sticky="nsew", padx=10, pady=10)
 
         self.top_frame.grid_columnconfigure(0, weight=1)
 
-        # Load and display the image using CTkImage
         image_path = utilities.resource_path("images/Zephyr Analytics-01.png")
         image = Image.open(image_path)
 
-        # Create a CTkImage with desired size
-        self.ctk_image = ctk.CTkImage(image, size=(500, 200))  # Adjust size as needed
+        self.ctk_image = ctk.CTkImage(image, size=(500, 200))
 
         image_label = ctk.CTkLabel(self.top_frame, image=self.ctk_image, text="", bg_color="black")
         image_label.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
 
-        # Add title below the image
         title_label = ctk.CTkLabel(
-            self.top_frame, text="Strategy Analyzer", font=self.bold_font, anchor="center"
+            self.top_frame, text="Strategy Analyzer", font=self.label_font, anchor="center", text_color="white",
         )
         title_label.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
 
@@ -190,18 +191,20 @@ class StrategyAnalyzer(ctk.CTk):
         Helper function to create a section with a title, description, and button.
         """
         section_frame = ctk.CTkFrame(parent)
-        section_frame.grid(row=row, column=col, sticky="nsew", padx=20, pady=20)
+        section_frame.grid(row=row, column=col, sticky="nsew", padx=10, pady=10)
 
         section_frame.grid_rowconfigure(2, weight=1)
         section_frame.grid_columnconfigure(0, weight=1)
 
-        ctk.CTkLabel(section_frame, text=title, font=self.bold_font).grid(row=0, column=0, sticky="nsew", pady=(0, 5))
+        ctk.CTkLabel(section_frame, text=title, font=self.title_font).grid(row=0, column=0, sticky="nsew", pady=(0, 5))
         ctk.CTkLabel(
-            section_frame, text=description, wraplength=400
+            section_frame, text=description, wraplength=400, font=self.text_font,
         ).grid(row=1, column=0, sticky="nsew")
         ctk.CTkButton(
             section_frame,
             text=f"Open {title}",
+            fg_color="#8e44ad",
+            hover_color="#bb8fce",
             command=lambda: self.show_page(page_name)
         ).grid(row=2, column=0, pady=(5, 0))
 
@@ -209,7 +212,7 @@ class StrategyAnalyzer(ctk.CTk):
         """
         Creates the navigation menu on the top-right of the top frame with horizontal buttons.
         """
-        nav_menu_frame = ctk.CTkFrame(self.top_frame, fg_color=["#bb8fce", "#bb8fce"])
+        nav_menu_frame = ctk.CTkFrame(self.top_frame, fg_color=["black", "black"])
         nav_menu_frame.grid(row=0, column=5, sticky="e", padx=10, pady=5)
 
         nav_menu_frame.grid_rowconfigure(0, weight=1)
@@ -224,6 +227,18 @@ class StrategyAnalyzer(ctk.CTk):
                 hover_color="#bb8fce"
             ).grid(row=0, column=i, sticky="ew", padx=5, pady=5)
 
+        mode_dropdown = ctk.CTkOptionMenu(
+            nav_menu_frame,
+            fg_color="#bb8fce",
+            text_color="#000000",
+            button_color="#8e44ad",
+            button_hover_color="#8e44ad",
+            values=["Light", "Dark"],
+            variable=self.theme_mode_var,
+            command=self.update_theme_mode
+        )
+        mode_dropdown.grid(row=0, column=7, sticky="ew", padx=5, pady=5)
+
     def build_bottom_frame(self):
         """
         """
@@ -235,6 +250,19 @@ class StrategyAnalyzer(ctk.CTk):
             font=ctk.CTkFont(size=12)
         )
         copyright_label.grid(row=0, column=0)
+    
+    def update_theme_mode(self, *args):
+        """
+        Updates the theme mode in the data model.
+
+        Parameters
+        ----------
+        *args : tuple
+            Additional arguments passed by the trace method.
+        """
+        _ = args
+        ctk.set_appearance_mode(self.theme_mode_var.get())
+        self.data_models.theme_mode = self.theme_mode_var.get()
 
     def show_page(self, page_name):
         """
