@@ -3,7 +3,10 @@ Parent module for GUI.
 """
 
 import multiprocessing
+
 import customtkinter as ctk
+from PIL import Image, ImageTk
+
 import strategy_analyzer.utilities as utilities
 from strategy_analyzer.gui import *
 from strategy_analyzer.data.portfolio_data import PortfolioData
@@ -44,6 +47,7 @@ class StrategyAnalyzer(ctk.CTk):
     def process(self):
         """
         """
+        self.show_acknowledgment_popup()
         self.build_top_frame()
         self.create_strategy_analyzer_tools_page()
         self.create_individual_pages()
@@ -51,9 +55,15 @@ class StrategyAnalyzer(ctk.CTk):
         self.build_bottom_frame()
         self.show_page("Strategy Analyzer Tools")
 
+    def show_acknowledgment_popup(self):
+        """
+        Shows the acknowledgment popup and disables the main window until acknowledged.
+        """
+        AcknowledgmentPopup(self)
+
     def build_top_frame(self):
         """
-        Builds the top frame with a title and navigation menu.
+        Builds the top frame with a title and a large image using CTkImage for high-DPI displays.
         """
         self.center_frame = ctk.CTkFrame(self, fg_color=["#edeaea", "#2b2c2d"])
         self.center_frame.grid(row=0, column=0, sticky="nsew")
@@ -66,9 +76,22 @@ class StrategyAnalyzer(ctk.CTk):
 
         self.top_frame.grid_columnconfigure(0, weight=1)
 
-        ctk.CTkLabel(
-            self.top_frame, text="Strategy Analyzer", font=self.bold_font, anchor="w"
-        ).grid(row=0, column=0, padx=10, pady=5)
+        # Load and display the image using CTkImage
+        image_path = utilities.resource_path("images/Zephyr Analytics-01.png")
+        image = Image.open(image_path)
+
+        # Create a CTkImage with desired size
+        self.ctk_image = ctk.CTkImage(image, size=(500, 200))  # Adjust size as needed
+
+        image_label = ctk.CTkLabel(self.top_frame, image=self.ctk_image, text="", bg_color="black")
+        image_label.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
+
+        # Add title below the image
+        title_label = ctk.CTkLabel(
+            self.top_frame, text="Strategy Analyzer", font=self.bold_font, anchor="center"
+        )
+        title_label.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
+
 
     def create_strategy_analyzer_tools_page(self):
         """
