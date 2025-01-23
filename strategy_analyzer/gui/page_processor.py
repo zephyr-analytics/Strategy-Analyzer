@@ -35,6 +35,10 @@ class PageProcessor(ABC, ctk.CTkFrame):
         self.parent = parent
         self.start_date_var = ctk.StringVar(value=self.data_models.start_date)
         self.bottom_text_result_display = ctk.CTkFrame(self)
+        self.settings_frame = ctk.CTkFrame(self)
+        self.settings_frame.grid(row=2, column=0, columnspan=5, sticky="nsew")
+        self.settings_frame.grid_columnconfigure([0, 1, 2], weight=1)
+        self.settings_frame.grid_rowconfigure([0, 1], weight=1)
         self.process()
 
     def process(self):
@@ -219,7 +223,7 @@ class PageProcessor(ABC, ctk.CTkFrame):
         """
         """
         # Data Settings
-        data_frame_rows = 1
+        data_frame_rows = 0
         data_frame = ctk.CTkFrame(parent, fg_color="transparent")
         data_frame.grid(row=data_frame_rows, column=0, padx=10, pady=10, sticky="nsew")
 
@@ -343,7 +347,7 @@ class PageProcessor(ABC, ctk.CTkFrame):
     def build_trade_frame(self, parent: ctk.CTkFrame, y_padding):
         """
         """
-        trade_frame_rows = 1
+        trade_frame_rows = 0
         trade_frame = ctk.CTkFrame(parent, fg_color="transparent")
         trade_frame.grid(row=trade_frame_rows, column=1, padx=10, pady=10, sticky="nsew")
         ctk.CTkLabel(
@@ -393,7 +397,7 @@ class PageProcessor(ABC, ctk.CTkFrame):
     def build_moving_avergae_frame(self, parent: ctk.CTkFrame, y_padding):
         """
         """
-        ma_frame_rows = 1
+        ma_frame_rows = 0
         ma_frame = ctk.CTkFrame(parent, fg_color="transparent")
         ma_frame.grid(row=ma_frame_rows, column=2, padx=10, pady=10, sticky="nsew")
         ctk.CTkLabel(
@@ -504,7 +508,7 @@ class PageProcessor(ABC, ctk.CTkFrame):
     def build_momentum_frame(self, parent: ctk.CTkFrame, y_padding):
         """
         """
-        momentum_frame_rows = 1
+        momentum_frame_rows = 0
         momentum_frame = ctk.CTkFrame(parent, fg_color="transparent")
         momentum_frame.grid(row=momentum_frame_rows, column=3, padx=10, pady=10, sticky="nsew")
         ctk.CTkLabel(
@@ -557,7 +561,7 @@ class PageProcessor(ABC, ctk.CTkFrame):
         """
         monte_carlo_frame_rows = 0
         monte_carlo_frame = ctk.CTkFrame(parent, fg_color="transparent")
-        monte_carlo_frame.grid(row=0, column=4, padx=10, pady=10, sticky="nsew")
+        monte_carlo_frame.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
         ctk.CTkLabel(
             monte_carlo_frame, text="Monte Carlo Settings", font=self.bold_font
         ).grid(row=monte_carlo_frame_rows, column=0, columnspan=4, sticky="ew")

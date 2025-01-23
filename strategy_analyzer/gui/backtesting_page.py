@@ -22,21 +22,22 @@ class BackTestingPage(PageProcessor):
         """
         Build the UI components for the BackTestingPage.
         """
+        self.grid_rowconfigure([0, 1, 2], weight=1)
         ctk.CTkLabel(self, text="Backtesting Page", font=("Arial", 18)).grid(row=0, column=0, padx=10, pady=10)
 
     def build_settings(self):
         """
         """
+        parent = self.settings_frame
         y_padding = 2
-        self.grid_rowconfigure(1, weight=1)
         self.grid_columnconfigure([0, 1, 2, 3, 4], weight=1)
-        self.grid_rowconfigure(2, weight=0)
 
         self.create_testing_frame(parent=self)
-        self.build_data_frame(parent=self, y_padding=y_padding)
-        self.build_trade_frame(parent=self, y_padding=y_padding)
-        self.build_moving_avergae_frame(parent=self, y_padding=y_padding)
-        self.build_momentum_frame(parent=self, y_padding=y_padding)
+
+        self.build_data_frame(parent=parent, y_padding=y_padding)
+        self.build_trade_frame(parent=parent, y_padding=y_padding)
+        self.build_moving_avergae_frame(parent=parent, y_padding=y_padding)
+        self.build_momentum_frame(parent=parent, y_padding=y_padding)
 
     def create_testing_frame(self, parent):
         """
@@ -49,7 +50,7 @@ class BackTestingPage(PageProcessor):
             The name of the tab to create.
         """
         testing_frame = ctk.CTkFrame(parent, fg_color="transparent")
-        testing_frame.grid(row=0, column=0, columnspan=5, sticky="nsew")
+        testing_frame.grid(row=1, column=0, columnspan=5, sticky="nsew")
         testing_frame.grid_columnconfigure([0, 1, 2, 3, 4], weight=1)
         ctk.CTkLabel(
             testing_frame,
