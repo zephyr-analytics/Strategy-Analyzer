@@ -154,12 +154,11 @@ class TacticalAssetPage(PageProcessor):
         ctk.CTkLabel(
             data_frame, text="Start Date:", font=self.bold_font
         ).grid(row=data_frame_rows, column=0, padx=5, sticky="e")
-        start_date_var = ctk.StringVar(value=self.data_models.start_date)
         ctk.CTkEntry(
-            data_frame, textvariable=start_date_var
+            data_frame, textvariable=self.start_date_var
         ).grid(row=data_frame_rows, column=1, padx=5, sticky="w", pady=y_padding)
-        start_date_var.trace_add(
-            "write", lambda *args: self.update_models_data("start_date", start_date_var)
+        self.start_date_var.trace_add(
+            "write", lambda *args: self.update_models_data("start_date", self.start_date_var)
         )
 
         ctk.CTkLabel(

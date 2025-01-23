@@ -33,6 +33,7 @@ class PageProcessor(ABC, ctk.CTkFrame):
         self.bold_font = ctk.CTkFont(size=12, weight="bold", family="Arial")
         self.controller = controller
         self.parent = parent
+        self.start_date_var = ctk.StringVar(value=self.data_models.start_date)
         self.bottom_text_result_display = ctk.CTkFrame(self)
         self.process()
 
@@ -56,6 +57,7 @@ class PageProcessor(ABC, ctk.CTkFrame):
         """
         Method to run data obtainment script.
         """
+        self.data_models.start_date = self.start_date_var.get()
         data_obtain = DataObtainmentProcessor(models_data=self.data_models)
         data_obtain.process()
 

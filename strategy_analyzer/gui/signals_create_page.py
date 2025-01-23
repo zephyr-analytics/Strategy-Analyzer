@@ -78,7 +78,7 @@ class SignalsCreationPage(PageProcessor):
             fg_color="#bb8fce",
             text_color="#000000",
             hover_color="#8e44ad",
-            command=lambda: self.execute_task(run_type="BACKTEST", model_type=self.model_types_var.get()),
+            command=lambda: self.execute_task(run_type="SIGNALS", model_type=self.model_types_var.get()),
         ).grid(row=0, column=2)
 
         ctk.CTkButton(
@@ -154,12 +154,12 @@ class SignalsCreationPage(PageProcessor):
         ctk.CTkLabel(
             data_frame, text="Start Date:", font=self.bold_font
         ).grid(row=data_frame_rows, column=0, padx=5, sticky="e")
-        start_date_var = ctk.StringVar(value=self.data_models.start_date)
+
         ctk.CTkEntry(
-            data_frame, textvariable=start_date_var
+            data_frame, textvariable=self.start_date_var
         ).grid(row=data_frame_rows, column=1, padx=5, sticky="w", pady=y_padding)
-        start_date_var.trace_add(
-            "write", lambda *args: self.update_models_data("start_date", start_date_var)
+        self.start_date_var.trace_add(
+            "write", lambda *args: self.update_models_data("start_date", self.start_date_var)
         )
 
         ctk.CTkLabel(
