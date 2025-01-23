@@ -83,7 +83,7 @@ class StrategyAnalyzer(ctk.CTk):
         image_path = utilities.resource_path("images/Zephyr Analytics-01.png")
         image = Image.open(image_path)
 
-        self.ctk_image = ctk.CTkImage(image, size=(500, 200))
+        self.ctk_image = ctk.CTkImage(image, size=(300, 100))
 
         image_label = ctk.CTkLabel(self.top_frame, image=self.ctk_image, text="", bg_color="black")
         image_label.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
@@ -91,7 +91,7 @@ class StrategyAnalyzer(ctk.CTk):
         title_label = ctk.CTkLabel(
             self.top_frame, text="Strategy Analyzer", font=self.label_font, anchor="center", text_color="white",
         )
-        title_label.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
+        title_label.grid(row=2, column=0, padx=10, pady=10, sticky="nsew")
 
 
     def create_strategy_analyzer_tools_page(self):
