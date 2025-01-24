@@ -36,7 +36,7 @@ class PageProcessor(ABC, ctk.CTkFrame):
         self.start_date_var = ctk.StringVar(value=self.data_models.start_date)
         self.bottom_text_result_display = ctk.CTkFrame(self)
         self.settings_frame = ctk.CTkFrame(self)
-        self.settings_frame.grid(row=2, column=0, columnspan=5, sticky="nsew")
+        self.settings_frame.grid(row=3, column=0, columnspan=5, sticky="nsew")
         self.settings_frame.grid_columnconfigure([0, 1, 2], weight=1)
         self.settings_frame.grid_rowconfigure([0, 1], weight=1)
         self.process()

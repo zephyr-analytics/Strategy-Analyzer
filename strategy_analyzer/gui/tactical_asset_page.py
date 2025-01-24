@@ -24,8 +24,56 @@ class TacticalAssetPage(PageProcessor):
         """
         Build the UI components for the BackTestingPage.
         """
-        self.grid_rowconfigure([0, 1, 2], weight=1)
-        ctk.CTkLabel(self, text="Tactical Asset Page", font=("Arial", 18)).grid(row=0, column=0, padx=10, pady=10)
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+
+        # Title of the page
+        ctk.CTkLabel(self, text="Tactical Asset Page", font=("Arial", 18)).grid(
+            row=0, column=0, sticky="nsew", padx=10, pady=10
+        )
+
+        # Create a new frame for the information
+        information_frame = ctk.CTkFrame(self)
+        information_frame.grid(row=1, column=0, columnspan=5, sticky="nsew", padx=10, pady=10)
+
+        # Configure rows and columns for the information_frame
+        information_frame.grid_rowconfigure([0, 1, 2, 3, 4], weight=1)
+        information_frame.grid_columnconfigure(0, weight=1)
+
+        # Title for Momentum Models
+        ctk.CTkLabel(information_frame, text="Momentum Models", font=("Arial", 14, "bold")).grid(
+            row=0, column=0, sticky="nsew", padx=5, pady=5
+        )
+
+        # Paragraph for Momentum Models
+        momentum_text = (
+            "\u2022 The relative strength momentum model invests in the best-performing assets in the model based on "
+            "each asset's past return.\n"
+            "\u2022 The momentum can be based on a single lookback period or multiple weighted lookback periods.\n"
+            "\u2022 The model supports using moving averages as a risk control to decide whether investments "
+            "should be moved to cash."
+        )
+        ctk.CTkLabel(information_frame, text=momentum_text, font=("Arial", 12), justify="left", wraplength=600).grid(
+            row=1, column=0, sticky="nsew", padx=5, pady=10
+        )
+
+        # Title for Moving Average Models
+        ctk.CTkLabel(information_frame, text="Moving Average Models", font=("Arial", 14, "bold")).grid(
+            row=2, column=0, sticky="nsew", padx=5, pady=5
+        )
+
+        # Paragraph for Moving Average Models
+        moving_average_text = (
+            "\u2022 The moving average tactical asset allocation model is either invested in a specific stock, ETF, "
+            "or mutual fund, or is alternatively in cash or other risk-free assets based on the moving average signal.\n"
+            "\u2022 The model is invested in the asset when the adjusted close price is greater than the moving average, "
+            "and it moves to cash when the adjusted close price is less than the moving average.\n"
+            "\u2022 The model supports using moving average cross-over as the signal."
+        )
+        ctk.CTkLabel(information_frame, text=moving_average_text, font=("Arial", 12), justify="left", wraplength=600).grid(
+            row=3, column=0, sticky="nsew", padx=5, pady=10
+        )
+
 
     def build_settings(self):
         """
@@ -52,7 +100,7 @@ class TacticalAssetPage(PageProcessor):
             The name of the tab to create.
         """
         testing_frame = ctk.CTkFrame(parent, fg_color="transparent")
-        testing_frame.grid(row=1, column=0, columnspan=5, sticky="nsew")
+        testing_frame.grid(row=2, column=0, columnspan=5, sticky="nsew")
         testing_frame.grid_columnconfigure([0, 1, 2, 3, 4], weight=1)
         ctk.CTkLabel(
             testing_frame,

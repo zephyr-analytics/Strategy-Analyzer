@@ -135,7 +135,7 @@ class StrategyAnalyzer(ctk.CTk):
         )
         self.create_section(
             page_frame, "Asset Analytics", 2, 1,
-            "Analyze the historical and real-time performance of individual assets.",
+            "Coming Soon!",
             "Asset Analytics"
         )
 
