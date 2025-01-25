@@ -449,6 +449,28 @@ class PageProcessor(ABC, ctk.CTkFrame):
             "write", lambda *args: self.update_models_data("tax_rate", tax_rate_var)
         )
 
+        trade_frame_rows += 1
+
+        ctk.CTkLabel(
+            trade_frame, text="Use Inflation Adjustment:", font=self.bold_font
+        ).grid(row=trade_frame_rows, column=0, sticky="e", padx=5)
+        inflation_options = ["True", "False"]
+        inflation_var = ctk.StringVar(value=self.data_models.use_inflation)
+        inflation_dropdown = ctk.CTkOptionMenu(
+            trade_frame,
+            values=inflation_options,
+            fg_color="#bb8fce",
+            text_color="#000000",
+            button_color="#8e44ad",
+            button_hover_color="#8e44ad",
+            variable=inflation_var
+        )
+        inflation_dropdown.grid(row=trade_frame_rows, column=1, sticky="w", padx=5, pady=y_padding)
+        inflation_dropdown.set("False")
+        inflation_var.trace_add(
+            "write", lambda *args: self.update_models_data("use_inflation", inflation_var)
+        )
+
 
     def build_moving_avergae_frame(self, parent: ctk.CTkFrame, y_padding):
         """

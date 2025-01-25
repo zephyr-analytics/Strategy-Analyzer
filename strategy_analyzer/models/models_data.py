@@ -46,6 +46,7 @@ class ModelsData:
         self._use_tax = False
         self._tax_rate = 0.22
         self._inflation_data = None
+        self._use_inflation = False
 
 
     @property
@@ -691,3 +692,24 @@ class ModelsData:
             value (int): Integer representing the contribution.
         """
         self._inflation_data = value
+
+
+    @property
+    def use_inflation(self):
+        """
+        Gets the contribution.
+
+        Returns:
+            int: Integer representing the contribution.
+        """
+        return bool(self._use_inflation)
+
+    @use_inflation.setter
+    def use_inflation(self, value):
+        """
+        Sets the contribution.
+
+        Args:
+            value (int): Integer representing the contribution.
+        """
+        self._use_inflation = value
