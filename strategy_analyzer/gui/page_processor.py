@@ -246,18 +246,28 @@ class PageProcessor(ABC, ctk.CTkFrame):
         ctk.CTkLabel(
             data_frame, text="Initial Portfolio Value:", font=self.bold_font
         ).grid(row=data_frame_rows, column=0, padx=5, sticky="e")
+
+        data_frame_rows += 1
+
         initial_portfolio_value_var = ctk.StringVar(value=self.data_models.initial_portfolio_value)
         ctk.CTkEntry(
             data_frame, textvariable=initial_portfolio_value_var
-        ).grid(row=data_frame_rows, column=1, padx=5, sticky="w", pady=y_padding)
+        ).grid(row=data_frame_rows, column=0, padx=5, sticky="nsew", pady=y_padding)
         initial_portfolio_value_var.trace_add(
             "write", lambda *args: self.update_models_data("initial_portfolio_value", initial_portfolio_value_var)
         )
+
         data_frame_rows += 1
 
         ctk.CTkLabel(
-            data_frame, text="Select In Market Assets:", font=self.bold_font
-        ).grid(row=data_frame_rows, column=0, sticky="e", padx=5)
+            data_frame, text="Trading Assets:", font=self.bold_font
+        ).grid(row=data_frame_rows, column=0, sticky="nsew", padx=5)
+        ctk.CTkLabel(
+            data_frame, text="Out of Market Assets:", font=self.bold_font
+        ).grid(row=data_frame_rows, column=1, sticky="nsew", padx=5)
+
+        data_frame_rows += 1
+
         ctk.CTkButton(
             data_frame,
             text="Select .csv File",
@@ -265,11 +275,8 @@ class PageProcessor(ABC, ctk.CTkFrame):
             text_color="#000000",
             hover_color="#8e44ad",
             command=self.load_weights_and_update
-        ).grid(row=data_frame_rows, column=1, sticky="w", padx=5, pady=y_padding)
+        ).grid(row=data_frame_rows, column=0, sticky="nsew", padx=5, pady=y_padding)
 
-        ctk.CTkLabel(
-            data_frame, text="Select Out of Market Assets:", font=self.bold_font
-        ).grid(row=data_frame_rows, column=2, sticky="e", padx=5)
         ctk.CTkButton(
             data_frame,
             text="Select .csv File",
@@ -277,49 +284,55 @@ class PageProcessor(ABC, ctk.CTkFrame):
             text_color="#000000",
             hover_color="#8e44ad",
             command=self.load_out_of_market_weights_and_update
-        ).grid(row=data_frame_rows, column=3, sticky="w", padx=5, pady=y_padding)
+        ).grid(row=data_frame_rows, column=1, sticky="nsew", padx=5, pady=y_padding)
+
         data_frame_rows += 1
 
         ctk.CTkLabel(
             data_frame, text="Start Date:", font=self.bold_font
-        ).grid(row=data_frame_rows, column=0, padx=5, sticky="e")
+        ).grid(row=data_frame_rows, column=0, padx=5, sticky="nsew")
+        ctk.CTkLabel(
+            data_frame, text="End Date:", font=self.bold_font
+        ).grid(row=data_frame_rows, column=1, padx=5, sticky="nsew")
+
+        data_frame_rows += 1
+
         ctk.CTkEntry(
             data_frame, textvariable=self.start_date_var
-        ).grid(row=data_frame_rows, column=1, padx=5, sticky="w", pady=y_padding)
+        ).grid(row=data_frame_rows, column=0, padx=5, sticky="nsew", pady=y_padding)
         self.start_date_var.trace_add(
             "write", lambda *args: self.update_models_data("start_date", self.start_date_var)
         )
-
-        ctk.CTkLabel(
-            data_frame, text="End Date:", font=self.bold_font
-        ).grid(row=data_frame_rows, column=2, padx=5, sticky="e")
         end_date_var = ctk.StringVar(value=self.data_models.end_date)
         ctk.CTkEntry(
             data_frame, textvariable=end_date_var
-        ).grid(row=data_frame_rows, column=3, padx=5, sticky="w", pady=y_padding)
+        ).grid(row=data_frame_rows, column=1, padx=5, sticky="nsew", pady=y_padding)
         end_date_var.trace_add(
             "write", lambda *args: self.update_models_data("end_date", end_date_var)
         )
+
         data_frame_rows += 1
 
         ctk.CTkLabel(
             data_frame, text="Cash Ticker:", font=self.bold_font
-        ).grid(row=data_frame_rows, column=0, sticky="e", padx=5)
+        ).grid(row=data_frame_rows, column=0, sticky="nsew", padx=5)
+        ctk.CTkLabel(
+            data_frame, text="Bond Ticker:", font=self.bold_font
+        ).grid(row=data_frame_rows, column=1, sticky="nsew", padx=5)
+
+        data_frame_rows += 1
+
         cash_ticker_var = ctk.StringVar(value=self.data_models.cash_ticker)
         ctk.CTkEntry(
             data_frame, textvariable=cash_ticker_var
-        ).grid(row=data_frame_rows, column=1, sticky="w", padx=5, pady=y_padding)
+        ).grid(row=data_frame_rows, column=0, sticky="nsew", padx=5, pady=y_padding)
         cash_ticker_var.trace_add(
             "write", lambda *args: self.update_models_data("cash_ticker", cash_ticker_var)
         )
-
-        ctk.CTkLabel(
-            data_frame, text="Bond Ticker:", font=self.bold_font
-        ).grid(row=data_frame_rows, column=2, sticky="e", padx=5)
         bond_ticker_var = ctk.StringVar()
         ctk.CTkEntry(
             data_frame, textvariable=bond_ticker_var
-        ).grid(row=data_frame_rows, column=3, sticky="w", padx=5, pady=y_padding)
+        ).grid(row=data_frame_rows, column=1, sticky="nsew", padx=5, pady=y_padding)
         bond_ticker_var.trace_add(
             "write", lambda *args: self.update_models_data("bond_ticker", bond_ticker_var)
         )
@@ -332,7 +345,7 @@ class PageProcessor(ABC, ctk.CTkFrame):
             text_color="#000000",
             hover_color="#8e44ad",
             command=self.obtain_data,
-        ).grid(row=data_frame_rows, column=0, columnspan=2, padx=5, pady=y_padding)
+        ).grid(row=data_frame_rows, column=0, padx=5, pady=y_padding)
 
         ctk.CTkButton(
             data_frame,
@@ -341,7 +354,7 @@ class PageProcessor(ABC, ctk.CTkFrame):
             text_color="#000000",
             hover_color="#8e44ad",
             command=self.prepare_data,
-        ).grid(row=data_frame_rows, column=2, columnspan=2, padx=5, pady=y_padding)
+        ).grid(row=data_frame_rows, column=1, padx=5, pady=y_padding)
 
 
     def build_trade_frame(self, parent: ctk.CTkFrame, y_padding):

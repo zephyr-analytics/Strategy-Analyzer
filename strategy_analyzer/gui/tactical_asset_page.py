@@ -34,14 +34,14 @@ class TacticalAssetPage(PageProcessor):
 
         # Create a new frame for the information
         information_frame = ctk.CTkFrame(self)
-        information_frame.grid(row=1, column=0, columnspan=5, sticky="nsew", padx=10, pady=10)
+        information_frame.grid(row=1, column=0, columnspan=5, sticky="nsew", padx=10, pady=5)
 
         # Configure rows and columns for the information_frame
         information_frame.grid_rowconfigure([0, 1, 2, 3, 4], weight=1)
         information_frame.grid_columnconfigure(0, weight=1)
 
         # Title for Momentum Models
-        ctk.CTkLabel(information_frame, text="Momentum Models", font=("Arial", 14, "bold")).grid(
+        ctk.CTkLabel(information_frame, text="Momentum Models", font=("Copperplate Gothic Bold", 20)).grid(
             row=0, column=0, sticky="nsew", padx=5, pady=5
         )
 
@@ -53,12 +53,12 @@ class TacticalAssetPage(PageProcessor):
             "\u2022 The model supports using moving averages as a risk control to decide whether investments "
             "should be moved to cash."
         )
-        ctk.CTkLabel(information_frame, text=momentum_text, font=("Arial", 12), justify="left", wraplength=600).grid(
+        ctk.CTkLabel(information_frame, text=momentum_text, font=("Arial", 16), justify="left", wraplength=800).grid(
             row=1, column=0, sticky="nsew", padx=5, pady=10
         )
 
         # Title for Moving Average Models
-        ctk.CTkLabel(information_frame, text="Moving Average Models", font=("Arial", 14, "bold")).grid(
+        ctk.CTkLabel(information_frame, text="Moving Average Models", font=("Copperplate Gothic Bold", 20)).grid(
             row=2, column=0, sticky="nsew", padx=5, pady=5
         )
 
@@ -70,16 +70,15 @@ class TacticalAssetPage(PageProcessor):
             "and it moves to cash when the adjusted close price is less than the moving average.\n"
             "\u2022 The model supports using moving average cross-over as the signal."
         )
-        ctk.CTkLabel(information_frame, text=moving_average_text, font=("Arial", 12), justify="left", wraplength=600).grid(
+        ctk.CTkLabel(information_frame, text=moving_average_text, font=("Arial", 16), justify="left", wraplength=800).grid(
             row=3, column=0, sticky="nsew", padx=5, pady=10
         )
-
 
     def build_settings(self):
         """
         """
         parent = self.settings_frame
-        y_padding = 2
+        y_padding = 4
         self.grid_columnconfigure([0, 1, 2, 3, 4], weight=1)
 
         self.create_testing_frame(parent=self)
@@ -100,7 +99,7 @@ class TacticalAssetPage(PageProcessor):
             The name of the tab to create.
         """
         testing_frame = ctk.CTkFrame(parent, fg_color="transparent")
-        testing_frame.grid(row=2, column=0, columnspan=5, sticky="nsew")
+        testing_frame.grid(row=2, column=0, columnspan=5, padx=5, pady=5, sticky="nsew")
         testing_frame.grid_columnconfigure([0, 1, 2, 3, 4], weight=1)
         ctk.CTkLabel(
             testing_frame,
