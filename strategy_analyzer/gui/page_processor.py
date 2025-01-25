@@ -245,7 +245,10 @@ class PageProcessor(ABC, ctk.CTkFrame):
         # Add widgets dynamically and update row counter
         ctk.CTkLabel(
             data_frame, text="Initial Portfolio Value:", font=self.bold_font
-        ).grid(row=data_frame_rows, column=0, padx=5, sticky="e")
+        ).grid(row=data_frame_rows, column=0, padx=5, sticky="nsew")
+        ctk.CTkLabel(
+            data_frame, text="Contribution:", font=self.bold_font
+        ).grid(row=data_frame_rows, column=1, sticky="nsew", padx=5)
 
         data_frame_rows += 1
 
@@ -255,6 +258,13 @@ class PageProcessor(ABC, ctk.CTkFrame):
         ).grid(row=data_frame_rows, column=0, padx=5, sticky="nsew", pady=y_padding)
         initial_portfolio_value_var.trace_add(
             "write", lambda *args: self.update_models_data("initial_portfolio_value", initial_portfolio_value_var)
+        )
+        contribution_entry_var = ctk.StringVar()
+        ctk.CTkEntry(
+            data_frame, textvariable=contribution_entry_var
+        ).grid(row=data_frame_rows, column=1, sticky="nsew", padx=5, pady=y_padding)
+        contribution_entry_var.trace_add(
+            "write", lambda *args: self.update_models_data("contribution", contribution_entry_var)
         )
 
         data_frame_rows += 1
@@ -406,6 +416,39 @@ class PageProcessor(ABC, ctk.CTkFrame):
         trading_freq_var.trace_add(
             "write", lambda *args: self.update_models_data("trading_frequency", trading_freq_var)
         )
+
+        trade_frame_rows += 1
+
+        ctk.CTkLabel(
+            trade_frame, text="Use Tax Adjustment:", font=self.bold_font
+        ).grid(row=trade_frame_rows, column=0, sticky="e", padx=5)
+        tax_options = ["True", "False"]
+        tax_var = ctk.StringVar(value=self.data_models.use_tax)
+        tax_dropdown = ctk.CTkOptionMenu(
+            trade_frame,
+            values=tax_options,
+            fg_color="#bb8fce",
+            text_color="#000000",
+            button_color="#8e44ad",
+            button_hover_color="#8e44ad",
+            variable=tax_var
+        )
+        tax_dropdown.grid(row=trade_frame_rows, column=1, sticky="w", padx=5, pady=y_padding)
+        tax_dropdown.set("False")
+        tax_var.trace_add(
+            "write", lambda *args: self.update_models_data("use_tax", tax_var)
+        )
+        ctk.CTkLabel(
+            trade_frame, text="Tax Rate:", font=self.bold_font
+        ).grid(row=trade_frame_rows, column=2, sticky="e", padx=5)
+        tax_rate_var = ctk.StringVar(value=self.data_models.tax_rate)
+        ctk.CTkEntry(
+            trade_frame, textvariable=tax_rate_var
+        ).grid(row=trade_frame_rows, column=3, sticky="w", padx=5, pady=y_padding)
+        tax_rate_var.trace_add(
+            "write", lambda *args: self.update_models_data("tax_rate", tax_rate_var)
+        )
+
 
     def build_moving_avergae_frame(self, parent: ctk.CTkFrame, y_padding):
         """

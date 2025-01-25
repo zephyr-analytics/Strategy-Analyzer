@@ -5,7 +5,7 @@ Parent module for GUI.
 import multiprocessing
 
 import customtkinter as ctk
-from PIL import Image, ImageTk
+from PIL import Image
 
 import strategy_analyzer.utilities as utilities
 from strategy_analyzer.gui import *

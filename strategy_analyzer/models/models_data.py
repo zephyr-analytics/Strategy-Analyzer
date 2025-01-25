@@ -43,6 +43,8 @@ class ModelsData:
         self._ma_type = str
         self._fast_ma_period = ""
         self._slow_ma_period = ""
+        self._use_tax = False
+        self._tax_rate = 0.22
 
 
     @property
@@ -625,3 +627,45 @@ class ModelsData:
             value (int): Integer representing the contribution.
         """
         self._slow_ma_period = value
+
+
+    @property
+    def use_tax(self):
+        """
+        Gets the contribution.
+
+        Returns:
+            int: Integer representing the contribution.
+        """
+        return bool(self._use_tax)
+
+    @use_tax.setter
+    def use_tax(self, value):
+        """
+        Sets the contribution.
+
+        Args:
+            value (int): Integer representing the contribution.
+        """
+        self._use_tax = value
+
+
+    @property
+    def tax_rate(self):
+        """
+        Gets the contribution.
+
+        Returns:
+            int: Integer representing the contribution.
+        """
+        return float(self._tax_rate)
+
+    @tax_rate.setter
+    def tax_rate(self, value):
+        """
+        Sets the contribution.
+
+        Args:
+            value (int): Integer representing the contribution.
+        """
+        self._tax_rate = value
