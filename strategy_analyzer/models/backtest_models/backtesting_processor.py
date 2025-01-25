@@ -91,12 +91,20 @@ class BacktestingProcessor(ABC):
             Dictionary of adjusted asset weights.
         """
 
-    def run_backtest(self, inflation_rates=None):
+    def run_backtest(self):
         """
         Runs the backtest by calculating portfolio values and returns over time.
         Adjusts for inflation and taxes if provided.
         """
         monthly_dates = self._prepare_date_ranges()
+
+        inflation_rates = self.data_models.inflation_data
+        inflation_rates.index = pd.to_datetime(inflation_rates.index)
+        monthly_dates = pd.to_datetime(monthly_dates)
+        inflation_rates = inflation_rates[inflation_rates.index.isin(monthly_dates)]
+
+        print(inflation_rates)
+
         step = self._determine_step_size()
 
         portfolio_values = [int(self.data_models.initial_portfolio_value)]
@@ -136,12 +144,13 @@ class BacktestingProcessor(ABC):
                     )
                     tax_adjusted_values.append(new_tax_adjusted_value)
 
-                new_inflation_adjusted_value = self._calculate_inflation_adjusted_value(
-                    inflation_adjusted_values[-1], month_return, inflation_rates, i + j
-                )
-                inflation_adjusted_values.append(new_inflation_adjusted_value)
+                if self.data_models.use_inflation == True:
+                    new_inflation_adjusted_value = self._calculate_inflation_adjusted_value(
+                        inflation_adjusted_values[-1], month_return, inflation_rates, i + j
+                    )
+                    inflation_adjusted_values.append(new_inflation_adjusted_value)
 
-                if self.data_models.use_tax == True:
+                if self.data_models.use_tax == True and self.data_models.use_inflation == True:
                     new_tax_and_inflation_adjusted_value = self._calculate_tax_and_inflation_adjusted_value(
                         tax_adjusted_values[-1], inflation_rates, i + j
                     )
@@ -225,14 +234,14 @@ class BacktestingProcessor(ABC):
         """
         Calculate the inflation-adjusted portfolio value.
         """
-        inflation_rate = inflation_rates[index] if inflation_rates is not None else 0
+        inflation_rate = inflation_rates.loc[index, 'inflation_rate'] if index in inflation_rates.index else 0
         return last_inflation_adjusted_value * (1 + month_return) / (1 + inflation_rate)
 
     def _calculate_tax_and_inflation_adjusted_value(self, last_tax_adjusted_value, inflation_rates, index):
         """
         Calculate the portfolio value adjusted for both taxes and inflation.
         """
-        inflation_rate = inflation_rates[index] if inflation_rates is not None else 0
+        inflation_rate = inflation_rates.loc[index, 'inflation_rate'] if index in inflation_rates.index else 0
         return last_tax_adjusted_value / (1 + inflation_rate)
 
 

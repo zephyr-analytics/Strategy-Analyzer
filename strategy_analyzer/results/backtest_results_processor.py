@@ -55,6 +55,8 @@ class BacktestResultsProcessor:
         if self.data_models.use_tax == True:
             portfolio_value = self.results_models.taxed_returns
             portfolio_final_value = portfolio_value.iloc[-1]
+        else:
+            portfolio_final_value = final_value
 
 
         if self.data_models.theme_mode.lower() == "dark":

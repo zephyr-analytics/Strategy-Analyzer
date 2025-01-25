@@ -45,6 +45,7 @@ class ModelsData:
         self._slow_ma_period = ""
         self._use_tax = False
         self._tax_rate = 0.22
+        self._inflation_data = None
 
 
     @property
@@ -669,3 +670,24 @@ class ModelsData:
             value (int): Integer representing the contribution.
         """
         self._tax_rate = value
+
+
+    @property
+    def inflation_data(self):
+        """
+        Gets the contribution.
+
+        Returns:
+            int: Integer representing the contribution.
+        """
+        return self._inflation_data
+
+    @inflation_data.setter
+    def inflation_data(self, value):
+        """
+        Sets the contribution.
+
+        Args:
+            value (int): Integer representing the contribution.
+        """
+        self._inflation_data = value
