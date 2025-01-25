@@ -87,6 +87,15 @@ class BacktestResultsProcessor:
                 line=dict(color="#9b4aa5")
             ))
 
+        if self.results_models.taxed_returns is not None:
+            fig.add_trace(go.Scatter(
+                x=self.results_models.taxed_returns.index,
+                y=self.results_models.taxed_returns,
+                mode='lines',
+                name='After Tax Returns',
+                line=dict(color="#9b4aa5")
+            ))
+
         annotations = [
             dict(
                 xref='paper', yref='paper', x=0.2, y=1,

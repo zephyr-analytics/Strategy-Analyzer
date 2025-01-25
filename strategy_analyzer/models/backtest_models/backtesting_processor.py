@@ -33,11 +33,12 @@ class BacktestingProcessor(ABC):
         """
         Processes the backtest by fetching data, running the backtest, and generating the plots.
         """
-        all_adjusted_weights, portfolio_values, portfolio_returns = self.run_backtest()
+        all_adjusted_weights, portfolio_values, portfolio_returns, taxed_returns = self.run_backtest()
         self._persist_portfolio_data(
             all_adjusted_weights=all_adjusted_weights,
             portfolio_values=portfolio_values,
-            portfolio_returns=portfolio_returns
+            portfolio_returns=portfolio_returns,
+            taxed_returns=taxed_returns
         )
         self._get_portfolio_statistics()
         self._calculate_buy_and_hold()
@@ -95,7 +96,7 @@ class BacktestingProcessor(ABC):
             Dictionary of adjusted asset weights.
         """
 
-    def run_backtest(self):
+    def run_backtest(self, tax_rate=0.19, contribution = 250):
         """
         Runs the backtest by calculating portfolio values and returns over time.
         """
@@ -107,6 +108,7 @@ class BacktestingProcessor(ABC):
 
         portfolio_values = [int(self.data_models.initial_portfolio_value)]
         portfolio_returns = []
+        tax_adjusted_values = [int(self.data_models.initial_portfolio_value)]
         all_adjusted_weights = []
 
         if self.data_models.trading_frequency == "Monthly":
@@ -141,18 +143,26 @@ class BacktestingProcessor(ABC):
                 month_return = sum(
                     [monthly_returns.get(ticker, 0) * weight for ticker, weight in adjusted_weights.items()]
                 )
-                new_portfolio_value = portfolio_values[-1] * (1 + month_return)
+                new_portfolio_value = portfolio_values[-1] * (1 + month_return) + contribution
                 portfolio_values.append(new_portfolio_value)
                 portfolio_returns.append(month_return)
-                last_date_current_month = last_date_next_month
-                all_adjusted_weights.append(adjusted_weights)
 
-        return all_adjusted_weights, portfolio_values, portfolio_returns
+                if tax_rate is not None:
+                    if month_return > 0:
+                        tax_adjustment = (new_portfolio_value - portfolio_values[-2]) * tax_rate
+                        tax_adjusted_value = tax_adjusted_values[-1] + (new_portfolio_value - portfolio_values[-2]) - tax_adjustment
+                    else:
+                        tax_adjusted_value = tax_adjusted_values[-1] + (new_portfolio_value - portfolio_values[-2])
+                    tax_adjusted_values.append(tax_adjusted_value)
 
+                    last_date_current_month = last_date_next_month
+                    all_adjusted_weights.append(adjusted_weights)
+
+        return all_adjusted_weights, portfolio_values, portfolio_returns, tax_adjusted_values
 
 
     def _persist_portfolio_data(
-            self, all_adjusted_weights: pd.Series, portfolio_values: pd.Series, portfolio_returns: pd.Series
+            self, all_adjusted_weights: pd.Series, portfolio_values: pd.Series, portfolio_returns: pd.Series, taxed_returns: pd.Series
     ):
         """
         Method to persist all data from the backtest to models_data for further analysis.
@@ -180,6 +190,11 @@ class BacktestingProcessor(ABC):
         self.results_models.portfolio_returns = pd.Series(
             portfolio_returns,
             index=pd.date_range(start=self.data_models.start_date, periods=len(portfolio_returns), freq="M")
+        )
+
+        self.results_models.taxed_returns = pd.Series(
+            taxed_returns,
+            index=pd.date_range(start=self.data_models.start_date, periods=len(taxed_returns), freq="M")
         )
 
     def _get_portfolio_statistics(self):
