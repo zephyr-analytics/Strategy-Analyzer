@@ -249,7 +249,12 @@ class BacktestingProcessor(ABC):
         portfolio_returns : pd.Series
             Series of all portfolio returns from the backtest.
         """
-        # NOTE non-contribution returns need to be added to this first.
+        portfolio_values_non_con = pd.Series(
+            returns_data_dict["portfolio_values_without_contributions"],
+            index=pd.date_range(start=self.data_models.start_date, periods=len(returns_data_dict["portfolio_values_without_contributions"]), freq="M")
+        )
+        self.results_models.portfolio_values_non_con = portfolio_values_non_con.iloc[:-1]
+
         self.results_models.adjusted_weights = pd.Series(
             returns_data_dict["all_adjusted_weights"],
             index=pd.date_range(start=self.data_models.start_date, periods=len(returns_data_dict["all_adjusted_weights"]), freq="M")
@@ -276,15 +281,14 @@ class BacktestingProcessor(ABC):
         """
         Calculates and sets portfolio statistics.
         """
-        # NOTE this needs to use non-contribution returns to get accruate portfolio statistics.
         self.results_models.cagr = utilities.calculate_cagr(
-            portfolio_value=self.results_models.portfolio_values
+            portfolio_value=self.results_models.portfolio_values_non_con
         )
         self.results_models.average_annual_return = utilities.calculate_average_annual_return(
             returns=self.results_models.portfolio_returns
         )
         self.results_models.max_drawdown = utilities.calculate_max_drawdown(
-            portfolio_value=self.results_models.portfolio_values
+            portfolio_value=self.results_models.portfolio_values_non_con
         )
         self.results_models.var, self.results_models.cvar = utilities.calculate_var_cvar(
             returns=self.results_models.portfolio_returns
