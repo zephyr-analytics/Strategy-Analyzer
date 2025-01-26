@@ -129,33 +129,39 @@ class BacktestingProcessor(ABC):
                     last_date_current_month, last_date_next_month, adjusted_weights
                 )
                 portfolio_returns.append(month_return)
-
+# TODO there is an issue where contributions are being inflation and tax adjusted.
                 new_portfolio_value, new_portfolio_value_without_contributions = self._calculate_new_portfolio_values(
                     portfolio_values[-1], portfolio_values_without_contributions[-1], month_return, self.data_models.contribution
                 )
+
                 portfolio_values.append(new_portfolio_value)
                 portfolio_values_without_contributions.append(new_portfolio_value_without_contributions)
-                # TODO this needs to be cleaned up.
-                if self.data_models.use_tax == True:
+
+                if self.data_models.use_tax and self.data_models.use_inflation:
+                    # Both tax and inflation adjustments are enabled
+                    new_tax_and_inflation_adjusted_value = self._calculate_tax_and_inflation_adjusted_value(
+                        portfolio_values[-1], portfolio_values[-2], inflation_rates, i + j, self.data_models.tax_rate, month_return
+                    )
+                    tax_and_inflation_adjusted_values.append(new_tax_and_inflation_adjusted_value)
+
+                elif self.data_models.use_tax:
+                    # Only tax adjustment is enabled
                     new_tax_adjusted_value = self._calculate_tax_adjusted_value(
                         tax_adjusted_values[-1], portfolio_values[-2], portfolio_values[-1], self.data_models.tax_rate, month_return
                     )
                     tax_adjusted_values.append(new_tax_adjusted_value)
 
-                elif self.data_models.use_inflation == True:
+                elif self.data_models.use_inflation:
+                    # Only inflation adjustment is enabled
                     new_inflation_adjusted_value = self._calculate_inflation_adjusted_value(
-                        inflation_adjusted_values[-1], month_return, inflation_rates, i + j
+                        portfolio_values[-1], inflation_rates, i + j
                     )
                     inflation_adjusted_values.append(new_inflation_adjusted_value)
 
-                if self.data_models.use_tax == True and self.data_models.use_inflation == True:
-                    new_tax_and_inflation_adjusted_value = self._calculate_tax_and_inflation_adjusted_value(
-                        tax_adjusted_values[-1], inflation_rates, i + j
-                    )
-                    tax_and_inflation_adjusted_values.append(new_tax_and_inflation_adjusted_value)
-
-
+                # Add adjusted weights to the list
                 all_adjusted_weights.append(adjusted_weights)
+
+                # Update the date for the next calculation
                 last_date_current_month = last_date_next_month
 
         return {
@@ -228,19 +234,29 @@ class BacktestingProcessor(ABC):
         else:
             return last_tax_adjusted_value + (current_portfolio_value - previous_portfolio_value)
 
-    def _calculate_inflation_adjusted_value(self, last_inflation_adjusted_value, month_return, inflation_rates, index):
+    def _calculate_inflation_adjusted_value(self, current_portfolio_value, inflation_rates, index):
         """
-        Calculate the inflation-adjusted portfolio value.
+        Calculate the inflation-adjusted portfolio value using the portfolio value directly.
         """
         inflation_rate = inflation_rates.loc[index, 'inflation_rate'] if index in inflation_rates.index else 0
-        return last_inflation_adjusted_value * (1 + month_return) / (1 + inflation_rate)
+        return current_portfolio_value / (1 + inflation_rate)
 
-    def _calculate_tax_and_inflation_adjusted_value(self, last_tax_adjusted_value, inflation_rates, index):
+    def _calculate_tax_and_inflation_adjusted_value(self, current_portfolio_value, previous_portfolio_value, inflation_rates, index, tax_rate, month_return):
         """
         Calculate the portfolio value adjusted for both taxes and inflation.
         """
+        # Tax adjustment
+        if month_return > 0:
+            tax_adjustment = (current_portfolio_value - previous_portfolio_value) * tax_rate
+            tax_adjusted_value = current_portfolio_value - tax_adjustment
+        else:
+            tax_adjusted_value = current_portfolio_value
+
+        # Inflation adjustment
         inflation_rate = inflation_rates.loc[index, 'inflation_rate'] if index in inflation_rates.index else 0
-        return last_tax_adjusted_value / (1 + inflation_rate)
+        inflation_adjusted_value = tax_adjusted_value / (1 + inflation_rate)
+
+        return inflation_adjusted_value
 
 
     def _persist_portfolio_data(self, returns_data_dict: dict):
@@ -256,12 +272,11 @@ class BacktestingProcessor(ABC):
         portfolio_returns : pd.Series
             Series of all portfolio returns from the backtest.
         """
-        data = []
-        if self.data_models.use_inflation is True and self.data_models.use_tax is True:
+        if self.data_models.use_tax and self.data_models.use_inflation:
             data = returns_data_dict["tax_and_inflation_adjusted_values"]
-        elif self.data_models.use_inflation is True and self.data_models.use_tax is False:
+        elif self.data_models.use_inflation and not self.data_models.use_tax:
             data = returns_data_dict["inflation_adjusted_values"]
-        elif self.data_models.use_inflation is False and self.data_models.use_tax is True:
+        elif self.data_models.use_tax and not self.data_models.use_tax:
             data = returns_data_dict["tax_adjusted_values"]
         else:
             data = returns_data_dict["portfolio_values"]
@@ -272,7 +287,7 @@ class BacktestingProcessor(ABC):
             index=pd.date_range(start=self.data_models.start_date, periods=len(data), freq="M")
         )
         self.results_models.portfolio_values = portfolio_values.iloc[:-1]
-
+        data = None
         portfolio_values_non_con = pd.Series(
             returns_data_dict["portfolio_values_without_contributions"],
             index=pd.date_range(start=self.data_models.start_date, periods=len(returns_data_dict["portfolio_values_without_contributions"]), freq="M")
