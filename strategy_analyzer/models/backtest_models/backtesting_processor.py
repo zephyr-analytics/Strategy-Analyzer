@@ -103,8 +103,6 @@ class BacktestingProcessor(ABC):
         monthly_dates = pd.to_datetime(monthly_dates)
         inflation_rates = inflation_rates[inflation_rates.index.isin(monthly_dates)]
 
-        print(inflation_rates)
-
         step = self._determine_step_size()
 
         portfolio_values = [int(self.data_models.initial_portfolio_value)]
@@ -258,6 +256,20 @@ class BacktestingProcessor(ABC):
         portfolio_returns : pd.Series
             Series of all portfolio returns from the backtest.
         """
+        data = []
+        if self.data_models.use_inflation is True and self.data_models.use_tax is True:
+            data = returns_data_dict["tax_and_inflation_adjusted_values"]
+        elif self.data_models.use_inflation is True and self.data_models.use_tax is False:
+            data = returns_data_dict["inflation_adjusted_values"]
+        elif self.data_models.use_inflation is False and self.data_models.use_tax is True:
+            data = returns_data_dict["tax_adjusted_values"]
+        print(data)
+        portfolio_values = pd.Series(
+            data,
+            index=pd.date_range(start=self.data_models.start_date, periods=len(data), freq="M")
+        )
+        self.results_models.portfolio_values = portfolio_values.iloc[:-1]
+
         portfolio_values_non_con = pd.Series(
             returns_data_dict["portfolio_values_without_contributions"],
             index=pd.date_range(start=self.data_models.start_date, periods=len(returns_data_dict["portfolio_values_without_contributions"]), freq="M")
@@ -269,22 +281,11 @@ class BacktestingProcessor(ABC):
             index=pd.date_range(start=self.data_models.start_date, periods=len(returns_data_dict["all_adjusted_weights"]), freq="M")
         )
 
-        portfolio_values = pd.Series(
-            returns_data_dict["portfolio_values"],
-            index=pd.date_range(start=self.data_models.start_date, periods=len(returns_data_dict["portfolio_values"]), freq="M")
-        )
-        self.results_models.portfolio_values = portfolio_values.iloc[:-1]
-
         self.results_models.portfolio_returns = pd.Series(
             returns_data_dict["portfolio_returns"],
             index=pd.date_range(start=self.data_models.start_date, periods=len(returns_data_dict["portfolio_returns"]), freq="M")
         )
 
-        tax_adj_values = pd.Series(
-            returns_data_dict["tax_adjusted_values"],
-            index=pd.date_range(start=self.data_models.start_date, periods=len(returns_data_dict["tax_adjusted_values"]), freq="M")
-        )
-        self.results_models.taxed_returns = tax_adj_values.iloc[:-1]
 
     def _get_portfolio_statistics(self):
         """

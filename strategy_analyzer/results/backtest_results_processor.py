@@ -51,12 +51,9 @@ class BacktestResultsProcessor:
         """
         strategy_value = self.results_models.portfolio_values_non_con
         final_value = strategy_value.iloc[-1]
-        # TODO set the portfolio final_value
-        if self.data_models.use_tax == True:
-            portfolio_value = self.results_models.taxed_returns
-            portfolio_final_value = portfolio_value.iloc[-1]
-        else:
-            portfolio_final_value = final_value
+
+        portfolio_value = self.results_models.portfolio_values
+        portfolio_final_value = portfolio_value.iloc[-1]
 
 
         if self.data_models.theme_mode.lower() == "dark":
@@ -92,14 +89,13 @@ class BacktestResultsProcessor:
                 line=dict(color="#9b4aa5")
             ))
 
-        if self.results_models.taxed_returns is not None:
-            fig.add_trace(go.Scatter(
-                x=self.results_models.taxed_returns.index,
-                y=self.results_models.taxed_returns,
-                mode='lines',
-                name='Portfolio Value',
-                line=dict(color="#9b4aa5")
-            ))
+        fig.add_trace(go.Scatter(
+            x=self.results_models.portfolio_values.index,
+            y=self.results_models.portfolio_values,
+            mode='lines',
+            name='Portfolio Value',
+            line=dict(color="#9b4aa5")
+        ))
 
         annotations = [
             dict(
