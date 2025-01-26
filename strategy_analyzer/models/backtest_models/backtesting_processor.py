@@ -135,14 +135,14 @@ class BacktestingProcessor(ABC):
                 )
                 portfolio_values.append(new_portfolio_value)
                 portfolio_values_without_contributions.append(new_portfolio_value_without_contributions)
-
+                # TODO this needs to be cleaned up.
                 if self.data_models.use_tax == True:
                     new_tax_adjusted_value = self._calculate_tax_adjusted_value(
                         tax_adjusted_values[-1], portfolio_values[-2], portfolio_values[-1], self.data_models.tax_rate, month_return
                     )
                     tax_adjusted_values.append(new_tax_adjusted_value)
 
-                if self.data_models.use_inflation == True:
+                elif self.data_models.use_inflation == True:
                     new_inflation_adjusted_value = self._calculate_inflation_adjusted_value(
                         inflation_adjusted_values[-1], month_return, inflation_rates, i + j
                     )
