@@ -263,7 +263,10 @@ class BacktestingProcessor(ABC):
             data = returns_data_dict["inflation_adjusted_values"]
         elif self.data_models.use_inflation is False and self.data_models.use_tax is True:
             data = returns_data_dict["tax_adjusted_values"]
+        else:
+            data = returns_data_dict["portfolio_values"]
         print(data)
+
         portfolio_values = pd.Series(
             data,
             index=pd.date_range(start=self.data_models.start_date, periods=len(data), freq="M")
