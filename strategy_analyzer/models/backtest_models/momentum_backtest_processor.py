@@ -65,8 +65,6 @@ class MomentumBacktestProcessor(BacktestingProcessor):
         pd.Series
             Series of momentum values for each asset.
         """
-        print(type(self.data_models.discount_to_volatility))
-        print(self.data_models.discount_to_volatility)
         momentum_data = self.data_portfolio.assets_data.copy().pct_change().dropna()
         momentum_3m = (momentum_data.loc[:current_date].iloc[-63:] + 1).prod() - 1
         momentum_6m = (momentum_data.loc[:current_date].iloc[-126:] + 1).prod() - 1
