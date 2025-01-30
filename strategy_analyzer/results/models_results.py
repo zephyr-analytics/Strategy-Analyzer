@@ -32,6 +32,8 @@ class ModelsResults:
         self._adjusted_weights = {}
         self._latest_weights = None
         self._simulation_results = None
+        self._taxed_returns = None
+        self._portfolio_values_non_con = None
 
     @property
     def adjusted_weights(self):
@@ -389,3 +391,45 @@ class ModelsResults:
             value (str): String representing the benchmark_asset.
         """
         self._simulation_results = value
+
+
+    @property
+    def taxed_returns(self):
+        """
+        Gets the benchmark_asset.
+
+        Returns:
+            str: String representing the benchmark_asset.
+        """
+        return self._taxed_returns
+
+    @taxed_returns.setter
+    def taxed_returns(self, value):
+        """
+        Sets the benchmark_asset.
+
+        Args:
+            value (str): String representing the benchmark_asset.
+        """
+        self._taxed_returns = value
+
+
+    @property
+    def portfolio_values_non_con(self):
+        """
+        Gets the benchmark_asset.
+
+        Returns:
+            str: String representing the benchmark_asset.
+        """
+        return self._portfolio_values_non_con
+
+    @portfolio_values_non_con.setter
+    def portfolio_values_non_con(self, value):
+        """
+        Sets the benchmark_asset.
+
+        Args:
+            value (str): String representing the benchmark_asset.
+        """
+        self._portfolio_values_non_con = value

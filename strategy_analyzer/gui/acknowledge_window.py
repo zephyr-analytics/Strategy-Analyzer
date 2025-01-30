@@ -3,7 +3,6 @@ Module for acknowledgement window.
 """
 
 import customtkinter as ctk
-
 from PIL import Image, ImageTk
 
 import strategy_analyzer.utilities as utilities
@@ -87,19 +86,22 @@ class AcknowledgmentPopup(ctk.CTkToplevel):
 
     def add_image(self):
         """
-        Adds an image to the top of the popup and ensures it is larger.
+        Adds an image to the top of the popup and ensures it is larger using CTkImage for high-DPI displays.
         """
         image_path = utilities.resource_path("images/Zephyr Analytics-01.png")
         image = Image.open(image_path)
-        image = image.resize((500, 400), Image.Resampling.LANCZOS)
 
-        self.tk_image = ImageTk.PhotoImage(image)
+        # Create a CTkImage with the desired size
+        self.ctk_image = ctk.CTkImage(image, size=(500, 200))  # Adjust the size as needed
 
+        # Configure grid
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
 
-        image_label = ctk.CTkLabel(self, image=self.tk_image, text="", bg_color="black")
+        # Add the image label
+        image_label = ctk.CTkLabel(self, image=self.ctk_image, text="", bg_color="black")
         image_label.grid(row=0, column=0, padx=0, pady=0, sticky="nsew")
+
 
     def center_window(self):
         """

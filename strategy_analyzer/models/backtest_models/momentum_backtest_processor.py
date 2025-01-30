@@ -32,7 +32,6 @@ class MomentumBacktestProcessor(BacktestingProcessor):
             An instance of the ModelsData class containing all relevant parameters and data for backtesting.
         """
         super().__init__(models_data=models_data, portfolio_data=portfolio_data, models_results=models_results)
-        self.remove_momentum_outliers = ""
 
     def get_portfolio_assets_and_weights(self, current_date):
         """
@@ -45,21 +44,6 @@ class MomentumBacktestProcessor(BacktestingProcessor):
             'Asset': momentum.nlargest(self.data_models.num_assets_to_select).index,
             'Momentum': momentum.nlargest(self.data_models.num_assets_to_select).values
         })
-
-        # if self.remove_momentum_outliers:
-        #     selected_assets = selected_assets[selected_assets['Asset'].isin(self.data_models.assets_weights.keys())]
-        #     high_momentum_assets = selected_assets[selected_assets['Momentum'] > 0.75]
-        #     if not high_momentum_assets.empty:
-        #         fallback_assets = momentum[~momentum.index.isin(selected_assets['Asset'])].nlargest(
-        #             len(high_momentum_assets)
-        #         )
-        #         for idx, _ in high_momentum_assets.iterrows():
-        #             if not fallback_assets.empty:
-        #                 replacement_asset = fallback_assets.idxmax()
-        #                 replacement_momentum = fallback_assets.max()
-        #                 selected_assets.loc[idx, 'Asset'] = replacement_asset
-        #                 selected_assets.loc[idx, 'Momentum'] = replacement_momentum
-        #                 fallback_assets = fallback_assets.drop(replacement_asset)
 
         adjusted_weights = self.adjust_weights(current_date=current_date, selected_assets=selected_assets)
 
@@ -85,7 +69,28 @@ class MomentumBacktestProcessor(BacktestingProcessor):
         momentum_6m = (momentum_data.loc[:current_date].iloc[-126:] + 1).prod() - 1
         momentum_9m = (momentum_data.loc[:current_date].iloc[-189:] + 1).prod() - 1
         momentum_12m = (momentum_data.loc[:current_date].iloc[-252:] + 1).prod() - 1
-        return (momentum_3m + momentum_6m + momentum_9m + momentum_12m) / 4
+        if self.data_models.discount_to_volatility == "True":
+            vol_3m = momentum_data.loc[:current_date].iloc[-63:].std()
+            vol_6m = momentum_data.loc[:current_date].iloc[-126:].std()
+            vol_9m = momentum_data.loc[:current_date].iloc[-189:].std()
+            vol_12m = momentum_data.loc[:current_date].iloc[-252:].std()
+
+            benchmark_vol_3m = vol_3m.mean()
+            benchmark_vol_6m = vol_6m.mean()
+            benchmark_vol_9m = vol_9m.mean()
+            benchmark_vol_12m = vol_12m.mean()
+
+            epsilon = 1e-6
+
+            adj_momentum_3m = momentum_3m * (benchmark_vol_3m / (vol_3m + epsilon))
+            adj_momentum_6m = momentum_6m * (benchmark_vol_6m / (vol_6m + epsilon))
+            adj_momentum_9m = momentum_9m * (benchmark_vol_9m / (vol_9m + epsilon))
+            adj_momentum_12m = momentum_12m * (benchmark_vol_12m / (vol_12m + epsilon))
+
+            return (adj_momentum_3m + adj_momentum_6m + adj_momentum_9m + adj_momentum_12m) / 4
+        else:
+
+            return (momentum_3m + momentum_6m + momentum_9m + momentum_12m) / 4
 
     def adjust_weights(
             self,

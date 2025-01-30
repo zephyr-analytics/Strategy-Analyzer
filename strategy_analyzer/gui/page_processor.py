@@ -1,133 +1,223 @@
 """
-Module for creating the setup page.
+Abstract module for processing momentum trading models.
 """
 
-import tkinter as tk
+import os
+import threading
+import logging
+from datetime import datetime
+from abc import ABC, abstractmethod
 
 import customtkinter as ctk
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import pandas as pd
 
 import strategy_analyzer.utilities as utilities
+from strategy_analyzer.logger import logger
 from strategy_analyzer.data.data_obtainment_processor import DataObtainmentProcessor
-from strategy_analyzer.data.portfolio_data import PortfolioData
 from strategy_analyzer.data.data_preparation_processor import DataPreparationProcessor
+from strategy_analyzer.data.portfolio_data import PortfolioData
 from strategy_analyzer.models.models_data import ModelsData
+from strategy_analyzer.processing_types import *
+from strategy_analyzer.models.models_factory import ModelsFactory
+from strategy_analyzer.results.models_results import ModelsResults
+
+logger = logging.getLogger(__name__)
 
 
-class SetupTab:
-    """
-    Handles the layout and functionality of the Initial Testing Setup parent.
-    """
-    def __init__(self, parent, models_data: ModelsData, portfolio_data: PortfolioData):
+class PageProcessor(ABC, ctk.CTkFrame):
+    def __init__(self, parent, controller, models_data: ModelsData, portfolio_data: PortfolioData, models_results: ModelsResults):
+        super().__init__(master=parent)
         self.data_models = models_data
         self.data_portfolio = portfolio_data
-
-        self.parent = parent
+        self.results_models = models_results
         self.bold_font = ctk.CTkFont(size=12, weight="bold", family="Arial")
-        self.theme_mode_var = ctk.StringVar(value="Light")
-        self.chart_frame = None
-        self.process(parent=parent)
+        self.controller = controller
+        self.parent = parent
+        self.start_date_var = ctk.StringVar(value=self.data_models.start_date)
+        self.bottom_text_result_display = ctk.CTkFrame(self)
+        self.settings_frame = ctk.CTkFrame(self)
+        self.settings_frame.grid(row=3, column=0, columnspan=5, sticky="nsew")
+        self.settings_frame.grid_columnconfigure([0, 1, 2], weight=1)
+        self.settings_frame.grid_rowconfigure([0, 1], weight=1)
+        self.process()
 
-
-    def process(self, parent):
+    def process(self):
         """
-        Method to process through building the Setup Tab.
         """
-        y_padding = 2
-        self.create_initial_testing_tab(parent)
-        self.build_chart(parent=parent)
-        self.build_data_frame(parent=parent, y_padding=y_padding)
-        self.build_trade_frame(parent=parent, y_padding=y_padding)
-        self.build_moving_avergae_frame(parent=parent, y_padding=y_padding)
-        self.build_momentum_frame(parent=parent, y_padding=y_padding)
-        self.build_monte_carlo_frame(parent=parent, y_padding=y_padding)
-        self.build_bottom_frame(parent=parent)
+        self.build_frame()
+        self.build_settings()
 
-
-    def create_initial_testing_tab(self, parent: ctk.CTkFrame):
+    @abstractmethod
+    def build_frame(self):
         """
-        Creates the Initial Testing Setup parent with categorized inputs for data, SMA, and momentum settings,
-        arranged using grid layout within frames and pack for frame placement.
+        """
+
+    @abstractmethod
+    def build_settings(self):
+        """
+        """
+
+    def obtain_data(self):
+        """
+        Method to run data obtainment script.
+        """
+        self.data_models.start_date = self.start_date_var.get()
+        data_obtain = DataObtainmentProcessor(models_data=self.data_models)
+        data_obtain.process()
+
+    def prepare_data(self):
+        """
+        Method to run data preparation script.
+        """
+        data_prepare = DataPreparationProcessor(models_data=self.data_models, portfolio_data=self.data_portfolio)
+        data_prepare.process()
+
+    def load_weights_and_update(self):
+        """
+        Loads the assets and weights from file and updates the attribute.
+        """
+        assets_weights, weights_filename = utilities.load_weights()
+        self.data_models.assets_weights = assets_weights
+        self.data_models.weights_filename = weights_filename
+        if self.data_models.assets_weights:
+            self.data_models.weights_filename = utilities.strip_csv_extension(
+                self.data_models.weights_filename
+            )
+
+    def load_out_of_market_weights_and_update(self):
+        """
+        Loads the out of market assets and weights from file and updates the attribute.
+        """
+        self.data_models.out_of_market_tickers, file_name = utilities.load_weights()
+
+    def update_theme_mode(self, *args):
+        """
+        Updates the theme mode in the data model.
 
         Parameters
         ----------
-        parent : ctk.CTkFrame
-            The frame for the Initial Testing Setup parent.
+        *args : tuple
+            Additional arguments passed by the trace method.
         """
-        header_frame = ctk.CTkFrame(parent, fg_color="transparent")
-        header_frame.pack(fill="x", pady=(10, 10), padx=10)
+        _ = args
+        ctk.set_appearance_mode(self.theme_mode_var.get())
+        self.data_models.theme_mode = self.theme_mode_var.get()
 
-        header_frame.grid_columnconfigure(0, weight=1)
-        ctk.CTkLabel(
-            header_frame,
-            text="Configure your portfolio settings below.",
-            font=ctk.CTkFont(size=20, weight="bold"),
-            anchor="center"
-        ).grid(row=0, column=0, pady=10, sticky="ew")
-
-        theme_label = ctk.CTkLabel(parent, text="Select Theme:", font=self.bold_font)
-        theme_label.pack(pady=0)
-        mode_dropdown = ctk.CTkOptionMenu(
-            parent,
-            fg_color="#bb8fce",
-            text_color="#000000",
-            button_color="#8e44ad",
-            button_hover_color="#8e44ad",
-            values=["Light", "Dark"],
-            variable=self.theme_mode_var,
-            command=self.update_theme_mode
-        )
-        mode_dropdown.pack(pady=5)
-
-
-    def build_chart(self, parent):
+    def update_models_data(self, var_name, var_value, *args):
         """
-        Build the chart frame during GUI initialization.
-        """
-        self.chart_frame = ctk.CTkFrame(parent)
-        self.chart_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=10, pady=10)
-
-        self.no_data_label = tk.Label(
-            self.chart_frame, text="No Data Available", font=("Arial", 16), fg="gray"
-        )
-        self.no_data_label.pack(expand=True)
-
-
-    def update_chart_with_data(self, data: dict, title: str):
-        """
-        Update the pie chart with the given dictionary of data.
+        Dynamically updates the corresponding attribute in the data model based on the provided variable name.
 
         Parameters
         ----------
-        data : dict
-            A dictionary with category names as keys and corresponding values.
+        var_name : str
+            The name of the attribute in the data model to update.
+        var_value : Variable
+            The variable from which to get the updated value.
+        *args : tuple
+            Additional arguments passed by the trace method.
         """
-        for widget in self.chart_frame.winfo_children():
-            widget.destroy()
+        _ = args
+        value = var_value.get()
 
-        if not data:
-            self.no_data_label = tk.Label(
-                self.chart_frame, text="No Data Available", font=("Arial", 16), fg="gray"
+        setattr(self.data_models, var_name, value)
+
+    def execute_task(self, run_type, model_type):
+        """
+        Executes the task based on the selected tab and run type.
+
+        Parameters
+        ----------
+        tab_name : str
+            The name of the tab selected (e.g., "SMA Strategies").
+        """
+        model_map = {
+            "MA": Models.MA,
+            "MOMENTUM": Models.MOMENTUM,
+            "IN_AND_OUT_OF_MARKET": Models.IN_AND_OUT_OF_MARKET,
+            "MA_CROSSOVER": Models.MA_CROSSOVER,
+            "MACHINE_LEARNING": Models.MACHINE_LEARNING
+        }
+
+        run_map = {
+            "BACKTEST": Runs.BACKTEST,
+            "SIGNALS": Runs.SIGNALS,
+            "TUNE": Runs.PARAMETER_TUNE,
+            "SIMULATION": Runs.SIMULATION
+        }
+
+        model_enum = model_map.get(model_type)
+        run_enum = run_map.get(run_type)
+        print(model_enum)
+        print(run_enum)
+
+        if not model_enum or not run_enum:
+            self.display_result("Invalid model or run type selection.")
+            return
+
+        threading.Thread(
+            target=self._run_task,
+            args=(model_enum, run_enum),
+        ).start()
+
+    def _run_task(self, model, run_type):
+        """
+        Generic task runner for executing a specific model and run type in a separate thread.
+
+        Parameters
+        ----------
+        model : Models
+            The model to run (e.g., Models.SMA).
+        run_type : Runs
+            The run type (e.g., Runs.BACKTEST, Runs.SIMULATION, Runs.SIGNALS).
+        """
+        self.clear_message_text()
+        try:
+            factory = ModelsFactory(
+                models_data=self.data_models,
+                portfolio_data=self.data_portfolio,
+                models_results=self.results_models
             )
-            self.no_data_label.pack(expand=True)
-        else:
-            fig, ax = plt.subplots(figsize=(10, 8))
-            ax.pie(
-                data.values(),
-                labels=data.keys(),
-                autopct='%1.1f%%',
-                startangle=90,
-                wedgeprops={"edgecolor": "black"}
-            )
-            ax.axis("equal")
-            ax.set_title(f"{title}", fontsize=18, fontweight="bold", pad=20)
+            result = factory.run(model, run_type)
+            self.after(0, lambda: self.display_result(result))
+        finally:
+            pass
 
-            # Embed the chart in the GUI
-            canvas = FigureCanvasTkAgg(fig, master=self.chart_frame)
-            canvas.draw()
-            canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+    def open_artifacts_directory(self):
+        """
+        Opens the artifacts plot directory on Windows.
+        """
+        path = os.path.join(os.getcwd(), "artifacts", self.data_models.weights_filename)
+        artifacts_dir = path
 
+        try:
+            os.startfile(artifacts_dir)
+        except Exception as e:
+            print(f"Error opening directory: {e}")
+    
+    def clear_message_text(self):
+        """
+        Clears the text in the bottom text area.
+        """
+        self.bottom_text_result_display.destroy()
+
+    def display_result(self, result: str):
+        """
+        Displays the result of a task in the GUI.
+
+        Parameters
+        ----------
+        result : str
+            The result text to be displayed in the GUI.
+        """
+        self.bottom_text_result_display.destroy()
+        self.bottom_text_result_display = ctk.CTkFrame(self)
+        self.bottom_text_result_display.grid(row=3, column=3)
+        self.bottom_text_result = ctk.CTkLabel(
+            self.bottom_text_result_display,
+            text=result, text_color="green" if "completed" in result else "red",
+            fg_color="transparent",
+        )
+        self.bottom_text_result.grid(row=0, column=0)
 
     def build_data_frame(self, parent: ctk.CTkFrame, y_padding):
         """
@@ -135,7 +225,7 @@ class SetupTab:
         # Data Settings
         data_frame_rows = 0
         data_frame = ctk.CTkFrame(parent, fg_color="transparent")
-        data_frame.pack(fill="x", pady=10, padx=10)
+        data_frame.grid(row=data_frame_rows, column=0, padx=10, pady=10, sticky="nsew")
 
         ctk.CTkLabel(
             data_frame, text="Data Settings", font=self.bold_font
@@ -155,19 +245,39 @@ class SetupTab:
         # Add widgets dynamically and update row counter
         ctk.CTkLabel(
             data_frame, text="Initial Portfolio Value:", font=self.bold_font
-        ).grid(row=data_frame_rows, column=0, padx=5, sticky="e")
+        ).grid(row=data_frame_rows, column=0, padx=5, sticky="nsew")
+        ctk.CTkLabel(
+            data_frame, text="Contribution:", font=self.bold_font
+        ).grid(row=data_frame_rows, column=1, sticky="nsew", padx=5)
+
+        data_frame_rows += 1
+
         initial_portfolio_value_var = ctk.StringVar(value=self.data_models.initial_portfolio_value)
         ctk.CTkEntry(
             data_frame, textvariable=initial_portfolio_value_var
-        ).grid(row=data_frame_rows, column=1, padx=5, sticky="w", pady=y_padding)
+        ).grid(row=data_frame_rows, column=0, padx=5, sticky="nsew", pady=y_padding)
         initial_portfolio_value_var.trace_add(
             "write", lambda *args: self.update_models_data("initial_portfolio_value", initial_portfolio_value_var)
         )
+        contribution_entry_var = ctk.StringVar()
+        ctk.CTkEntry(
+            data_frame, textvariable=contribution_entry_var
+        ).grid(row=data_frame_rows, column=1, sticky="nsew", padx=5, pady=y_padding)
+        contribution_entry_var.trace_add(
+            "write", lambda *args: self.update_models_data("contribution", contribution_entry_var)
+        )
+
         data_frame_rows += 1
 
         ctk.CTkLabel(
-            data_frame, text="Select In Market Assets:", font=self.bold_font
-        ).grid(row=data_frame_rows, column=0, sticky="e", padx=5)
+            data_frame, text="Trading Assets:", font=self.bold_font
+        ).grid(row=data_frame_rows, column=0, sticky="nsew", padx=5)
+        ctk.CTkLabel(
+            data_frame, text="Out of Market Assets:", font=self.bold_font
+        ).grid(row=data_frame_rows, column=1, sticky="nsew", padx=5)
+
+        data_frame_rows += 1
+
         ctk.CTkButton(
             data_frame,
             text="Select .csv File",
@@ -175,11 +285,8 @@ class SetupTab:
             text_color="#000000",
             hover_color="#8e44ad",
             command=self.load_weights_and_update
-        ).grid(row=data_frame_rows, column=1, sticky="w", padx=5, pady=y_padding)
+        ).grid(row=data_frame_rows, column=0, sticky="nsew", padx=5, pady=y_padding)
 
-        ctk.CTkLabel(
-            data_frame, text="Select Out of Market Assets:", font=self.bold_font
-        ).grid(row=data_frame_rows, column=2, sticky="e", padx=5)
         ctk.CTkButton(
             data_frame,
             text="Select .csv File",
@@ -187,50 +294,55 @@ class SetupTab:
             text_color="#000000",
             hover_color="#8e44ad",
             command=self.load_out_of_market_weights_and_update
-        ).grid(row=data_frame_rows, column=3, sticky="w", padx=5, pady=y_padding)
+        ).grid(row=data_frame_rows, column=1, sticky="nsew", padx=5, pady=y_padding)
+
         data_frame_rows += 1
 
         ctk.CTkLabel(
             data_frame, text="Start Date:", font=self.bold_font
-        ).grid(row=data_frame_rows, column=0, padx=5, sticky="e")
-        start_date_var = ctk.StringVar(value=self.data_models.start_date)
-        ctk.CTkEntry(
-            data_frame, textvariable=start_date_var
-        ).grid(row=data_frame_rows, column=1, padx=5, sticky="w", pady=y_padding)
-        start_date_var.trace_add(
-            "write", lambda *args: self.update_models_data("start_date", start_date_var)
-        )
-
+        ).grid(row=data_frame_rows, column=0, padx=5, sticky="nsew")
         ctk.CTkLabel(
             data_frame, text="End Date:", font=self.bold_font
-        ).grid(row=data_frame_rows, column=2, padx=5, sticky="e")
+        ).grid(row=data_frame_rows, column=1, padx=5, sticky="nsew")
+
+        data_frame_rows += 1
+
+        ctk.CTkEntry(
+            data_frame, textvariable=self.start_date_var
+        ).grid(row=data_frame_rows, column=0, padx=5, sticky="nsew", pady=y_padding)
+        self.start_date_var.trace_add(
+            "write", lambda *args: self.update_models_data("start_date", self.start_date_var)
+        )
         end_date_var = ctk.StringVar(value=self.data_models.end_date)
         ctk.CTkEntry(
             data_frame, textvariable=end_date_var
-        ).grid(row=data_frame_rows, column=3, padx=5, sticky="w", pady=y_padding)
+        ).grid(row=data_frame_rows, column=1, padx=5, sticky="nsew", pady=y_padding)
         end_date_var.trace_add(
             "write", lambda *args: self.update_models_data("end_date", end_date_var)
         )
+
         data_frame_rows += 1
 
         ctk.CTkLabel(
             data_frame, text="Cash Ticker:", font=self.bold_font
-        ).grid(row=data_frame_rows, column=0, sticky="e", padx=5)
+        ).grid(row=data_frame_rows, column=0, sticky="nsew", padx=5)
+        ctk.CTkLabel(
+            data_frame, text="Bond Ticker:", font=self.bold_font
+        ).grid(row=data_frame_rows, column=1, sticky="nsew", padx=5)
+
+        data_frame_rows += 1
+
         cash_ticker_var = ctk.StringVar(value=self.data_models.cash_ticker)
         ctk.CTkEntry(
             data_frame, textvariable=cash_ticker_var
-        ).grid(row=data_frame_rows, column=1, sticky="w", padx=5, pady=y_padding)
+        ).grid(row=data_frame_rows, column=0, sticky="nsew", padx=5, pady=y_padding)
         cash_ticker_var.trace_add(
             "write", lambda *args: self.update_models_data("cash_ticker", cash_ticker_var)
         )
-
-        ctk.CTkLabel(
-            data_frame, text="Bond Ticker:", font=self.bold_font
-        ).grid(row=data_frame_rows, column=2, sticky="e", padx=5)
         bond_ticker_var = ctk.StringVar()
         ctk.CTkEntry(
             data_frame, textvariable=bond_ticker_var
-        ).grid(row=data_frame_rows, column=3, sticky="w", padx=5, pady=y_padding)
+        ).grid(row=data_frame_rows, column=1, sticky="nsew", padx=5, pady=y_padding)
         bond_ticker_var.trace_add(
             "write", lambda *args: self.update_models_data("bond_ticker", bond_ticker_var)
         )
@@ -243,7 +355,7 @@ class SetupTab:
             text_color="#000000",
             hover_color="#8e44ad",
             command=self.obtain_data,
-        ).grid(row=data_frame_rows, column=0, columnspan=2, padx=5, pady=y_padding)
+        ).grid(row=data_frame_rows, column=0, padx=5, pady=y_padding)
 
         ctk.CTkButton(
             data_frame,
@@ -252,7 +364,7 @@ class SetupTab:
             text_color="#000000",
             hover_color="#8e44ad",
             command=self.prepare_data,
-        ).grid(row=data_frame_rows, column=2, columnspan=2, padx=5, pady=y_padding)
+        ).grid(row=data_frame_rows, column=1, padx=5, pady=y_padding)
 
 
     def build_trade_frame(self, parent: ctk.CTkFrame, y_padding):
@@ -260,7 +372,7 @@ class SetupTab:
         """
         trade_frame_rows = 0
         trade_frame = ctk.CTkFrame(parent, fg_color="transparent")
-        trade_frame.pack(fill="x", pady=10, padx=10)
+        trade_frame.grid(row=trade_frame_rows, column=1, padx=10, pady=10, sticky="nsew")
         ctk.CTkLabel(
             trade_frame, text="Trade Settings", font=self.bold_font
         ).grid(row=trade_frame_rows, column=0, columnspan=4, sticky="ew")
@@ -305,13 +417,45 @@ class SetupTab:
             "write", lambda *args: self.update_models_data("trading_frequency", trading_freq_var)
         )
 
+        trade_frame_rows += 1
+
+        ctk.CTkLabel(
+            trade_frame, text="Use Tax Adjustment:", font=self.bold_font
+        ).grid(row=trade_frame_rows, column=0, sticky="e", padx=5)
+        tax_options = ["True", "False"]
+        tax_var = ctk.StringVar()
+        ctk.CTkOptionMenu(
+            trade_frame,
+            values=tax_options,
+            fg_color="#bb8fce",
+            text_color="#000000",
+            button_color="#8e44ad",
+            button_hover_color="#8e44ad",
+            variable=tax_var
+        ).grid(row=trade_frame_rows, column=1, sticky="w", padx=5, pady=y_padding)
+        tax_var.trace_add(
+            "write", lambda *args: self.update_models_data("use_tax", tax_var)
+        )
+        ctk.CTkLabel(
+            trade_frame, text="Tax Rate:", font=self.bold_font
+        ).grid(row=trade_frame_rows, column=2, sticky="e", padx=5)
+        tax_rate_var = ctk.StringVar(value=self.data_models.tax_rate)
+        ctk.CTkEntry(
+            trade_frame, textvariable=tax_rate_var
+        ).grid(row=trade_frame_rows, column=3, sticky="w", padx=5, pady=y_padding)
+        tax_rate_var.trace_add(
+            "write", lambda *args: self.update_models_data("tax_rate", tax_rate_var)
+        )
+
+        trade_frame_rows += 1
+
 
     def build_moving_avergae_frame(self, parent: ctk.CTkFrame, y_padding):
         """
         """
         ma_frame_rows = 0
         ma_frame = ctk.CTkFrame(parent, fg_color="transparent")
-        ma_frame.pack(fill="x", pady=10, padx=10)
+        ma_frame.grid(row=ma_frame_rows, column=2, padx=10, pady=10, sticky="nsew")
         ctk.CTkLabel(
             ma_frame, text="Moving Average Settings", font=self.bold_font
         ).grid(row=ma_frame_rows, column=0, columnspan=4, sticky="ew")
@@ -417,13 +561,12 @@ class SetupTab:
             "write", lambda *args: self.update_models_data("fast_ma_period", fast_ma_var)
         )
 
-
     def build_momentum_frame(self, parent: ctk.CTkFrame, y_padding):
         """
         """
         momentum_frame_rows = 0
         momentum_frame = ctk.CTkFrame(parent, fg_color="transparent")
-        momentum_frame.pack(fill="x", pady=10, padx=10)
+        momentum_frame.grid(row=momentum_frame_rows, column=3, padx=10, pady=10, sticky="nsew")
         ctk.CTkLabel(
             momentum_frame, text="Momentum Settings", font=self.bold_font
         ).grid(row=momentum_frame_rows, column=0, columnspan=4, sticky="ew")
@@ -449,6 +592,7 @@ class SetupTab:
         num_assets_to_select_var.trace_add(
             "write", lambda *args: self.update_models_data("num_assets_to_select", num_assets_to_select_var)
         )
+
         momentum_frame_rows += 1
 
         ctk.CTkLabel(
@@ -469,28 +613,44 @@ class SetupTab:
             "write", lambda *args: self.update_models_data("negative_mom", negative_mom_var)
         )
 
+        momentum_frame_rows += 1
+
+        ctk.CTkLabel(
+            momentum_frame, text="Use volatility Discount:", font=self.bold_font
+        ).grid(row=momentum_frame_rows, column=0, sticky="e", padx=5)
+        volatility_options = ["True", "False"]
+        volatility_var = ctk.StringVar()
+        ctk.CTkOptionMenu(
+            momentum_frame,
+            values=volatility_options,
+            fg_color="#bb8fce",
+            text_color="#000000",
+            button_color="#8e44ad",
+            button_hover_color="#8e44ad",
+            variable=volatility_var
+        ).grid(row=momentum_frame_rows, column=1, sticky="w", padx=5, pady=y_padding)
+        volatility_var.trace_add(
+            "write", lambda *args: self.update_models_data("discount_to_volatility", volatility_var)
+        )
 
     def build_monte_carlo_frame(self, parent: ctk.CTkFrame, y_padding):
         """
         """
         monte_carlo_frame_rows = 0
         monte_carlo_frame = ctk.CTkFrame(parent, fg_color="transparent")
-        monte_carlo_frame.pack(fill="x", pady=10, padx=10)
+        monte_carlo_frame.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
         ctk.CTkLabel(
             monte_carlo_frame, text="Monte Carlo Settings", font=self.bold_font
         ).grid(row=monte_carlo_frame_rows, column=0, columnspan=4, sticky="ew")
         monte_carlo_frame_rows += 1
-
         ctk.CTkLabel(
             monte_carlo_frame, text="Sets the Monte Carlo parameters of the trading model.", font=self.bold_font
         ).grid(row=monte_carlo_frame_rows, column=0, columnspan=4, sticky="ew", pady=y_padding)
         monte_carlo_frame_rows += 1
-
         monte_carlo_frame.grid_columnconfigure(0, weight=1)
         monte_carlo_frame.grid_columnconfigure(1, weight=1)
         monte_carlo_frame.grid_columnconfigure(2, weight=1)
         monte_carlo_frame.grid_columnconfigure(3, weight=1)
-
         ctk.CTkLabel(
             monte_carlo_frame, text="Simulation Horizon:", font=self.bold_font
         ).grid(row=monte_carlo_frame_rows, column=0, sticky="e", padx=5)
@@ -501,7 +661,6 @@ class SetupTab:
         simulation_horizon_entry_var.trace_add(
             "write", lambda *args: self.update_models_data("simulation_horizon", simulation_horizon_entry_var)
         )
-
         ctk.CTkLabel(
             monte_carlo_frame, text="Number Simulations To Run:", font=self.bold_font
         ).grid(row=monte_carlo_frame_rows, column=2, sticky="e", padx=5)
@@ -513,7 +672,6 @@ class SetupTab:
             "write", lambda *args: self.update_models_data("num_simulation", num_simulations_var)
         )
         monte_carlo_frame_rows += 1
-
         ctk.CTkLabel(
             monte_carlo_frame, text="Contribution:", font=self.bold_font
         ).grid(row=monte_carlo_frame_rows, column=0, sticky="e", padx=5)
@@ -524,7 +682,6 @@ class SetupTab:
         contribution_entry_var.trace_add(
             "write", lambda *args: self.update_models_data("contribution", contribution_entry_var)
         )
-
         ctk.CTkLabel(
             monte_carlo_frame, text="Contribution Frequency:", font=self.bold_font
         ).grid(row=monte_carlo_frame_rows, column=2, sticky="e", padx=5)
@@ -542,80 +699,3 @@ class SetupTab:
         contribution_freq_var.trace_add(
             "write", lambda *args: self.update_models_data("contribution_frequency", contribution_freq_var)
         )
-
-
-    def build_bottom_frame(self, parent: ctk.CTkFrame):
-        """
-        """
-        footer_frame = ctk.CTkFrame(parent, fg_color="transparent")
-        footer_frame.pack(fill="x", pady=10)
-        copyright_label = ctk.CTkLabel(
-            footer_frame,
-            text="© Zephyr Analytics 2025",
-            font=ctk.CTkFont(size=12)
-        )
-        copyright_label.pack()
-
-    def obtain_data(self):
-        """
-        Method to run data obtainment script.
-        """
-        data_obtain = DataObtainmentProcessor(models_data=self.data_models)
-        data_obtain.process()
-
-    def prepare_data(self):
-        """
-        Method to run data preparation script.
-        """
-        data_prepare = DataPreparationProcessor(models_data=self.data_models, portfolio_data=self.data_portfolio)
-        data_prepare.process()
-
-    def load_weights_and_update(self):
-        """
-        Loads the assets and weights from file and updates the attribute.
-        """
-        assets_weights, weights_filename = utilities.load_weights()
-        self.data_models.assets_weights = assets_weights
-        self.data_models.weights_filename = weights_filename
-        if self.data_models.assets_weights:
-            self.data_models.weights_filename = utilities.strip_csv_extension(
-                self.data_models.weights_filename
-            )
-            self.update_chart_with_data(data=self.data_models.assets_weights, title=self.data_models.weights_filename)
-
-    def load_out_of_market_weights_and_update(self):
-        """
-        Loads the out of market assets and weights from file and updates the attribute.
-        """
-        self.data_models.out_of_market_tickers, file_name = utilities.load_weights()
-
-    def update_theme_mode(self, *args):
-        """
-        Updates the theme mode in the data model.
-
-        Parameters
-        ----------
-        *args : tuple
-            Additional arguments passed by the trace method.
-        """
-        _ = args
-        ctk.set_appearance_mode(self.theme_mode_var.get())
-        self.data_models.theme_mode = self.theme_mode_var.get()
-
-    def update_models_data(self, var_name, var_value, *args):
-        """
-        Dynamically updates the corresponding attribute in the data model based on the provided variable name.
-
-        Parameters
-        ----------
-        var_name : str
-            The name of the attribute in the data model to update.
-        var_value : Variable
-            The variable from which to get the updated value.
-        *args : tuple
-            Additional arguments passed by the trace method.
-        """
-        _ = args
-        value = var_value.get()
-
-        setattr(self.data_models, var_name, value)

@@ -43,6 +43,9 @@ class ModelsData:
         self._ma_type = str
         self._fast_ma_period = ""
         self._slow_ma_period = ""
+        self._use_tax = False
+        self._tax_rate = 0.22
+        self._discount_to_volatility = False
 
 
     @property
@@ -625,3 +628,66 @@ class ModelsData:
             value (int): Integer representing the contribution.
         """
         self._slow_ma_period = value
+
+
+    @property
+    def use_tax(self):
+        """
+        Gets the contribution.
+
+        Returns:
+            int: Integer representing the contribution.
+        """
+        return self._use_tax
+
+    @use_tax.setter
+    def use_tax(self, value):
+        """
+        Sets the contribution.
+
+        Args:
+            value (int): Integer representing the contribution.
+        """
+        self._use_tax = value
+
+
+    @property
+    def tax_rate(self):
+        """
+        Gets the contribution.
+
+        Returns:
+            int: Integer representing the contribution.
+        """
+        return float(self._tax_rate)
+
+    @tax_rate.setter
+    def tax_rate(self, value):
+        """
+        Sets the contribution.
+
+        Args:
+            value (int): Integer representing the contribution.
+        """
+        self._tax_rate = value
+
+
+    @property
+    def discount_to_volatility(self):
+        """
+        Gets the contribution.
+
+        Returns:
+            int: Integer representing the contribution.
+        """
+        return self._discount_to_volatility
+
+    @discount_to_volatility.setter
+    def discount_to_volatility(self, value):
+        """
+        Sets the contribution.
+
+        Args:
+            value (int): Integer representing the contribution.
+        """
+        self._discount_to_volatility = value

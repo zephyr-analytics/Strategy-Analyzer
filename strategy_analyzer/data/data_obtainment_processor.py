@@ -2,11 +2,13 @@
 Module for obtaining and saving data to the raw directory.
 """
 
+import datetime
 import logging
 import os
 from datetime import datetime, timedelta
 
 import pandas as pd
+import pandas_datareader.data as web
 
 import strategy_analyzer.utilities as utilities
 from strategy_analyzer.logger import logger
@@ -71,7 +73,7 @@ class DataObtainmentProcessor:
             df = pd.concat([df, new_data], axis=1)
 
         current_date = datetime.now()
-        if (self.end_date - current_date).days > 3:
+        if (self.end_date - current_date).days > 2:
             latest_date_in_df = df.index.max()
             logger.info("Fetching data from %s to %s for all columns.", latest_date_in_df, self.end_date)
             updated_data = utilities.fetch_data(

@@ -21,7 +21,7 @@ class DataPreparationProcessor:
         self.data_models = models_data
         self.data_portfolio = portfolio_data
         self.end_date = pd.to_datetime(self.data_models.end_date)
-        self.min_time = None
+        self.min_time = 8
 
     def process(self):
         """
@@ -65,7 +65,7 @@ class DataPreparationProcessor:
 
                 filtered_data = full_data.drop(columns=dropped_tickers)
             else:
-                filtered_data = full_data
+                pass
         else:
             filtered_data = full_data
 
@@ -94,7 +94,7 @@ class DataPreparationProcessor:
             overall_start_date = max(specified_start_date, data.dropna(how='all').index.min().date())
             logger.info("Using specified start date: %s", overall_start_date)
 
-        self.data_models.start_date = overall_start_date
+        self.data_models.start_date = pd.to_datetime(overall_start_date)
 
         data.index = pd.to_datetime(data.index).date
         trimmed_data = data.loc[overall_start_date:self.end_date]
