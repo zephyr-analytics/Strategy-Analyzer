@@ -45,8 +45,7 @@ class ModelsData:
         self._slow_ma_period = ""
         self._use_tax = False
         self._tax_rate = 0.22
-        self._inflation_data = None
-        self._use_inflation = False
+        self._discount_to_volatility = False
 
 
     @property
@@ -639,7 +638,7 @@ class ModelsData:
         Returns:
             int: Integer representing the contribution.
         """
-        return bool(self._use_tax)
+        return self._use_tax
 
     @use_tax.setter
     def use_tax(self, value):
@@ -674,42 +673,21 @@ class ModelsData:
 
 
     @property
-    def inflation_data(self):
+    def discount_to_volatility(self):
         """
         Gets the contribution.
 
         Returns:
             int: Integer representing the contribution.
         """
-        return self._inflation_data
+        return self._discount_to_volatility
 
-    @inflation_data.setter
-    def inflation_data(self, value):
+    @discount_to_volatility.setter
+    def discount_to_volatility(self, value):
         """
         Sets the contribution.
 
         Args:
             value (int): Integer representing the contribution.
         """
-        self._inflation_data = value
-
-
-    @property
-    def use_inflation(self):
-        """
-        Gets the contribution.
-
-        Returns:
-            int: Integer representing the contribution.
-        """
-        return bool(self._use_inflation)
-
-    @use_inflation.setter
-    def use_inflation(self, value):
-        """
-        Sets the contribution.
-
-        Args:
-            value (int): Integer representing the contribution.
-        """
-        self._use_inflation = value
+        self._discount_to_volatility = value

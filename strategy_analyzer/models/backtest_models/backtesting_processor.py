@@ -98,19 +98,12 @@ class BacktestingProcessor(ABC):
         """
         monthly_dates = self._prepare_date_ranges()
 
-        inflation_rates = self.data_models.inflation_data
-        inflation_rates.index = pd.to_datetime(inflation_rates.index)
-        monthly_dates = pd.to_datetime(monthly_dates)
-        inflation_rates = inflation_rates[inflation_rates.index.isin(monthly_dates)]
-
         step = self._determine_step_size()
 
         portfolio_values = [int(self.data_models.initial_portfolio_value)]
         portfolio_values_without_contributions = [int(self.data_models.initial_portfolio_value)]
         portfolio_returns = []
         tax_adjusted_values = [int(self.data_models.initial_portfolio_value)]
-        inflation_adjusted_values = [int(self.data_models.initial_portfolio_value)]
-        tax_and_inflation_adjusted_values = [int(self.data_models.initial_portfolio_value)]
         all_adjusted_weights = []
 
         for i in range(0, len(monthly_dates), step):
@@ -129,7 +122,7 @@ class BacktestingProcessor(ABC):
                     last_date_current_month, last_date_next_month, adjusted_weights
                 )
                 portfolio_returns.append(month_return)
-# TODO there is an issue where contributions are being inflation and tax adjusted.
+
                 new_portfolio_value, new_portfolio_value_without_contributions = self._calculate_new_portfolio_values(
                     portfolio_values[-1], portfolio_values_without_contributions[-1], month_return, self.data_models.contribution
                 )
@@ -137,31 +130,14 @@ class BacktestingProcessor(ABC):
                 portfolio_values.append(new_portfolio_value)
                 portfolio_values_without_contributions.append(new_portfolio_value_without_contributions)
 
-                if self.data_models.use_tax and self.data_models.use_inflation:
-                    # Both tax and inflation adjustments are enabled
-                    new_tax_and_inflation_adjusted_value = self._calculate_tax_and_inflation_adjusted_value(
-                        portfolio_values[-1], portfolio_values[-2], inflation_rates, i + j, self.data_models.tax_rate, month_return
-                    )
-                    tax_and_inflation_adjusted_values.append(new_tax_and_inflation_adjusted_value)
 
-                elif self.data_models.use_tax:
-                    # Only tax adjustment is enabled
+                if self.data_models.use_tax == "True":
                     new_tax_adjusted_value = self._calculate_tax_adjusted_value(
                         tax_adjusted_values[-1], portfolio_values[-2], portfolio_values[-1], self.data_models.tax_rate, month_return
                     )
                     tax_adjusted_values.append(new_tax_adjusted_value)
 
-                elif self.data_models.use_inflation:
-                    # Only inflation adjustment is enabled
-                    new_inflation_adjusted_value = self._calculate_inflation_adjusted_value(
-                        portfolio_values[-1], inflation_rates, i + j
-                    )
-                    inflation_adjusted_values.append(new_inflation_adjusted_value)
-
-                # Add adjusted weights to the list
                 all_adjusted_weights.append(adjusted_weights)
-
-                # Update the date for the next calculation
                 last_date_current_month = last_date_next_month
 
         return {
@@ -169,9 +145,7 @@ class BacktestingProcessor(ABC):
             "portfolio_values": portfolio_values,
             "portfolio_values_without_contributions": portfolio_values_without_contributions,
             "portfolio_returns": portfolio_returns,
-            "tax_adjusted_values": tax_adjusted_values,
-            "inflation_adjusted_values": inflation_adjusted_values,
-            "tax_and_inflation_adjusted_values": tax_and_inflation_adjusted_values,
+            "tax_adjusted_values": tax_adjusted_values
         }
 
 
@@ -234,30 +208,6 @@ class BacktestingProcessor(ABC):
         else:
             return last_tax_adjusted_value + (current_portfolio_value - previous_portfolio_value)
 
-    def _calculate_inflation_adjusted_value(self, current_portfolio_value, inflation_rates, index):
-        """
-        Calculate the inflation-adjusted portfolio value using the portfolio value directly.
-        """
-        inflation_rate = inflation_rates.loc[index, 'inflation_rate'] if index in inflation_rates.index else 0
-        return current_portfolio_value / (1 + inflation_rate)
-
-    def _calculate_tax_and_inflation_adjusted_value(self, current_portfolio_value, previous_portfolio_value, inflation_rates, index, tax_rate, month_return):
-        """
-        Calculate the portfolio value adjusted for both taxes and inflation.
-        """
-        # Tax adjustment
-        if month_return > 0:
-            tax_adjustment = (current_portfolio_value - previous_portfolio_value) * tax_rate
-            tax_adjusted_value = current_portfolio_value - tax_adjustment
-        else:
-            tax_adjusted_value = current_portfolio_value
-
-        # Inflation adjustment
-        inflation_rate = inflation_rates.loc[index, 'inflation_rate'] if index in inflation_rates.index else 0
-        inflation_adjusted_value = tax_adjusted_value / (1 + inflation_rate)
-
-        return inflation_adjusted_value
-
 
     def _persist_portfolio_data(self, returns_data_dict: dict):
         """
@@ -272,15 +222,10 @@ class BacktestingProcessor(ABC):
         portfolio_returns : pd.Series
             Series of all portfolio returns from the backtest.
         """
-        if self.data_models.use_tax and self.data_models.use_inflation:
-            data = returns_data_dict["tax_and_inflation_adjusted_values"]
-        elif self.data_models.use_inflation and not self.data_models.use_tax:
-            data = returns_data_dict["inflation_adjusted_values"]
-        elif self.data_models.use_tax and not self.data_models.use_tax:
+        if self.data_models.use_tax == "True":
             data = returns_data_dict["tax_adjusted_values"]
         else:
             data = returns_data_dict["portfolio_values"]
-        print(data)
 
         portfolio_values = pd.Series(
             data,
