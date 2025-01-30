@@ -32,7 +32,6 @@ class MomentumBacktestProcessor(BacktestingProcessor):
             An instance of the ModelsData class containing all relevant parameters and data for backtesting.
         """
         super().__init__(models_data=models_data, portfolio_data=portfolio_data, models_results=models_results)
-        self.remove_momentum_outliers = ""
 
     def get_portfolio_assets_and_weights(self, current_date):
         """

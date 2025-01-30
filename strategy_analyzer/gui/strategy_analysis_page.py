@@ -94,9 +94,9 @@ class StrategyAnalysisPage(PageProcessor):
         self.create_testing_frame(parent=self)
 
         self.build_data_frame(parent=parent, y_padding=y_padding)
-        # self.build_trade_frame(parent=parent, y_padding=y_padding)
-        # self.build_moving_avergae_frame(parent=parent, y_padding=y_padding)
-        # self.build_momentum_frame(parent=parent, y_padding=y_padding)
+        self.build_trade_frame(parent=parent, y_padding=y_padding)
+        self.build_moving_avergae_frame(parent=parent, y_padding=y_padding)
+        self.build_momentum_frame(parent=parent, y_padding=y_padding)
 
     def create_testing_frame(self, parent):
         """
