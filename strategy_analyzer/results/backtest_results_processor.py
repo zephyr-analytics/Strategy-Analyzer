@@ -50,10 +50,19 @@ class BacktestResultsProcessor:
             The name of the file to save the plot. Default is 'portfolio_value.html'.
         """
         strategy_value = self.results_models.portfolio_values_non_con
+        win_ratio = (self.results_models.portfolio_returns >= 0).sum() / len(self.results_models.portfolio_returns)
+        loss_ratio = (self.results_models.portfolio_returns < 0).sum() / len(self.results_models.portfolio_returns)
         final_value = strategy_value.iloc[-1]
 
         portfolio_value = self.results_models.portfolio_values
         portfolio_final_value = portfolio_value.iloc[-1]
+
+        yearly_returns = self.results_models.portfolio_returns.resample('Y').sum()
+        yearly_returns_df = yearly_returns.to_frame(name='Yearly Return')
+        yearly_returns_df['Yearly Return'] *= 100
+        yearly_returns_df['Year'] = yearly_returns_df.index.year
+        worst_year = yearly_returns_df["Yearly Return"].min()
+        best_year  = yearly_returns_df["Yearly Return"].max()
 
 
         if self.data_models.theme_mode.lower() == "dark":
@@ -99,37 +108,65 @@ class BacktestResultsProcessor:
 
         annotations = [
             dict(
-                xref='paper', yref='paper', x=0.2, y=1,
+                xref='paper', yref='paper', x=0.1, y=1,
                 xanchor='center', yanchor='bottom',
                 text=f'Strategy Final Value: ${final_value:,.2f}',
                 showarrow=False,
                 font=dict(size=12)
             ),
             dict(
-                xref='paper', yref='paper', x=0.4, y=1,
+                xref='paper', yref='paper', x=0.2, y=1,
                 xanchor='center', yanchor='bottom',
                 text=f'CAGR: {self.results_models.cagr:.2%}',
                 showarrow=False,
                 font=dict(size=12)
             ),
             dict(
-                xref='paper', yref='paper', x=0.6, y=1,
+                xref='paper', yref='paper', x=0.3, y=1,
                 xanchor='center', yanchor='bottom',
                 text=f'Max Drawdown: {self.results_models.max_drawdown:.2%}',
                 showarrow=False,
                 font=dict(size=12)
             ),
             dict(
-                xref='paper', yref='paper', x=0.8, y=1,
+                xref='paper', yref='paper', x=0.4, y=1,
                 xanchor='center', yanchor='bottom',
                 text=f'Annual Volaility: {self.results_models.annual_volatility:.2%}',
                 showarrow=False,
                 font=dict(size=12)
             ),
             dict(
-                xref='paper', yref='paper', x=0.2, y=0.95,
+                xref='paper', yref='paper', x=0.1, y=0.95,
                 xanchor='center', yanchor='bottom',
                 text=f'Portfolio Final Value: ${portfolio_final_value:,.2f}',
+                showarrow=False,
+                font=dict(size=12)
+            ),
+            dict(
+                xref='paper', yref='paper', x=0.5, y=1,
+                xanchor='center', yanchor='bottom',
+                text=f'Win Ratio: {win_ratio:,.2f}',
+                showarrow=False,
+                font=dict(size=12)
+            ),
+            dict(
+                xref='paper', yref='paper', x=0.6, y=1,
+                xanchor='center', yanchor='bottom',
+                text=f'Loss Ratio: {loss_ratio:,.2f}',
+                showarrow=False,
+                font=dict(size=12)
+            ),
+            dict(
+                xref='paper', yref='paper', x=0.7, y=1,
+                xanchor='center', yanchor='bottom',
+                text=f'Best Year: {best_year:.2f}%',
+                showarrow=False,
+                font=dict(size=12)
+            ),
+            dict(
+                xref='paper', yref='paper', x=0.8, y=1,
+                xanchor='center', yanchor='bottom',
+                text=f'Worst Year: {worst_year:.2f}%',
                 showarrow=False,
                 font=dict(size=12)
             )
