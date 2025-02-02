@@ -28,7 +28,7 @@ class BacktestResultsProcessor:
         """
         self.data_models = models_data
         self.results_models = models_results
-    
+
     def process(self):
         """
         Method for processing results from models.
