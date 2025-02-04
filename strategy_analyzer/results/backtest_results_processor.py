@@ -332,8 +332,7 @@ class BacktestResultsProcessor:
             The name of the file to save the plot. Default is 'returns_heatmap.html'.
         """
         # TODO this needs to use unadjusted returns.
-        monthly_returns = self.results_models.portfolio_returns.resample('M').sum()
-        yearly_returns = self.results_models.portfolio_returns.resample('Y').sum()
+        monthly_returns = self.results_models.portfolio_returns
         monthly_returns.index = monthly_returns.index + pd.DateOffset(months=1)
         monthly_returns_df = monthly_returns.to_frame(name='Monthly Return')
         monthly_returns_df['Monthly Return'] *= 100
@@ -341,9 +340,20 @@ class BacktestResultsProcessor:
         monthly_returns_df['Month'] = monthly_returns_df.index.month
         monthly_heatmap_data = monthly_returns_df.pivot('Year', 'Month', 'Monthly Return')
         monthly_heatmap_data = monthly_heatmap_data.reindex(columns=np.arange(1, 13))
+
+        def compound_returns(returns):
+            """ Computes compounded yearly return from monthly returns. """
+            return (returns + 1).prod() - 1  # (1+r1) * (1+r2) * ... * (1+r12) - 1
+
+        yearly_returns = self.results_models.portfolio_returns / 100
+        yearly_returns = yearly_returns.resample('Y').apply(compound_returns)
+        print(yearly_returns)
+        # Convert to DataFrame
         yearly_returns_df = yearly_returns.to_frame(name='Yearly Return')
-        yearly_returns_df['Yearly Return'] *= 100
+        yearly_returns_df['Yearly Return'] *= 100  # Convert to percentage
         yearly_returns_df['Year'] = yearly_returns_df.index.year
+
+        # Sort results by Year
         yearly_returns_df = yearly_returns_df.sort_values('Year')
 
         all_returns = np.concatenate([

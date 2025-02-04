@@ -69,6 +69,7 @@ class MomentumBacktestProcessor(BacktestingProcessor):
         momentum_6m = (momentum_data.loc[:current_date].iloc[-126:] + 1).prod() - 1
         momentum_9m = (momentum_data.loc[:current_date].iloc[-189:] + 1).prod() - 1
         momentum_12m = (momentum_data.loc[:current_date].iloc[-252:] + 1).prod() - 1
+
         if self.data_models.discount_to_volatility == "True":
             vol_3m = momentum_data.loc[:current_date].iloc[-63:].std()
             vol_6m = momentum_data.loc[:current_date].iloc[-126:].std()
