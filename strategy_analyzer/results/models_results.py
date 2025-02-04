@@ -2,8 +2,6 @@
 Getter and Setter class for storing environment variables.
 """
 
-import pandas as pd
-
 
 class ModelsResults:
     """
@@ -13,10 +11,10 @@ class ModelsResults:
         """
         Initializes the Config class with default values for portfolio parameters.
         """
-        self._buy_and_hold_values = pd.Series
-        self._buy_and_hold_returns = pd.Series
-        self._portfolio_values = pd.Series
-        self._portfolio_returns = pd.Series
+        self._buy_and_hold_values = None
+        self._buy_and_hold_returns = None
+        self._portfolio_values = None
+        self._portfolio_returns = None
         self._cagr = None
         self._average_annual_return = None
         self._max_drawdown = None

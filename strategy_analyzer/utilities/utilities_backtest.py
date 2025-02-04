@@ -26,6 +26,7 @@ def calculate_cagr(portfolio_value):
     total_years = total_months / 12
 
     cagr = (portfolio_value.iloc[-1] / portfolio_value.iloc[0]) ** (1 / total_years) - 1
+
     return cagr
 
 
@@ -46,6 +47,7 @@ def simulations_calculate_cagr(simulated_portfolio_value):
     total_years = len(simulated_portfolio_value) - 1
 
     cagr = (simulated_portfolio_value.iloc[-1] / simulated_portfolio_value.iloc[0]) ** (1 / total_years) - 1
+
     return cagr
 
 
@@ -88,6 +90,7 @@ def calculate_max_drawdown(portfolio_value):
     running_max = portfolio_value.cummax()
     drawdown = (portfolio_value / running_max) - 1
     max_drawdown = drawdown.min()
+
     return max_drawdown
 
 

@@ -28,6 +28,7 @@ class BacktestingProcessor(ABC):
         self.data_models = models_data
         self.data_portfolio = portfolio_data
         self.results_models = models_results
+        self.adjusted_start_date = None
 
     def process(self):
         """
@@ -150,12 +151,19 @@ class BacktestingProcessor(ABC):
 
 
     def _prepare_date_ranges(self):
-        """Prepare the monthly dates for the backtest."""
-        monthly_dates = pd.date_range(start=self.data_models.start_date, end=self.data_models.end_date, freq='M')
+        """
+        Prepare the monthly dates for the backtest.
+        """
+        self.adjusted_start_date = self.data_models.start_date + pd.DateOffset(months=(self.data_models.ma_window/21))
+
+        monthly_dates = pd.date_range(start=self.adjusted_start_date, end=self.data_models.end_date, freq='M')
+
         last_month_end = monthly_dates[-1]
-        next_month_end = (last_month_end + pd.offsets.MonthEnd(1))
+        next_month_end = last_month_end + pd.offsets.MonthEnd(1)
+
         if next_month_end not in monthly_dates:
             monthly_dates = monthly_dates.append(pd.DatetimeIndex([next_month_end]))
+
         return monthly_dates
 
 
@@ -229,24 +237,24 @@ class BacktestingProcessor(ABC):
 
         portfolio_values = pd.Series(
             data,
-            index=pd.date_range(start=self.data_models.start_date, periods=len(data), freq="M")
+            index=pd.date_range(start=self.adjusted_start_date, periods=len(data), freq="M")
         )
         self.results_models.portfolio_values = portfolio_values.iloc[:-1]
         data = None
         portfolio_values_non_con = pd.Series(
             returns_data_dict["portfolio_values_without_contributions"],
-            index=pd.date_range(start=self.data_models.start_date, periods=len(returns_data_dict["portfolio_values_without_contributions"]), freq="M")
+            index=pd.date_range(start=self.adjusted_start_date, periods=len(returns_data_dict["portfolio_values_without_contributions"]), freq="M")
         )
         self.results_models.portfolio_values_non_con = portfolio_values_non_con.iloc[:-1]
 
         self.results_models.adjusted_weights = pd.Series(
             returns_data_dict["all_adjusted_weights"],
-            index=pd.date_range(start=self.data_models.start_date, periods=len(returns_data_dict["all_adjusted_weights"]), freq="M")
+            index=pd.date_range(start=self.adjusted_start_date, periods=len(returns_data_dict["all_adjusted_weights"]), freq="M")
         )
 
         self.results_models.portfolio_returns = pd.Series(
             returns_data_dict["portfolio_returns"],
-            index=pd.date_range(start=self.data_models.start_date, periods=len(returns_data_dict["portfolio_returns"]), freq="M")
+            index=pd.date_range(start=self.adjusted_start_date, periods=len(returns_data_dict["portfolio_returns"]), freq="M")
         )
 
 

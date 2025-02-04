@@ -50,19 +50,26 @@ class BacktestResultsProcessor:
             The name of the file to save the plot. Default is 'portfolio_value.html'.
         """
         strategy_value = self.results_models.portfolio_values_non_con
-        win_ratio = (self.results_models.portfolio_returns >= 0).sum() / len(self.results_models.portfolio_returns)
-        loss_ratio = (self.results_models.portfolio_returns < 0).sum() / len(self.results_models.portfolio_returns)
+        portfolio_returns = self.results_models.portfolio_returns
+        win_ratio = (portfolio_returns >= 0).sum() / len(portfolio_returns)
+        loss_ratio = (portfolio_returns < 0).sum() / len(portfolio_returns)
         final_value = strategy_value.iloc[-1]
 
         portfolio_value = self.results_models.portfolio_values
         portfolio_final_value = portfolio_value.iloc[-1]
 
-        yearly_returns = self.results_models.portfolio_returns.resample('Y').sum()
+        print(self.results_models.portfolio_returns)
+
+        yearly_returns = self.results_models.portfolio_returns.copy()
+        yearly_returns = yearly_returns.resample('Y').apply(utilities.compound_returns)
+        print(yearly_returns)
         yearly_returns_df = yearly_returns.to_frame(name='Yearly Return')
-        yearly_returns_df['Yearly Return'] *= 100
+        yearly_returns_df['Yearly Return'] *= 100  # Convert to percentage
         yearly_returns_df['Year'] = yearly_returns_df.index.year
-        worst_year = yearly_returns_df["Yearly Return"].min()
-        best_year  = yearly_returns_df["Yearly Return"].max()
+        yearly_returns_df = yearly_returns_df.sort_values('Year')
+
+        worst_year = (yearly_returns_df["Yearly Return"]).min()
+        best_year  = (yearly_returns_df["Yearly Return"]).max()
 
 
         if self.data_models.theme_mode.lower() == "dark":
@@ -332,29 +339,26 @@ class BacktestResultsProcessor:
             The name of the file to save the plot. Default is 'returns_heatmap.html'.
         """
         # TODO this needs to use unadjusted returns.
-        monthly_returns = self.results_models.portfolio_returns
+        monthly_returns = self.results_models.portfolio_returns.copy()
         monthly_returns.index = monthly_returns.index + pd.DateOffset(months=1)
         monthly_returns_df = monthly_returns.to_frame(name='Monthly Return')
         monthly_returns_df['Monthly Return'] *= 100
         monthly_returns_df['Year'] = monthly_returns_df.index.year
         monthly_returns_df['Month'] = monthly_returns_df.index.month
-        monthly_heatmap_data = monthly_returns_df.pivot('Year', 'Month', 'Monthly Return')
-        monthly_heatmap_data = monthly_heatmap_data.reindex(columns=np.arange(1, 13))
 
-        def compound_returns(returns):
-            """ Computes compounded yearly return from monthly returns. """
-            return (returns + 1).prod() - 1  # (1+r1) * (1+r2) * ... * (1+r12) - 1
+        print(self.results_models.portfolio_returns)
 
-        yearly_returns = self.results_models.portfolio_returns / 100
-        yearly_returns = yearly_returns.resample('Y').apply(compound_returns)
+        yearly_returns = self.results_models.portfolio_returns.copy()
+        yearly_returns = yearly_returns.resample('Y').apply(utilities.compound_returns)
         print(yearly_returns)
-        # Convert to DataFrame
         yearly_returns_df = yearly_returns.to_frame(name='Yearly Return')
         yearly_returns_df['Yearly Return'] *= 100  # Convert to percentage
         yearly_returns_df['Year'] = yearly_returns_df.index.year
-
-        # Sort results by Year
         yearly_returns_df = yearly_returns_df.sort_values('Year')
+
+
+        monthly_heatmap_data = monthly_returns_df.pivot('Year', 'Month', 'Monthly Return')
+        monthly_heatmap_data = monthly_heatmap_data.reindex(columns=np.arange(1, 13))
 
         all_returns = np.concatenate([
             monthly_heatmap_data.values.flatten(),
