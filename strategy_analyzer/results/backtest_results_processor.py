@@ -58,11 +58,8 @@ class BacktestResultsProcessor:
         portfolio_value = self.results_models.portfolio_values
         portfolio_final_value = portfolio_value.iloc[-1]
 
-        print(self.results_models.portfolio_returns)
-
         yearly_returns = self.results_models.portfolio_returns.copy()
         yearly_returns = yearly_returns.resample('Y').apply(utilities.compound_returns)
-        print(yearly_returns)
         yearly_returns_df = yearly_returns.to_frame(name='Yearly Return')
         yearly_returns_df['Yearly Return'] *= 100  # Convert to percentage
         yearly_returns_df['Year'] = yearly_returns_df.index.year
@@ -346,11 +343,8 @@ class BacktestResultsProcessor:
         monthly_returns_df['Year'] = monthly_returns_df.index.year
         monthly_returns_df['Month'] = monthly_returns_df.index.month
 
-        print(self.results_models.portfolio_returns)
-
         yearly_returns = self.results_models.portfolio_returns.copy()
         yearly_returns = yearly_returns.resample('Y').apply(utilities.compound_returns)
-        print(yearly_returns)
         yearly_returns_df = yearly_returns.to_frame(name='Yearly Return')
         yearly_returns_df['Yearly Return'] *= 100  # Convert to percentage
         yearly_returns_df['Year'] = yearly_returns_df.index.year
