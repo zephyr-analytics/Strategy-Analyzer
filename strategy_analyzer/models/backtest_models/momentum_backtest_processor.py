@@ -46,9 +46,15 @@ class MomentumBacktestProcessor(BacktestingProcessor):
         })
         print(selected_assets)
         adjusted_weights = self.adjust_weights(current_date=current_date, selected_assets=selected_assets)
-
+        adjusted_weights = utilities.calculate_conditional_value_at_risk_weighting(
+            returns_df=self.data_portfolio.assets_data.copy().pct_change().dropna(),
+            weights=adjusted_weights,
+            confidence_level=0.95,
+            cash_ticker=self.data_models.cash_ticker,
+            bond_ticker=self.data_models.bond_ticker
+        )
+        print(adjusted_weights)
         return adjusted_weights
-
 
     def calculate_momentum(self, current_date: datetime) -> pd.Series:
         """
