@@ -44,7 +44,7 @@ class MomentumBacktestProcessor(BacktestingProcessor):
             'Asset': momentum.nlargest(self.data_models.num_assets_to_select).index,
             'Momentum': momentum.nlargest(self.data_models.num_assets_to_select).values
         })
-
+        print(selected_assets)
         adjusted_weights = self.adjust_weights(current_date=current_date, selected_assets=selected_assets)
 
         return adjusted_weights
@@ -65,10 +65,12 @@ class MomentumBacktestProcessor(BacktestingProcessor):
             Series of momentum values for each asset.
         """
         momentum_data = self.data_portfolio.assets_data.copy().pct_change().dropna()
+        momentum_1m = (momentum_data.loc[:current_date].iloc[-21:] + 1).prod() - 1
         momentum_3m = (momentum_data.loc[:current_date].iloc[-63:] + 1).prod() - 1
         momentum_6m = (momentum_data.loc[:current_date].iloc[-126:] + 1).prod() - 1
         momentum_9m = (momentum_data.loc[:current_date].iloc[-189:] + 1).prod() - 1
         momentum_12m = (momentum_data.loc[:current_date].iloc[-252:] + 1).prod() - 1
+
         if self.data_models.discount_to_volatility == "True":
             vol_3m = momentum_data.loc[:current_date].iloc[-63:].std()
             vol_6m = momentum_data.loc[:current_date].iloc[-126:].std()
@@ -90,7 +92,7 @@ class MomentumBacktestProcessor(BacktestingProcessor):
             return (adj_momentum_3m + adj_momentum_6m + adj_momentum_9m + adj_momentum_12m) / 4
         else:
 
-            return (momentum_3m + momentum_6m + momentum_9m + momentum_12m) / 4
+            return (momentum_1m + momentum_3m + momentum_6m + momentum_9m + momentum_12m) / 5
 
     def adjust_weights(
             self,

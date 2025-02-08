@@ -29,3 +29,12 @@ def save_html(fig, filename, weights_filename, processing_type):
 
     file_path = os.path.join(artifacts_directory, f"{timestamp}_{filename}.html")
     fig.write_html(file_path)
+
+
+def compound_returns(returns):
+    """
+    Computes compounded yearly return from monthly returns.
+    """
+    compounded_yearly_returns = (returns + 1).prod() - 1
+
+    return compounded_yearly_returns

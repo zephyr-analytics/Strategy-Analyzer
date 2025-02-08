@@ -65,7 +65,7 @@ class DataPreparationProcessor:
 
                 filtered_data = full_data.drop(columns=dropped_tickers)
             else:
-                pass
+                filtered_data = full_data
         else:
             filtered_data = full_data
 
