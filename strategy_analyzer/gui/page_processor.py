@@ -135,7 +135,8 @@ class PageProcessor(ABC, ctk.CTkFrame):
             "MOMENTUM": Models.MOMENTUM,
             "IN_AND_OUT_OF_MARKET": Models.IN_AND_OUT_OF_MARKET,
             "MA_CROSSOVER": Models.MA_CROSSOVER,
-            "MACHINE_LEARNING": Models.MACHINE_LEARNING
+            "MACHINE_LEARNING": Models.MACHINE_LEARNING,
+            "INSTITUTIONAL": Models.INSTITUTIONAL
         }
 
         run_map = {

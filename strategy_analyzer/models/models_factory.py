@@ -40,7 +40,8 @@ class ModelsFactory:
             (Models.MACHINE_LEARNING, Runs.BACKTEST): self._run_backtest,
             (Models.MACHINE_LEARNING, Runs.PARAMETER_TUNE): self._run_parameter_tune,
             (Models.MA_CROSSOVER, Runs.BACKTEST): self._run_backtest,
-            (Models.MA_CROSSOVER, Runs.PARAMETER_TUNE): self._run_parameter_tune
+            (Models.MA_CROSSOVER, Runs.PARAMETER_TUNE): self._run_parameter_tune,
+            (Models.INSTITUTIONAL, Runs.BACKTEST): self._run_backtest
         }
 
         method = model_run_map.get((model, run_type))
@@ -149,6 +150,9 @@ class ModelsFactory:
             "MA_CROSSOVER": {
                 "backtest": MovingAverageCrossoverProcessor,
                 "tune": MaCrossoverParameterTuning
+            },
+            "INSTITUTIONAL": {
+                "backtest" : InstitutionalBacktestProcessor
             }
         }
         return processor_map.get(model.name, {}).get(process_type)

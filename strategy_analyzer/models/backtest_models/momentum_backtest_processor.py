@@ -46,19 +46,19 @@ class MomentumBacktestProcessor(BacktestingProcessor):
         })
         print(selected_assets)
         adjusted_weights = self.adjust_weights(current_date=current_date, selected_assets=selected_assets)
-        adjusted_weights = utilities.calculate_conditional_value_at_risk_weighting(
-            returns_df=self.data_portfolio.assets_data.copy().pct_change().dropna(),
-            weights=adjusted_weights,
-            confidence_level=0.95,
-            cash_ticker=self.data_models.cash_ticker,
-            bond_ticker=self.data_models.bond_ticker
-        )
-        print(adjusted_weights)
+        # adjusted_weights = utilities.calculate_conditional_value_at_risk_weighting(
+        #     returns_df=self.data_portfolio.assets_data.copy().pct_change().dropna(),
+        #     weights=adjusted_weights,
+        #     confidence_level=0.95,
+        #     cash_ticker=self.data_models.cash_ticker,
+        #     bond_ticker=self.data_models.bond_ticker
+        # )
+        # print(adjusted_weights)
         return adjusted_weights
 
     def calculate_momentum(self, current_date: datetime) -> pd.Series:
         """
-        Calculate average momentum based on 3, 6, 9, and 12-month cumulative returns.
+        Calculate average momentum based on 1, 3, 6, 9, and 12-month cumulative returns.
 
         Parameters
         ----------
@@ -70,35 +70,12 @@ class MomentumBacktestProcessor(BacktestingProcessor):
         pd.Series
             Series of momentum values for each asset.
         """
-        momentum_data = self.data_portfolio.assets_data.copy().pct_change().dropna()
-        momentum_1m = (momentum_data.loc[:current_date].iloc[-21:] + 1).prod() - 1
-        momentum_3m = (momentum_data.loc[:current_date].iloc[-63:] + 1).prod() - 1
-        momentum_6m = (momentum_data.loc[:current_date].iloc[-126:] + 1).prod() - 1
-        momentum_9m = (momentum_data.loc[:current_date].iloc[-189:] + 1).prod() - 1
-        momentum_12m = (momentum_data.loc[:current_date].iloc[-252:] + 1).prod() - 1
+        momentum_data = self.data_portfolio.assets_data.pct_change().dropna()
+        periods = [21, 63, 126, 189, 252]
 
-        if self.data_models.discount_to_volatility == "True":
-            vol_3m = momentum_data.loc[:current_date].iloc[-63:].std()
-            vol_6m = momentum_data.loc[:current_date].iloc[-126:].std()
-            vol_9m = momentum_data.loc[:current_date].iloc[-189:].std()
-            vol_12m = momentum_data.loc[:current_date].iloc[-252:].std()
+        momentum_values = [(momentum_data.loc[:current_date].iloc[-p:] + 1).prod() - 1 for p in periods]
 
-            benchmark_vol_3m = vol_3m.mean()
-            benchmark_vol_6m = vol_6m.mean()
-            benchmark_vol_9m = vol_9m.mean()
-            benchmark_vol_12m = vol_12m.mean()
-
-            epsilon = 1e-6
-
-            adj_momentum_3m = momentum_3m * (benchmark_vol_3m / (vol_3m + epsilon))
-            adj_momentum_6m = momentum_6m * (benchmark_vol_6m / (vol_6m + epsilon))
-            adj_momentum_9m = momentum_9m * (benchmark_vol_9m / (vol_9m + epsilon))
-            adj_momentum_12m = momentum_12m * (benchmark_vol_12m / (vol_12m + epsilon))
-
-            return (adj_momentum_3m + adj_momentum_6m + adj_momentum_9m + adj_momentum_12m) / 4
-        else:
-
-            return (momentum_1m + momentum_3m + momentum_6m + momentum_9m + momentum_12m) / 5
+        return sum(momentum_values) / len(periods)
 
     def adjust_weights(
             self,
