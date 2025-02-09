@@ -56,7 +56,7 @@ class InstitutionalBacktestProcessor(BacktestingProcessor):
         selected_index = momentum.nlargest(self.data_models.num_assets_to_select).index
 
         excess_return_selected = excess_return.reindex(selected_index)
-
+        print(excess_return_selected)
         selected_assets = pd.DataFrame({
             'Asset': selected_index,
             'Momentum': momentum.loc[selected_index].values,
@@ -68,8 +68,6 @@ class InstitutionalBacktestProcessor(BacktestingProcessor):
         adjusted_weights = self.adjust_weights(current_date=current_date, selected_assets=selected_assets)
 
         return adjusted_weights
-
-
 
     def calculate_momentum(self, current_date: datetime) -> pd.Series:
         """
@@ -102,29 +100,30 @@ class InstitutionalBacktestProcessor(BacktestingProcessor):
         pd.Series
             A Series where index = asset tickers, values = excess return scores.
         """
-        # Get asset prices and risk-free asset prices
         asset_prices = self.data_portfolio.assets_data.dropna()
         risk_free_prices = self.data_portfolio.cash_data.dropna()
 
-        # Filter to include only data up to `current_date`
         asset_prices = asset_prices.loc[:current_date]
         risk_free_prices = risk_free_prices.loc[:current_date]
 
-        # Ensure we have valid data
         if asset_prices.empty or risk_free_prices.empty:
             return pd.Series(0, index=asset_prices.columns)
 
-        # Define return periods (trading days)
+        risk_free_ticker = risk_free_prices.columns[0]
+        risk_free_prices = risk_free_prices[risk_free_ticker]
+
+        if risk_free_ticker in asset_prices.columns:
+            asset_prices = asset_prices.drop(columns=[risk_free_ticker])
+
         periods = [21, 63, 126, 189, 252]
 
-        # Dictionary to store excess return results
         excess_return_values = {}
 
         for asset in asset_prices.columns:
             excess_return_list = []
 
             for p in periods:
-                if len(asset_prices) >= p and len(risk_free_prices) >= p:  # Ensure enough data points
+                if len(asset_prices) >= p and len(risk_free_prices) >= p:
                     asset_return = (asset_prices.iloc[-1, asset_prices.columns.get_loc(asset)] / 
                                     asset_prices.iloc[-p, asset_prices.columns.get_loc(asset)]) - 1
                     risk_free_return = (risk_free_prices.iloc[-1] / risk_free_prices.iloc[-p]) - 1
@@ -132,13 +131,13 @@ class InstitutionalBacktestProcessor(BacktestingProcessor):
                     excess_return = asset_return - risk_free_return
                     excess_return_list.append(excess_return)
 
-            # Compute the final excess return score as the mean across all periods
             if excess_return_list:
                 excess_return_values[asset] = sum(excess_return_list) / len(excess_return_list)
             else:
-                excess_return_values[asset] = 0  # Handle case where no valid periods exist
+                excess_return_values[asset] = 0
 
-        return pd.Series(excess_return_values)
+        return pd.Series(excess_return_values, name="Excess Return")
+
 
     def adjust_weights(
             self,
