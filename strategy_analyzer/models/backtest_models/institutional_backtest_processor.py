@@ -63,16 +63,12 @@ class InstitutionalBacktestProcessor(BacktestingProcessor):
         )
 
         selected_index = momentum.nlargest(self.data_models.num_assets_to_select).index
-
         excess_return_selected = excess_return.reindex(selected_index)
-
         selected_assets = pd.DataFrame({
             'Asset': selected_index,
             'Momentum': momentum.loc[selected_index].values,
             'Excess_Return': excess_return_selected.values
         })
-
-        print(selected_assets)
 
         adjusted_weights = self.adjust_weights(current_date=current_date, selected_assets=selected_assets)
 
@@ -94,9 +90,7 @@ class InstitutionalBacktestProcessor(BacktestingProcessor):
             Series of momentum values for each asset.
         """
         momentum_data = asset_data.pct_change().dropna()
-
         periods = [21, 63, 126, 189, 252]
-
         momentum_values = [(momentum_data.loc[:current_date].iloc[-p:] + 1).prod() - 1 for p in periods]
 
         return sum(momentum_values) / len(periods)
@@ -197,27 +191,19 @@ class InstitutionalBacktestProcessor(BacktestingProcessor):
         ranked_momentum = momentum.rank(ascending=False)
         ranked_excess_return = excess_return.rank(ascending=False)
 
-        # Start with the original base weights
         adjusted_weights_momentum = base_weights.copy()
         adjusted_weights_excess_return = base_weights.copy()
 
-        # Get indices of the top `reweight_num` ranked assets
         top_momentum_indices = ranked_momentum.nlargest(self.reweight_num).index
         top_excess_return_indices = ranked_excess_return.nlargest(self.reweight_num).index
-
-        # Get indices of the bottom `reweight_num` ranked assets
         bottom_momentum_indices = ranked_momentum.nsmallest(self.reweight_num).index
         bottom_excess_return_indices = ranked_excess_return.nsmallest(self.reweight_num).index
 
-        # Increase weight for top-ranked assets
         adjusted_weights_momentum.loc[top_momentum_indices] *= 1.5
         adjusted_weights_excess_return.loc[top_excess_return_indices] *= 1.5
-
-        # Decrease weight for bottom-ranked assets
         adjusted_weights_momentum.loc[bottom_momentum_indices] /= 2
         adjusted_weights_excess_return.loc[bottom_excess_return_indices] /= 2
 
-        # Take the average of both adjusted weight sets
         adjusted_weights = (adjusted_weights_momentum + adjusted_weights_excess_return) / 2
 
         return adjusted_weights
@@ -244,17 +230,13 @@ class InstitutionalBacktestProcessor(BacktestingProcessor):
         final_weights = pd.Series(self.data_models.assets_weights).copy()
         final_weights = final_weights.loc[final_weights.index.intersection(momentum.index)]
 
-        # Apply ranking-based adjustments (without modifying base weights)
         adjusted_weights = self.compute_weight_factors(final_weights, momentum, excess_return)
 
-        # Remove weight for assets with negative momentum or negative excess return
         negative_momentum = momentum < 0
         negative_excess_return = excess_return < 0
-
         adjusted_weights[negative_momentum] = 0
         adjusted_weights[negative_excess_return] = 0
 
-        # Apply SMA filtering separately
         below_sma = selected_assets.index[selected_assets.index.map(
             lambda ticker: utilities.is_below_ma(
                 current_date=current_date,
@@ -266,11 +248,9 @@ class InstitutionalBacktestProcessor(BacktestingProcessor):
         )]
 
         adjusted_weights[below_sma] = 0
-        print(adjusted_weights)
-        # Track removed weight after setting them to zero
+
         removed_weight = 1 - adjusted_weights.sum()
 
-        # Handle case where all weights are removed
         if adjusted_weights.sum() == 0:
             replacement_asset = self.get_replacement_asset(current_date=current_date)
             if replacement_asset:
@@ -278,5 +258,5 @@ class InstitutionalBacktestProcessor(BacktestingProcessor):
 
         replacement_asset = self.get_replacement_asset(current_date=current_date)
         adjusted_weights[replacement_asset] = removed_weight
-        print(adjusted_weights)
+
         return adjusted_weights.to_dict()
