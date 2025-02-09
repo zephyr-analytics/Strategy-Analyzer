@@ -33,13 +33,14 @@ class InstitutionalBacktestProcessor(BacktestingProcessor):
             An instance of the ModelsData class containing all relevant parameters and data for backtesting.
         """
         super().__init__(models_data=models_data, portfolio_data=portfolio_data, models_results=models_results)
+        self.reweight_num= 10
 
     def get_portfolio_assets_and_weights(self, current_date):
         """
         Select portfolio assets and adjust their weights based on momentum and excess return criteria.
         Assets are ranked by momentum, and those with excess return constraints are filtered.
         If an asset has momentum greater than 1.0, it is replaced with a fallback asset.
-        
+
         Parameters
         ----------
         current_date : str or pd.Timestamp
@@ -50,13 +51,21 @@ class InstitutionalBacktestProcessor(BacktestingProcessor):
         pd.Series
             A Series representing the adjusted portfolio weights for selected assets.
         """
-        momentum = self.calculate_momentum(current_date=current_date)
-        excess_return = self.calculate_excess_return(current_date=current_date)
+        momentum = self.calculate_momentum(
+            current_date=current_date,
+            asset_data=self.data_portfolio.assets_data.copy()
+        )
+
+        excess_return = self.calculate_excess_return(
+            current_date=current_date,
+            asset_data=self.data_portfolio.assets_data,
+            risk_free_data=self.data_portfolio.cash_data
+        )
 
         selected_index = momentum.nlargest(self.data_models.num_assets_to_select).index
 
         excess_return_selected = excess_return.reindex(selected_index)
-        print(excess_return_selected)
+
         selected_assets = pd.DataFrame({
             'Asset': selected_index,
             'Momentum': momentum.loc[selected_index].values,
@@ -69,7 +78,8 @@ class InstitutionalBacktestProcessor(BacktestingProcessor):
 
         return adjusted_weights
 
-    def calculate_momentum(self, current_date: datetime) -> pd.Series:
+
+    def calculate_momentum(self, current_date: datetime, asset_data: pd.DataFrame) -> pd.Series:
         """
         Calculate average momentum based on 1, 3, 6, 9, and 12-month cumulative returns.
 
@@ -83,14 +93,16 @@ class InstitutionalBacktestProcessor(BacktestingProcessor):
         pd.Series
             Series of momentum values for each asset.
         """
-        momentum_data = self.data_portfolio.assets_data.pct_change().dropna()
+        momentum_data = asset_data.pct_change().dropna()
+
         periods = [21, 63, 126, 189, 252]
 
         momentum_values = [(momentum_data.loc[:current_date].iloc[-p:] + 1).prod() - 1 for p in periods]
 
         return sum(momentum_values) / len(periods)
 
-    def calculate_excess_return(self, current_date):
+
+    def calculate_excess_return(self, current_date, asset_data, risk_free_data):
         """
         Calculate the excess return over the risk-free rate for each asset.
         The excess return is calculated over fixed time periods.
@@ -100,8 +112,8 @@ class InstitutionalBacktestProcessor(BacktestingProcessor):
         pd.Series
             A Series where index = asset tickers, values = excess return scores.
         """
-        asset_prices = self.data_portfolio.assets_data.dropna()
-        risk_free_prices = self.data_portfolio.cash_data.dropna()
+        asset_prices = asset_data
+        risk_free_prices = risk_free_data
 
         asset_prices = asset_prices.loc[:current_date]
         risk_free_prices = risk_free_prices.loc[:current_date]
@@ -139,6 +151,78 @@ class InstitutionalBacktestProcessor(BacktestingProcessor):
         return pd.Series(excess_return_values, name="Excess Return")
 
 
+    def get_replacement_asset(self, current_date):
+        """
+        Determines the replacement asset (cash or bond) based on SMA, momentum, and excess return criteria.
+        """
+        bond_ticker = self.data_models.bond_ticker
+        cash_ticker = self.data_models.cash_ticker
+
+        if bond_ticker and bond_ticker in self.data_portfolio.bond_data.columns:
+            bond_momentum = self.calculate_momentum(current_date=current_date, asset_data=self.data_portfolio.bond_data.copy()).get(bond_ticker, 0)
+            cash_momentum = self.calculate_momentum(current_date=current_date, asset_data=self.data_portfolio.cash_data.copy()).get(cash_ticker, 0)
+
+            bond_excess_return = self.calculate_excess_return(
+                current_date,
+                self.data_portfolio.bond_data,
+                self.data_portfolio.cash_data
+            ).get(bond_ticker, 0)
+
+            if (
+                not utilities.is_below_ma(
+                    current_date=current_date,
+                    ticker=bond_ticker,
+                    data=self.data_portfolio.bond_data,
+                    ma_type=self.data_models.ma_type,
+                    ma_window=self.data_models.ma_window,
+                )
+                and bond_momentum > cash_momentum
+                and bond_excess_return > 0
+            ):
+                return bond_ticker
+
+        return cash_ticker
+
+
+    def compute_weight_factors(self, base_weights: pd.Series, momentum: pd.Series, excess_return: pd.Series) -> pd.Series:
+        """
+        Computes weight adjustment factors based on asset ranking for momentum and excess return.
+        This method does not remove weights but only modifies existing weights based on ranking.
+
+        The original base weights serve as the foundation for adjustments.
+
+        Returns:
+            adjusted_weights (pd.Series): The modified weights after ranking-based adjustments.
+        """
+        ranked_momentum = momentum.rank(ascending=False)
+        ranked_excess_return = excess_return.rank(ascending=False)
+
+        # Start with the original base weights
+        adjusted_weights_momentum = base_weights.copy()
+        adjusted_weights_excess_return = base_weights.copy()
+
+        # Get indices of the top `reweight_num` ranked assets
+        top_momentum_indices = ranked_momentum.nlargest(self.reweight_num).index
+        top_excess_return_indices = ranked_excess_return.nlargest(self.reweight_num).index
+
+        # Get indices of the bottom `reweight_num` ranked assets
+        bottom_momentum_indices = ranked_momentum.nsmallest(self.reweight_num).index
+        bottom_excess_return_indices = ranked_excess_return.nsmallest(self.reweight_num).index
+
+        # Increase weight for top-ranked assets
+        adjusted_weights_momentum.loc[top_momentum_indices] *= 1.5
+        adjusted_weights_excess_return.loc[top_excess_return_indices] *= 1.5
+
+        # Decrease weight for bottom-ranked assets
+        adjusted_weights_momentum.loc[bottom_momentum_indices] /= 2
+        adjusted_weights_excess_return.loc[bottom_excess_return_indices] /= 2
+
+        # Take the average of both adjusted weight sets
+        adjusted_weights = (adjusted_weights_momentum + adjusted_weights_excess_return) / 2
+
+        return adjusted_weights
+
+
     def adjust_weights(
             self,
             current_date: datetime,
@@ -146,75 +230,53 @@ class InstitutionalBacktestProcessor(BacktestingProcessor):
             selected_out_of_market_assets: pd.DataFrame = None
     ) -> dict:
         """
-        Adjusts the weights of the assets based on momentum, excess return, and SMA filtering.
-        """
-
-        def get_replacement_asset(current_date):
-            """
-            Determines the replacement asset (cash or bond) based on SMA threshold.
-            """
-            if (
-                self.data_models.bond_ticker
-                and self.data_models.bond_ticker in self.data_portfolio.bond_data.columns
-            ):
-                if not utilities.is_below_ma(
-                    current_date=current_date,
-                    ticker=self.data_models.bond_ticker,
-                    data=self.data_portfolio.bond_data,
-                    ma_type=self.data_models.ma_type,
-                    ma_window=self.data_models.ma_window,
-                ):
-                    return self.data_models.bond_ticker
-            return self.data_models.cash_ticker
-
-        # Start with the selected assets from the previous step
-        selected_assets = selected_assets.set_index("Asset")
+        Adjusts the weights of the assets based on independent momentum, excess return, 
+        and SMA filtering, while incorporating ranking-based weighting adjustments.
         
-        # Extract momentum and excess return for selected assets
+        This method is responsible for removing weights (negative momentum, negative excess return, SMA filtering)
+        and redistributing them accordingly.
+        """
+        selected_assets = selected_assets.set_index("Asset")
+
         momentum = selected_assets["Momentum"]
         excess_return = selected_assets["Excess_Return"]
 
-        # Filter assets that are in the available weight dictionary
         final_weights = pd.Series(self.data_models.assets_weights).copy()
         final_weights = final_weights.loc[final_weights.index.intersection(momentum.index)]
 
-        # Identify assets with negative excess returns and remove them
-        excess_return_negative = excess_return < 0
-        removed_weight = final_weights[excess_return_negative].sum()
-        final_weights[excess_return_negative] = 0  
+        # Apply ranking-based adjustments (without modifying base weights)
+        adjusted_weights = self.compute_weight_factors(final_weights, momentum, excess_return)
 
-        # Rank momentum and excess return within the selected assets
-        ranked_momentum = momentum.rank(ascending=False)
-        ranked_excess_return = excess_return.rank(ascending=False)
+        # Remove weight for assets with negative momentum or negative excess return
+        negative_momentum = momentum < 0
+        negative_excess_return = excess_return < 0
 
-        # Adjust weights using ranking-based multipliers
-        weight_factors = pd.Series(1, index=final_weights.index)
-        weight_factors[(ranked_momentum <= 3) | (ranked_excess_return <= 3)] *= 2
-        weight_factors[(ranked_momentum > len(momentum) - 3) | (ranked_excess_return > len(momentum) - 3)] /= 2
-        final_weights *= weight_factors
+        adjusted_weights[negative_momentum] = 0
+        adjusted_weights[negative_excess_return] = 0
 
+        # Apply SMA filtering separately
         below_sma = selected_assets.index[selected_assets.index.map(
             lambda ticker: utilities.is_below_ma(
                 current_date=current_date,
                 ticker=ticker,
-                data=self.data_portfolio.assets_data,  # Ensure the correct data source
+                data=self.data_portfolio.assets_data,
                 ma_type=self.data_models.ma_type,
                 ma_window=self.data_models.ma_window,
             )
         )]
 
-        # Remove weight for assets below SMA
-        removed_weight += final_weights[below_sma].sum()
-        final_weights[below_sma] = 0 
+        adjusted_weights[below_sma] = 0
+        print(adjusted_weights)
+        # Track removed weight after setting them to zero
+        removed_weight = 1 - adjusted_weights.sum()
 
-        # If all assets are removed, allocate fully to replacement asset (bond/cash)
-        if final_weights.sum() == 0:
-            replacement_asset = get_replacement_asset(current_date=current_date)
+        # Handle case where all weights are removed
+        if adjusted_weights.sum() == 0:
+            replacement_asset = self.get_replacement_asset(current_date=current_date)
             if replacement_asset:
                 return {replacement_asset: 1.0}
 
-        # Allocate the removed weight to cash
-        final_weights[self.data_models.cash_ticker] = removed_weight
-        final_weights = final_weights.div(final_weights.sum()).fillna(0)
-
-        return final_weights.to_dict()
+        replacement_asset = self.get_replacement_asset(current_date=current_date)
+        adjusted_weights[replacement_asset] = removed_weight
+        print(adjusted_weights)
+        return adjusted_weights.to_dict()
