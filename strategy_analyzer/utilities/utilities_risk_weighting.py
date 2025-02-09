@@ -3,107 +3,48 @@ Utilities module for adjusting weights.
 """
 
 import numpy as np
+import pandas as pd
 
-
-def validate_weights(weights):
+def validate_and_adjust_weights(weights, max_weight=0.30):
     """
-    Validate that the sum of the weights equals 1.
+    Ensure that the sum of the weights equals 1 by proportionally adjusting them if necessary.
+    Ensures all weights are non-negative and no weight exceeds the maximum threshold.
 
     Parameters
     ----------
     weights : dict
         Dictionary of asset weights with asset names as keys and weights as values.
+    max_weight : float, optional
+        Maximum allowable weight per asset (default is 30%).
 
-    Raises
-    ------
-    ValueError
-        If the sum of the weights does not equal 1.
+    Returns
+    -------
+    dict
+        Adjusted weights that sum to exactly 1 and remain within constraints.
     """
+    weights = {asset: max(weight, 0) for asset, weight in weights.items()}
+
+    over_weight_assets = {asset: weight for asset, weight in weights.items() if weight > max_weight}
+
+    if over_weight_assets:
+        capped_weights = {asset: min(weight, max_weight) for asset, weight in weights.items()}
+
+        total_excess = sum(weights.values()) - sum(capped_weights.values())
+
+        under_weight_assets = {asset: weight for asset, weight in capped_weights.items() if weight < max_weight}
+        total_under_weight = sum(under_weight_assets.values())
+
+        if total_under_weight > 0:
+            for asset in under_weight_assets:
+                capped_weights[asset] += (under_weight_assets[asset] / total_under_weight) * total_excess
+        
+        weights = capped_weights
+
     total_weight = sum(weights.values())
-    if not np.isclose(total_weight, 1.0):
-        raise ValueError(f"The sum of weights must equal 1. Current sum: {total_weight}")
+    if total_weight > 0:
+        weights = {asset: weight / total_weight for asset, weight in weights.items()}
 
-
-def calculate_standard_deviation_weighting(returns_df, weights, cash_ticker=None, bond_ticker=None):
-    """
-    Calculate the standard deviation for each asset and adjust weights based on contribution to total risk.
-
-    Parameters
-    ----------
-    returns_df : pandas.DataFrame
-        DataFrame of daily percentage returns with assets as columns.
-    weights : dict
-        Dictionary of asset weights with asset names as keys and weights as values.
-    cash_ticker : str, optional
-        The ticker representing cash in the portfolio.
-    bond_ticker : str, optional
-        The ticker representing bonds in the portfolio.
-
-    Returns
-    -------
-    dict
-        Dictionary of assets and their adjusted weights based on standard deviation.
-    """
-    fixed_assets = {cash_ticker, bond_ticker} & set(weights.keys())
-    adjustable_weights = {k: v for k, v in weights.items() if k not in fixed_assets}
-
-    portfolio_std = np.sqrt((
-        returns_df[list(adjustable_weights.keys())] * list(adjustable_weights.values())
-    ).sum(axis=1).var() * 252)
-    risk_contributions = {
-        asset: (returns_df[asset].std() * np.sqrt(252)) / portfolio_std for asset in adjustable_weights
-    }
-    total_risk_contribution = sum(risk_contributions.values())
-    adjusted_weights = {asset: (1 - (risk / total_risk_contribution)) for asset, risk in risk_contributions.items()}
-    adjusted_weights = {asset: weight / sum(adjusted_weights.values()) for asset, weight in adjusted_weights.items()}
-
-    for asset in fixed_assets:
-        adjusted_weights[asset] = weights[asset]
-
-    validate_weights(adjusted_weights)
-    return adjusted_weights
-
-
-def calculate_value_at_risk_weighting(returns_df, weights, confidence_level=0.95, cash_ticker=None, bond_ticker=None):
-    """
-    Calculate the Value at Risk (VaR) for each asset and adjust weights accordingly based on contribution to total risk.
-
-    Parameters
-    ----------
-    returns_df : pandas.DataFrame
-        DataFrame of daily percentage returns with assets as columns.
-    weights : dict
-        Dictionary of asset weights with asset names as keys and weights as values.
-    confidence_level : float, optional
-        Confidence level for VaR calculation (default is 0.95).
-    cash_ticker : str, optional
-        The ticker representing cash in the portfolio.
-    bond_ticker : str, optional
-        The ticker representing bonds in the portfolio.
-
-    Returns
-    -------
-    dict
-        Dictionary of assets and their adjusted weights based on VaR.
-    """
-    fixed_assets = {cash_ticker, bond_ticker} & set(weights.keys())
-    adjustable_weights = {k: v for k, v in weights.items() if k not in fixed_assets}
-
-    portfolio_var = np.percentile((
-        returns_df[list(adjustable_weights.keys())] * list(adjustable_weights.values())
-    ).sum(axis=1), (1 - confidence_level) * 100) * np.sqrt(252)
-    risk_contributions = {asset: (
-        -np.percentile(returns_df[asset], (1 - confidence_level) * 100) * np.sqrt(252)
-    ) / portfolio_var for asset in adjustable_weights}
-    total_risk_contribution = sum(risk_contributions.values())
-    adjusted_weights = {asset: (1 - (risk / total_risk_contribution)) for asset, risk in risk_contributions.items()}
-    adjusted_weights = {asset: weight / sum(adjusted_weights.values()) for asset, weight in adjusted_weights.items()}
-
-    for asset in fixed_assets:
-        adjusted_weights[asset] = weights[asset]
-
-    validate_weights(adjusted_weights)
-    return adjusted_weights
+    return weights
 
 
 def calculate_conditional_value_at_risk_weighting(
@@ -113,7 +54,7 @@ def calculate_conditional_value_at_risk_weighting(
         bond_ticker=None
 ):
     """
-    Calculate the Conditional Value at Risk for each asset and adjust weights based on contribution to total risk.
+    Calculate the Conditional Value at Risk (CVaR) for each asset and adjust weights based on contribution to total risk.
 
     Parameters
     ----------
@@ -134,71 +75,31 @@ def calculate_conditional_value_at_risk_weighting(
         Dictionary of assets and their adjusted weights based on CVaR.
     """
     fixed_assets = {cash_ticker, bond_ticker} & set(weights.keys())
-    adjustable_weights = {k: v for k, v in weights.items() if k not in fixed_assets}
+    fixed_weight = sum(weights[asset] for asset in fixed_assets if asset in weights)
 
-    portfolio_cvar = (returns_df[list(adjustable_weights.keys())] * list(adjustable_weights.values())).sum(axis=1)
-    portfolio_cvar = portfolio_cvar[
-        portfolio_cvar <= np.percentile(portfolio_cvar, (1 - confidence_level) * 100)
-    ].mean() * np.sqrt(252)
+    adjustable_weights = {k: v for k, v in weights.items() if k not in fixed_assets}
+    adjustable_assets = list(adjustable_weights.keys())
+
+    portfolio_returns = (returns_df[adjustable_assets] * list(adjustable_weights.values())).sum(axis=1)
+
+    portfolio_var_threshold = np.percentile(portfolio_returns, (1 - confidence_level) * 100)
+    portfolio_cvar = -portfolio_returns[portfolio_returns <= portfolio_var_threshold].mean() * np.sqrt(252)
+
     risk_contributions = {}
-    for asset in adjustable_weights:
-        daily_var = -np.percentile(returns_df[asset], (1 - confidence_level) * 100)
-        cvar = -returns_df[asset][returns_df[asset] <= daily_var].mean() * np.sqrt(252)
-        risk_contributions[asset] = cvar / portfolio_cvar
-    total_risk_contribution = sum(risk_contributions.values())
-    adjusted_weights = {asset: (1 - (risk / total_risk_contribution)) for asset, risk in risk_contributions.items()}
-    adjusted_weights = {asset: weight / sum(adjusted_weights.values()) for asset, weight in adjusted_weights.items()}
+    for asset in adjustable_assets:
+        marginal_cvar = -((returns_df[asset] * adjustable_weights[asset])[portfolio_returns <= portfolio_var_threshold].mean())
+        risk_contributions[asset] = max(marginal_cvar / portfolio_cvar, 1e-6)
+
+    adjusted_weights = {asset: (1 / risk) for asset, risk in risk_contributions.items()}
+
+    total_adjustable_weight = sum(adjusted_weights.values())
+
+    if total_adjustable_weight > 0:
+        adjusted_weights = {asset: (weight / total_adjustable_weight) * (1 - fixed_weight) for asset, weight in adjusted_weights.items()}
 
     for asset in fixed_assets:
         adjusted_weights[asset] = weights[asset]
 
-    validate_weights(adjusted_weights)
-    return adjusted_weights
+    adjusted_weights = validate_and_adjust_weights(adjusted_weights)
 
-
-def calculate_max_drawdown_weighting(returns_df, weights, cash_ticker=None, bond_ticker=None):
-    """
-    Calculate the maximum drawdown for each asset and adjust weights accordingly based on contribution to total risk.
-
-    Parameters
-    ----------
-    returns_df : pandas.DataFrame
-        DataFrame of daily percentage returns with assets as columns.
-    weights : dict
-        Dictionary of asset weights with asset names as keys and weights as values.
-    cash_ticker : str, optional
-        The ticker representing cash in the portfolio.
-    bond_ticker : str, optional
-        The ticker representing bonds in the portfolio.
-
-    Returns
-    -------
-    dict
-        Dictionary of assets and their adjusted weights based on max drawdown.
-    """
-    fixed_assets = {cash_ticker, bond_ticker} & set(weights.keys())
-    adjustable_weights = {k: v for k, v in weights.items() if k not in fixed_assets}
-
-    portfolio_drawdown = (
-        returns_df[list(adjustable_weights.keys())] * list(adjustable_weights.values())
-    ).sum(axis=1)
-    cumulative_returns = (1 + portfolio_drawdown).cumprod()
-    running_max = cumulative_returns.cummax()
-    portfolio_max_drawdown = ((cumulative_returns - running_max) / running_max).min()
-
-    risk_contributions = {}
-    for asset in adjustable_weights:
-        cumulative_returns = (1 + returns_df[asset]).cumprod()
-        running_max = cumulative_returns.cummax()
-        drawdown = (cumulative_returns - running_max) / running_max
-        max_drawdown = abs(drawdown.min())
-        risk_contributions[asset] = max_drawdown / portfolio_max_drawdown
-    total_risk_contribution = sum(risk_contributions.values())
-    adjusted_weights = {asset: (1 - (risk / total_risk_contribution)) for asset, risk in risk_contributions.items()}
-    adjusted_weights = {asset: weight / sum(adjusted_weights.values()) for asset, weight in adjusted_weights.items()}
-
-    for asset in fixed_assets:
-        adjusted_weights[asset] = weights[asset]
-
-    validate_weights(adjusted_weights)
     return adjusted_weights
