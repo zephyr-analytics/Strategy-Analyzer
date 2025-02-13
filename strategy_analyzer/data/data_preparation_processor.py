@@ -21,7 +21,7 @@ class DataPreparationProcessor:
         self.data_models = models_data
         self.data_portfolio = portfolio_data
         self.end_date = pd.to_datetime(self.data_models.end_date)
-        self.min_time = 8
+        self.min_time = 6
 
     def process(self):
         """

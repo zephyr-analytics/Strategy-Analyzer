@@ -39,7 +39,7 @@ class MomentumParameterTuning(ParameterTuningProcessor):
         """
         results = {}
         ma_list = [21, 42, 63, 84, 105, 126, 147, 168, 189, 210, 231, 252]
-        num_asset_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        num_asset_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
         trading_frequencies = ["Monthly"]
         ma_types = ["SMA", "EMA"]
 

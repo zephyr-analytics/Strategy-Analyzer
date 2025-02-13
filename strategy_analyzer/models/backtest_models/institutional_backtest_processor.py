@@ -33,7 +33,7 @@ class InstitutionalBacktestProcessor(BacktestingProcessor):
             An instance of the ModelsData class containing all relevant parameters and data for backtesting.
         """
         super().__init__(models_data=models_data, portfolio_data=portfolio_data, models_results=models_results)
-        self.reweight_num= 4
+        self.reweight_num= 2
 
     def get_portfolio_assets_and_weights(self, current_date):
         """
@@ -59,12 +59,12 @@ class InstitutionalBacktestProcessor(BacktestingProcessor):
         excess_return = self.calculate_excess_return(
             current_date=current_date,
             asset_data=self.data_portfolio.assets_data,
-            # TODO make it possible to also have bond data as an option.
-            risk_free_data=self.data_portfolio.cash_data
+            risk_free_data=self.data_portfolio.cash_data.copy()
         )
 
-        selected_index = momentum.nlargest(self.data_models.num_assets_to_select).index
+        selected_index = momentum.sort_values(ascending=False).index
         excess_return_selected = excess_return.reindex(selected_index)
+
         selected_assets = pd.DataFrame({
             'Asset': selected_index,
             'Momentum': momentum.loc[selected_index].values,
@@ -72,9 +72,8 @@ class InstitutionalBacktestProcessor(BacktestingProcessor):
         })
 
         adjusted_weights = self.adjust_weights(current_date=current_date, selected_assets=selected_assets)
-
+        print(adjusted_weights)
         return adjusted_weights
-
 
     def calculate_momentum(self, current_date: datetime, asset_data: pd.DataFrame) -> pd.Series:
         """
@@ -122,7 +121,7 @@ class InstitutionalBacktestProcessor(BacktestingProcessor):
         if risk_free_ticker in asset_prices.columns:
             asset_prices = asset_prices.drop(columns=[risk_free_ticker])
 
-        periods = [21, 63, 126, 189, 252]
+        periods = [21, 63]
 
         excess_return_values = {}
 
@@ -179,30 +178,7 @@ class InstitutionalBacktestProcessor(BacktestingProcessor):
         return cash_ticker
 
 
-    def calculate_volatility_factor(self, current_date: datetime, asset_data: pd.DataFrame) -> pd.Series:
-        """
-        Calculate volatility factor as 21-day standard deviation minus 1.5 times the 126-day standard deviation.
-
-        Parameters
-        ----------
-        current_date : datetime
-            The current date for which the volatility factor is being calculated.
-        asset_data : pd.DataFrame
-            DataFrame containing asset price data.
-
-        Returns
-        -------
-        pd.Series
-            Series of volatility factor values for each asset.
-        """
-        rolling_volatility_21 = asset_data.pct_change().rolling(21).std()
-        rolling_volatility_126 = asset_data.pct_change().rolling(126).std()
-        volatility_factor = rolling_volatility_21.loc[current_date] - (1.5 * rolling_volatility_126.loc[current_date])
-
-        return volatility_factor
-
-
-    def compute_weight_factors(self, base_weights: pd.Series, momentum: pd.Series, excess_return: pd.Series, volatility: pd.Series) -> pd.Series:
+    def compute_weight_factors(self, base_weights: pd.Series, momentum: pd.Series, excess_return: pd.Series) -> pd.Series:
         """
         Computes weight adjustment factors based on asset ranking for momentum, excess return, and volatility.
         This method does not remove weights but only modifies existing weights based on ranking.
@@ -212,29 +188,23 @@ class InstitutionalBacktestProcessor(BacktestingProcessor):
         """
         ranked_momentum = momentum.rank(ascending=False)
         ranked_excess_return = excess_return.rank(ascending=False)
-        ranked_volatility = volatility.rank(ascending=True)
 
         adjusted_weights_momentum = base_weights.copy()
         adjusted_weights_excess_return = base_weights.copy()
-        adjusted_weights_volatility = base_weights.copy()
 
         top_momentum_indices = ranked_momentum.nlargest(self.reweight_num).index
         top_excess_return_indices = ranked_excess_return.nlargest(self.reweight_num).index
-        top_volatility_indices = ranked_volatility.nlargest(self.reweight_num).index
 
         bottom_momentum_indices = ranked_momentum.nsmallest(self.reweight_num).index
         bottom_excess_return_indices = ranked_excess_return.nsmallest(self.reweight_num).index
-        bottom_volatility_indices = ranked_volatility.nsmallest(self.reweight_num).index
 
-        adjusted_weights_momentum.loc[top_momentum_indices] *= 1.5
-        adjusted_weights_excess_return.loc[top_excess_return_indices] *= 1.5
-        adjusted_weights_volatility.loc[top_volatility_indices] *= 1.5
+        adjusted_weights_momentum.loc[top_momentum_indices] *= 2
+        adjusted_weights_excess_return.loc[top_excess_return_indices] *= 2
 
-        adjusted_weights_momentum.loc[bottom_momentum_indices] /= 2
-        adjusted_weights_excess_return.loc[bottom_excess_return_indices] /= 2
-        adjusted_weights_volatility.loc[bottom_volatility_indices] /= 2
+        adjusted_weights_momentum.loc[bottom_momentum_indices] *= 0.5
+        adjusted_weights_excess_return.loc[bottom_excess_return_indices] *= 0.5
 
-        adjusted_weights = (adjusted_weights_momentum + adjusted_weights_excess_return + adjusted_weights_volatility) / 3
+        adjusted_weights = (adjusted_weights_momentum + adjusted_weights_excess_return) / 2
 
         return adjusted_weights
 
@@ -253,17 +223,19 @@ class InstitutionalBacktestProcessor(BacktestingProcessor):
 
         momentum = selected_assets["Momentum"]
         excess_return = selected_assets["Excess_Return"]
-        volatility = self.calculate_volatility_factor(current_date, self.data_portfolio.assets_data)
 
         final_weights = pd.Series(self.data_models.assets_weights).copy()
         final_weights = final_weights.loc[final_weights.index.intersection(momentum.index)]
 
-        adjusted_weights = self.compute_weight_factors(final_weights, momentum, excess_return, volatility)
+        adjusted_weights = self.compute_weight_factors(final_weights, momentum, excess_return)
 
         negative_momentum = momentum < 0
-        negative_excess_return = excess_return < 0
         adjusted_weights[negative_momentum] = 0
+
+        negative_excess_return = excess_return < 0
         adjusted_weights[negative_excess_return] = 0
+
+        adjusted_weights /= adjusted_weights.sum()
 
         below_sma = selected_assets.index[selected_assets.index.map(
             lambda ticker: utilities.is_below_ma(
@@ -277,14 +249,24 @@ class InstitutionalBacktestProcessor(BacktestingProcessor):
 
         adjusted_weights[below_sma] = 0
 
-        removed_weight = 1 - adjusted_weights.sum()
-
         if adjusted_weights.sum() == 0:
             replacement_asset = self.get_replacement_asset(current_date=current_date)
             if replacement_asset:
                 return {replacement_asset: 1.0}
+        else:
+            removed_weight = 1 - adjusted_weights.sum()
+            replacement_asset = self.get_replacement_asset(current_date=current_date)
 
-        replacement_asset = self.get_replacement_asset(current_date=current_date)
-        adjusted_weights[replacement_asset] = removed_weight
+            if replacement_asset:
+                adjusted_weights[replacement_asset] = removed_weight
 
-        return adjusted_weights.to_dict()
+            total_weight = adjusted_weights.sum()
+            
+            if total_weight > 0:
+                adjusted_weights = {
+                    ticker: weight / total_weight for ticker, weight in adjusted_weights.items()
+                }
+            else:
+                return {replacement_asset: 1.0}
+
+        return adjusted_weights

@@ -5,6 +5,7 @@ Module for backtesting momentum assets.
 import datetime
 import logging
 
+import numpy as np
 import pandas as pd
 
 import strategy_analyzer.utilities as utilities
@@ -44,7 +45,7 @@ class MomentumBacktestProcessor(BacktestingProcessor):
             'Asset': momentum.nlargest(self.data_models.num_assets_to_select).index,
             'Momentum': momentum.nlargest(self.data_models.num_assets_to_select).values
         })
-        print(selected_assets)
+
         adjusted_weights = self.adjust_weights(current_date=current_date, selected_assets=selected_assets)
         # adjusted_weights = utilities.calculate_conditional_value_at_risk_weighting(
         #     returns_df=self.data_portfolio.assets_data.copy().pct_change().dropna(),
@@ -53,7 +54,7 @@ class MomentumBacktestProcessor(BacktestingProcessor):
         #     cash_ticker=self.data_models.cash_ticker,
         #     bond_ticker=self.data_models.bond_ticker
         # )
-        # print(adjusted_weights)
+
         return adjusted_weights
 
     def calculate_momentum(self, current_date: datetime) -> pd.Series:
@@ -70,7 +71,7 @@ class MomentumBacktestProcessor(BacktestingProcessor):
         pd.Series
             Series of momentum values for each asset.
         """
-        momentum_data = self.data_portfolio.assets_data.pct_change().dropna()
+        momentum_data = self.data_portfolio.assets_data.copy().pct_change().dropna()
         periods = [21, 63, 126, 189, 252]
 
         momentum_values = [(momentum_data.loc[:current_date].iloc[-p:] + 1).prod() - 1 for p in periods]
@@ -121,7 +122,7 @@ class MomentumBacktestProcessor(BacktestingProcessor):
                 if not utilities.is_below_ma(
                     current_date=current_date,
                     ticker=self.data_models.bond_ticker,
-                    data=self.data_portfolio.bond_data,
+                    data=self.data_portfolio.bond_data.copy(),
                     ma_type=self.data_models.ma_type,
                     ma_window=self.data_models.ma_window,
                 ):
@@ -133,7 +134,7 @@ class MomentumBacktestProcessor(BacktestingProcessor):
             if utilities.is_below_ma(
                 current_date=current_date,
                 ticker=self.data_models.ma_threshold_asset,
-                data=self.data_portfolio.ma_threshold_data,
+                data=self.data_portfolio.ma_threshold_data.copy(),
                 ma_type=self.data_models.ma_type,
                 ma_window=self.data_models.ma_window,
             ):
@@ -153,7 +154,7 @@ class MomentumBacktestProcessor(BacktestingProcessor):
                 or utilities.is_below_ma(
                     current_date=current_date,
                     ticker=asset,
-                    data=self.data_portfolio.assets_data,
+                    data=self.data_portfolio.assets_data.copy(),
                     ma_type=self.data_models.ma_type,
                     ma_window=self.data_models.ma_window,
                 )

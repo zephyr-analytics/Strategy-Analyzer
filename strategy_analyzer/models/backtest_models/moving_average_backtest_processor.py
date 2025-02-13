@@ -125,8 +125,9 @@ class MovingAverageBacktestProcessor(BacktestingProcessor):
                     adjusted_weights[ticker] = 0
 
         total_weight = sum(adjusted_weights.values())
-        if total_weight > 0:
-            for ticker in adjusted_weights:
-                adjusted_weights[ticker] /= total_weight
+
+        adjusted_weights = {
+            ticker: weight / total_weight for ticker, weight in adjusted_weights.items()
+        }
 
         return adjusted_weights
