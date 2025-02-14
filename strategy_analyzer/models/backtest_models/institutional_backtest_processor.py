@@ -33,7 +33,9 @@ class InstitutionalBacktestProcessor(BacktestingProcessor):
             An instance of the ModelsData class containing all relevant parameters and data for backtesting.
         """
         super().__init__(models_data=models_data, portfolio_data=portfolio_data, models_results=models_results)
-        self.reweight_num= 2
+        # self.reweight_num= 5
+        # self.positive_adjustment = 2
+        # self.negative_adjustment = 0.5
 
     def get_portfolio_assets_and_weights(self, current_date):
         """
@@ -72,7 +74,7 @@ class InstitutionalBacktestProcessor(BacktestingProcessor):
         })
 
         adjusted_weights = self.adjust_weights(current_date=current_date, selected_assets=selected_assets)
-        print(adjusted_weights)
+        # print(adjusted_weights)
         return adjusted_weights
 
     def calculate_momentum(self, current_date: datetime, asset_data: pd.DataFrame) -> pd.Series:
@@ -192,17 +194,17 @@ class InstitutionalBacktestProcessor(BacktestingProcessor):
         adjusted_weights_momentum = base_weights.copy()
         adjusted_weights_excess_return = base_weights.copy()
 
-        top_momentum_indices = ranked_momentum.nlargest(self.reweight_num).index
-        top_excess_return_indices = ranked_excess_return.nlargest(self.reweight_num).index
+        top_momentum_indices = ranked_momentum.nlargest(self.data_models.asset_shift).index
+        top_excess_return_indices = ranked_excess_return.nlargest(self.data_models.asset_shift).index
 
-        bottom_momentum_indices = ranked_momentum.nsmallest(self.reweight_num).index
-        bottom_excess_return_indices = ranked_excess_return.nsmallest(self.reweight_num).index
+        bottom_momentum_indices = ranked_momentum.nsmallest(self.data_models.asset_shift).index
+        bottom_excess_return_indices = ranked_excess_return.nsmallest(self.data_models.asset_shift).index
 
-        adjusted_weights_momentum.loc[top_momentum_indices] *= 2
-        adjusted_weights_excess_return.loc[top_excess_return_indices] *= 2
+        adjusted_weights_momentum.loc[top_momentum_indices] *= self.data_models.positive_adjustment
+        adjusted_weights_excess_return.loc[top_excess_return_indices] *= self.data_models.positive_adjustment
 
-        adjusted_weights_momentum.loc[bottom_momentum_indices] *= 0.5
-        adjusted_weights_excess_return.loc[bottom_excess_return_indices] *= 0.5
+        adjusted_weights_momentum.loc[bottom_momentum_indices] *= self.data_models.negative_adjustment
+        adjusted_weights_excess_return.loc[bottom_excess_return_indices] *= self.data_models.negative_adjustment
 
         adjusted_weights = (adjusted_weights_momentum + adjusted_weights_excess_return) / 2
 

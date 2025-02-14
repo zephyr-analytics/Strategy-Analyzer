@@ -46,6 +46,9 @@ class ModelsData:
         self._use_tax = False
         self._tax_rate = 0.22
         self._discount_to_volatility = False
+        self._positive_adjustment = None
+        self._negative_adjustment = None
+        self._asset_shift = None
 
 
     @property
@@ -691,3 +694,66 @@ class ModelsData:
             value (int): Integer representing the contribution.
         """
         self._discount_to_volatility = value
+
+
+    @property
+    def asset_shift(self):
+        """
+        Gets the contribution.
+
+        Returns:
+            int: Integer representing the contribution.
+        """
+        return self._asset_shift
+
+    @asset_shift.setter
+    def asset_shift(self, value):
+        """
+        Sets the contribution.
+
+        Args:
+            value (int): Integer representing the contribution.
+        """
+        self._asset_shift = value
+
+
+    @property
+    def positive_adjustment(self):
+        """
+        Gets the contribution.
+
+        Returns:
+            int: Integer representing the contribution.
+        """
+        return self._positive_adjustment
+
+    @positive_adjustment.setter
+    def positive_adjustment(self, value):
+        """
+        Sets the contribution.
+
+        Args:
+            value (int): Integer representing the contribution.
+        """
+        self._positive_adjustment = value
+
+
+    @property
+    def negative_adjustment(self):
+        """
+        Gets the contribution.
+
+        Returns:
+            int: Integer representing the contribution.
+        """
+        return self._negative_adjustment
+
+    @negative_adjustment.setter
+    def negative_adjustment(self, value):
+        """
+        Sets the contribution.
+
+        Args:
+            value (int): Integer representing the contribution.
+        """
+        self._negative_adjustment = value

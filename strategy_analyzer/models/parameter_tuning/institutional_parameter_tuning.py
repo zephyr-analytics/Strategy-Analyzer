@@ -9,11 +9,11 @@ from tqdm import tqdm
 from strategy_analyzer.models.models_data import ModelsData
 from strategy_analyzer.data.portfolio_data import PortfolioData
 from strategy_analyzer.models.parameter_tuning.parameter_tuning_processor import ParameterTuningProcessor
-from strategy_analyzer.models.backtest_models.momentum_backtest_processor import MomentumBacktestProcessor
+from strategy_analyzer.models.backtest_models.institutional_backtest_processor import InstitutionalBacktestProcessor
 from strategy_analyzer.results.models_results import ModelsResults
 
 
-class MomentumParameterTuning(ParameterTuningProcessor):
+class InstitutionalParameterTuning(ParameterTuningProcessor):
     """
     Processor for parameter tuning based on the a momentum portfolio.
     """
@@ -39,18 +39,20 @@ class MomentumParameterTuning(ParameterTuningProcessor):
         """
         results = {}
         ma_list = [21, 42, 63, 84, 105, 126, 147, 168, 189, 210, 231, 252]
-        num_asset_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]
+        positive_list = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.25, 2.5, 2.75, 3]
+        negative_list = [0, 0.25, 0.5, 1]
+        asset_shift = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
         trading_frequencies = ["Monthly"]
         ma_types = ["SMA", "EMA"]
 
-        total_assets = len(self.data_models.assets_weights)
-
         parameter_combinations = [
-            (ma, frequency, num_assets, ma_type)
+            (ma, frequency, ma_type, positive, negative, shift)
             for ma in ma_list
             for frequency in trading_frequencies
-            for num_assets in num_asset_list if num_assets <= total_assets
             for ma_type in ma_types
+            for positive in positive_list
+            for negative in negative_list
+            for shift in asset_shift
         ]
 
         with Pool() as pool:
@@ -79,11 +81,11 @@ class MomentumParameterTuning(ParameterTuningProcessor):
         dict
             The result of the combination processing.
         """
-        ma, frequency, num_assets, ma_type = args
+        ma, frequency, ma_type, positive, negative, shift = args
 
-        return self.process_combination(ma, frequency, num_assets, ma_type)
+        return self.process_combination(ma, frequency, ma_type, positive, negative, shift)
 
-    def process_combination(self, ma, frequency, num_assets, ma_type) -> dict:
+    def process_combination(self, ma, frequency, ma_type, positive, negative, shift) -> dict:
         """
         Processes a single parameter combination and returns the backtest results.
 
@@ -105,10 +107,12 @@ class MomentumParameterTuning(ParameterTuningProcessor):
         """
         self.data_models.ma_window = ma
         self.data_models.trading_frequency = frequency
-        self.data_models.num_assets_to_select = num_assets
+        self.data_models.asset_shift = shift
         self.data_models.ma_type = ma_type
+        self.data_models.positive_adjustment = positive
+        self.data_models.negative_adjustment = negative
 
-        backtest = MomentumBacktestProcessor(
+        backtest = InstitutionalBacktestProcessor(
             models_data=self.data_models, 
             portfolio_data=self.data_portfolio,
             models_results=self.results_models

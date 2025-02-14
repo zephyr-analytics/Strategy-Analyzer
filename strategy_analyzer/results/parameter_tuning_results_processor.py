@@ -42,7 +42,13 @@ class ParameterTuningResultsProcessor:
         results : dict
             Dictionary of results from parameter tuning.
         """
-        if self.data_models.processing_type.startswith("MOMENTUM"):
+        if self.data_models.processing_type.startswith("INSTITUTIONAL"):
+            strategy_label = "Institutional_Strategy"
+            strategy_format = [
+                f"MA:{key[0]} Freq:{key[1]} Type:{key[2]} Positive:{key[3]} Negative:{key[4]} Asset Shift{key[5]}" for key in results.keys()
+            ]
+            title = f"Possible Institutional Strategies - {self.data_models.weights_filename}"
+        elif self.data_models.processing_type.startswith("MOMENTUM"):
             strategy_label = "Momentum_Strategy"
             strategy_format = [
                 f"MA:{key[0]} Freq:{key[1]} Assets:{key[2]} Type:{key[3]}" for key in results.keys()
