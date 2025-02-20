@@ -39,7 +39,7 @@ class InstitutionalParameterTuning(ParameterTuningProcessor):
         """
         results = {}
         ma_list = [126, 147, 168, 189, 210, 231, 252]
-        positive_list = [1, 1.25, 1.5, 1.75, 2, 2.25, 2.5, 2.75, 3, 3.25, 3.5, 3.75, 4, 4.25, 4.5, 4.75, 5]
+        positive_list = [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8]
         negative_list = [0, 0.25, 0.5, 1]
         asset_shift = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
         trading_frequencies = ["Monthly"]

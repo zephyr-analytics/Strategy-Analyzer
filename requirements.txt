@@ -9,5 +9,5 @@ pillow==10.4.0
 plotly==5.23.0
 requests==2.32.3
 scipy==1.8.0
-yfinance==0.2.41
+yfinance==0.2.45
 pylint==3.3.3

@@ -37,10 +37,10 @@ def fetch_data(all_tickers, start_date=None, end_date=None):
     session = requests.Session()
 
     if start_date and end_date is None:
-        data = yf.download(all_tickers, timeout=30, session=session, threads=False)['Adj Close']
+        data = yf.download(all_tickers, session=session, threads=False)['Adj Close']
     else:
         data = yf.download(
-            all_tickers, start=start_date, end=end_date, timeout=30, session=session, threads=False
+            all_tickers, start=start_date, end=end_date, session=session, threads=False
         )['Adj Close']
     session.close()
 

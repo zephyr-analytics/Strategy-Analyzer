@@ -46,7 +46,7 @@ class ModelsData:
         self._use_tax = False
         self._tax_rate = 0.22
         self._discount_to_volatility = False
-        self._positive_adjustment = 5
+        self._positive_adjustment = 5.5
         self._negative_adjustment = 0.25
         self._asset_shift = 5
 

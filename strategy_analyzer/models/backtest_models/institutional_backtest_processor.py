@@ -155,8 +155,12 @@ class InstitutionalBacktestProcessor(BacktestingProcessor):
         cash_ticker = self.data_models.cash_ticker
 
         if bond_ticker and bond_ticker in self.data_portfolio.bond_data.columns:
-            bond_momentum = self.calculate_momentum(current_date=current_date, asset_data=self.data_portfolio.bond_data.copy()).get(bond_ticker, 0)
-            cash_momentum = self.calculate_momentum(current_date=current_date, asset_data=self.data_portfolio.cash_data.copy()).get(cash_ticker, 0)
+            bond_momentum = self.calculate_momentum(
+                current_date=current_date, asset_data=self.data_portfolio.bond_data.copy()
+            ).get(bond_ticker, 0)
+            cash_momentum = self.calculate_momentum(
+                current_date=current_date, asset_data=self.data_portfolio.cash_data.copy()
+            ).get(cash_ticker, 0)
 
             bond_excess_return = self.calculate_excess_return(
                 current_date,
