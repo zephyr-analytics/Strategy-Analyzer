@@ -40,7 +40,7 @@ class MomentumParameterTuning(ParameterTuningProcessor):
         results = {}
         ma_list = [21, 42, 63, 84, 105, 126, 147, 168, 189, 210, 231, 252]
         num_asset_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]
-        trading_frequencies = ["Monthly"]
+        trading_frequencies = ["Monthly", "Quarterly"]
         ma_types = ["SMA", "EMA"]
 
         total_assets = len(self.data_models.assets_weights)

@@ -39,6 +39,9 @@ class MovingAverageBacktestProcessor(BacktestingProcessor):
 
         return adjusted_weights
 
+    def get_replacement_asset(self, current_date):
+        pass
+
     def calculate_momentum(self, current_date: datetime=None):
         pass
 
@@ -88,7 +91,7 @@ class MovingAverageBacktestProcessor(BacktestingProcessor):
                 if not utilities.is_below_ma(
                     current_date=current_date,
                     ticker=self.data_models.bond_ticker,
-                    data=self.data_portfolio.bond_data,
+                    data=self.data_portfolio.bond_data.copy(),
                     ma_type=self.data_models.ma_type,
                     ma_window=self.data_models.ma_window,
                 ):
@@ -100,7 +103,7 @@ class MovingAverageBacktestProcessor(BacktestingProcessor):
             if utilities.is_below_ma(
                 current_date=current_date,
                 ticker=self.data_models.ma_threshold_asset,
-                data=self.data_portfolio.ma_threshold_data,
+                data=self.data_portfolio.ma_threshold_data.copy(),
                 ma_type=self.data_models.ma_type,
                 ma_window=self.data_models.ma_window,
             ):
@@ -114,7 +117,7 @@ class MovingAverageBacktestProcessor(BacktestingProcessor):
                 and utilities.is_below_ma(
                     current_date=current_date,
                     ticker=ticker,
-                    data=self.data_portfolio.assets_data,
+                    data=self.data_portfolio.assets_data.copy(),
                     ma_type=self.data_models.ma_type,
                     ma_window=self.data_models.ma_window,
                 )
@@ -125,9 +128,8 @@ class MovingAverageBacktestProcessor(BacktestingProcessor):
                     adjusted_weights[ticker] = 0
 
         total_weight = sum(adjusted_weights.values())
-
-        adjusted_weights = {
-            ticker: weight / total_weight for ticker, weight in adjusted_weights.items()
-        }
+        if total_weight > 0:
+            for ticker in adjusted_weights:
+                adjusted_weights[ticker] /= total_weight
 
         return adjusted_weights

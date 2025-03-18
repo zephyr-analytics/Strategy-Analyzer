@@ -45,7 +45,7 @@ class ParameterTuningResultsProcessor:
         if self.data_models.processing_type.startswith("INSTITUTIONAL"):
             strategy_label = "Institutional_Strategy"
             strategy_format = [
-                f"MA:{key[0]} Freq:{key[1]} Type:{key[2]} Positive:{key[3]} Negative:{key[4]} Asset Shift{key[5]}" for key in results.keys()
+                f"MA:{key[0]} Freq:{key[1]} Type:{key[2]}" for key in results.keys()
             ]
             title = f"Possible Institutional Strategies - {self.data_models.weights_filename}"
         elif self.data_models.processing_type.startswith("MOMENTUM"):

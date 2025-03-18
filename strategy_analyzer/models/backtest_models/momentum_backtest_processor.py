@@ -52,7 +52,7 @@ class MomentumBacktestProcessor(BacktestingProcessor):
 
     def calculate_momentum(self, current_date: datetime) -> pd.Series:
         """
-        Calculate average momentum based on 1, 3, 6, 9, and 12-month cumulative returns.
+        Calculate average momentum based on 3, 6, 9, and 12-month cumulative returns.
 
         Parameters
         ----------
@@ -65,11 +65,16 @@ class MomentumBacktestProcessor(BacktestingProcessor):
             Series of momentum values for each asset.
         """
         momentum_data = self.data_portfolio.assets_data.copy().pct_change().dropna()
-        periods = [21, 63, 126, 189, 252]
+        momentum_1m = (momentum_data.loc[:current_date].iloc[-21:] + 1).prod() - 1
+        momentum_3m = (momentum_data.loc[:current_date].iloc[-63:] + 1).prod() - 1
+        momentum_6m = (momentum_data.loc[:current_date].iloc[-126:] + 1).prod() - 1
+        momentum_9m = (momentum_data.loc[:current_date].iloc[-189:] + 1).prod() - 1
+        momentum_12m = (momentum_data.loc[:current_date].iloc[-252:] + 1).prod() - 1
 
-        momentum_values = [(momentum_data.loc[:current_date].iloc[-p:] + 1).prod() - 1 for p in periods]
+        return (momentum_1m + momentum_3m + momentum_6m + momentum_9m + momentum_12m) / 5
 
-        return sum(momentum_values) / len(periods)
+    def get_replacement_asset(self, current_date):
+        pass
 
     def adjust_weights(
             self,

@@ -39,20 +39,14 @@ class InstitutionalParameterTuning(ParameterTuningProcessor):
         """
         results = {}
         ma_list = [126, 147, 168, 189, 210, 231, 252]
-        positive_list = [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8]
-        negative_list = [0, 0.25, 0.5, 1]
-        asset_shift = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
         trading_frequencies = ["Monthly"]
         ma_types = ["SMA", "EMA"]
 
         parameter_combinations = [
-            (ma, frequency, ma_type, positive, negative, shift)
+            (ma, frequency, ma_type)
             for ma in ma_list
             for frequency in trading_frequencies
             for ma_type in ma_types
-            for positive in positive_list
-            for negative in negative_list
-            for shift in asset_shift
         ]
 
         with Pool() as pool:
@@ -81,11 +75,11 @@ class InstitutionalParameterTuning(ParameterTuningProcessor):
         dict
             The result of the combination processing.
         """
-        ma, frequency, ma_type, positive, negative, shift = args
+        ma, frequency, ma_type = args
 
-        return self.process_combination(ma, frequency, ma_type, positive, negative, shift)
+        return self.process_combination(ma, frequency, ma_type)
 
-    def process_combination(self, ma, frequency, ma_type, positive, negative, shift) -> dict:
+    def process_combination(self, ma, frequency, ma_type) -> dict:
         """
         Processes a single parameter combination and returns the backtest results.
 
@@ -107,10 +101,7 @@ class InstitutionalParameterTuning(ParameterTuningProcessor):
         """
         self.data_models.ma_window = ma
         self.data_models.trading_frequency = frequency
-        self.data_models.asset_shift = shift
         self.data_models.ma_type = ma_type
-        self.data_models.positive_adjustment = positive
-        self.data_models.negative_adjustment = negative
 
         backtest = InstitutionalBacktestProcessor(
             models_data=self.data_models, 

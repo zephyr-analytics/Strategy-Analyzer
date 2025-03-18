@@ -67,6 +67,10 @@ class BacktestingProcessor(ABC):
         """
 
     @abstractmethod
+    def get_replacement_asset(self, current_date):
+        pass
+
+    @abstractmethod
     def adjust_weights(
             self,
             current_date: datetime,
