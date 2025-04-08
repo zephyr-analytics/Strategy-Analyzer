@@ -158,7 +158,7 @@ class BacktestingProcessor(ABC):
         """
         Prepare the monthly dates for the backtest.
         """
-        self.adjusted_start_date = self.data_models.start_date + pd.DateOffset(months=(self.data_models.ma_window/21))
+        self.adjusted_start_date = self.data_models.start_date + pd.DateOffset(months=int(self.data_models.ma_window / 21))
 
         monthly_dates = pd.date_range(start=self.adjusted_start_date, end=self.data_models.end_date, freq='M')
 
