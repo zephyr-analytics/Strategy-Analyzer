@@ -20,14 +20,10 @@ def fetch_data(all_tickers, start_date=None, end_date=None):
     ----------
     all_tickers : list
         List of asset tickers.
-    start_date : str
-        The start date for fetching the data.
-    end_date : str
-        The end date for fetching the data.
-    max_retries : int
-        Number of retries if the download fails.
-    delay : int
-        Delay (in seconds) between retries.
+    start_date : str or None
+        The start date for fetching the data (YYYY-MM-DD).
+    end_date : str or None
+        The end date for fetching the data (YYYY-MM-DD).
 
     Returns
     -------
@@ -36,15 +32,27 @@ def fetch_data(all_tickers, start_date=None, end_date=None):
     """
     session = requests.Session()
 
-    if start_date and end_date is None:
-        data = yf.download(all_tickers, session=session, threads=False)['Adj Close']
-    else:
-        data = yf.download(
-            all_tickers, start=start_date, end=end_date, session=session, threads=False
-        )['Adj Close']
+    data = yf.download(
+        tickers=all_tickers,
+        start=start_date,
+        end=end_date,
+        session=session,
+        threads=False,
+        group_by='ticker',
+        auto_adjust=False,
+        progress=False
+    )
+
     session.close()
 
-    return data
+    # Handle both single and multiple tickers
+    if isinstance(data.columns, pd.MultiIndex):
+        adj_close = pd.concat({ticker: data[ticker]["Adj Close"] for ticker in all_tickers if "Adj Close" in data[ticker]}, axis=1)
+    else:
+        adj_close = data[["Adj Close"]]
+        adj_close.columns = all_tickers if len(all_tickers) == 1 else adj_close.columns
+
+    return adj_close
 
 
 def load_weights():
