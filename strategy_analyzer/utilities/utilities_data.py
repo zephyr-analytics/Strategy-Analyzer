@@ -30,20 +30,13 @@ def fetch_data(all_tickers, start_date=None, end_date=None):
     DataFrame
         Adjusted closing prices of the assets.
     """
-    session = requests.Session()
-
     data = yf.download(
         tickers=all_tickers,
         start=start_date,
         end=end_date,
-        session=session,
-        threads=False,
         group_by='ticker',
-        auto_adjust=False,
-        progress=False
+        auto_adjust=False
     )
-
-    session.close()
 
     # Handle both single and multiple tickers
     if isinstance(data.columns, pd.MultiIndex):
